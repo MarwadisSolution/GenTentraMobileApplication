@@ -1,0 +1,210 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_bloc.dart';
+import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_event.dart';
+import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_state.dart';
+import 'package:gen_tentra_mobile_application/Login%20Page/verify_otp_page.dart';
+import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
+
+import 'Login Bloc/login_modal.dart';
+import 'login_apis.dart';
+import 'login_pages_data.dart';
+
+class OtpPage extends StatefulWidget {
+  const OtpPage({super.key});
+
+  @override
+  State<OtpPage> createState() => _OtpPageState();
+}
+
+class _OtpPageState extends State<OtpPage> {
+  bool otpButtonPressed=false;
+  @override
+  Widget build(BuildContext context) {
+
+    return BlocListener<LoginBloc, LoginState>(
+      listenWhen: (previous, current) =>
+      previous.errorMessage != current.errorMessage,
+      listener: (context, state) {
+        if (state.isError && otpButtonPressed) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(state.errorMessage),
+            ),
+          );
+          otpButtonPressed = false;
+        }
+        if (state.navigateToOtp) {
+          print("NAVIGATING TO VERIFY PAGE");
+          context.read<LoginBloc>().add(
+            ResetNavigationEvent(),
+          );
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BlocProvider.value(
+                value: context.read<LoginBloc>(),
+                child: const VerifyOtpPage(),
+              ),
+            ),
+          );
+        }
+      },
+        child: GestureDetector(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+            },
+            child: Scaffold(
+              body: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: MediaQuery.of(context).size.height * 0.03,
+                    right: MediaQuery.of(context).size.height * 0.03,
+                  ),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.07,
+                        ),
+                        Text(
+                          LoginPageData.welcomeBack,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 24,
+                            letterSpacing: 0.31,
+                          ),
+                        ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.005,
+                        ),
+                        Text(
+                          LoginPageData.wereGlad,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 15,
+                            letterSpacing: 0.31,
+                            color: ColorScheme.of(
+                              context,
+                            ).onSurface.withOpacity(0.6),
+                          ),
+                        ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.08,
+                        ),
+                        TextField(
+                          maxLength: 10,
+
+                          keyboardType: TextInputType.number,
+                          cursorColor: ColorScheme.of(context).onSurface,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          onChanged: (value) {
+                            context.read<LoginBloc>().add(
+                              NumberFillingForOtpEvent(value),
+                            );
+                          },
+                          onSubmitted: (value) {
+                            context.read<LoginBloc>().add(SignInButtonEvent());
+                          },
+                          decoration: InputDecoration(
+                            counterText: "",
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14.0,
+                                horizontal: 15,
+                              ),
+                              child: Text(
+                                "+91",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                            labelText: LoginPageData.mobileNo,
+                            labelStyle: TextStyle(
+                              color: ColorScheme.of(
+                                context,
+                              ).onSurface.withOpacity(0.3),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: ColorScheme.of(
+                                  context,
+                                ).onSurface.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: ColorScheme.of(
+                                  context,
+                                ).onSurface.withOpacity(0.3),
+
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        ///----------------Generate OTP----------
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.06,
+                        ),
+                        InkWell(
+                          onTap: () {
+                            otpButtonPressed=true;
+                            context.read<LoginBloc>().add(SignInButtonEvent());
+                          },
+                          child: SizedBox(
+                            height: 45,
+                            width: 200,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: GradientColors.primaryGradient,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    LoginPageData.generateOtp,
+                                    style: TextStyle(
+                                      color: ColorScheme.of(context).surface,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width:
+                                        MediaQuery.of(context).size.width *
+                                        0.02,
+                                  ),
+                                  SvgPicture.asset(LoginPageData.arrowIcon),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+    );
+  }
+}
