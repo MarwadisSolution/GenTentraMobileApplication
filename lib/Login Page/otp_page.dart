@@ -1,3 +1,4 @@
+import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -20,12 +21,12 @@ class OtpPage extends StatefulWidget {
 
 class _OtpPageState extends State<OtpPage> {
   bool otpButtonPressed=false;
+  String selectedCountryCode = "+91";
+  final TextEditingController phoneController = TextEditingController();
   @override
   Widget build(BuildContext context) {
 
     return BlocListener<LoginBloc, LoginState>(
-      listenWhen: (previous, current) =>
-      previous.errorMessage != current.errorMessage,
       listener: (context, state) {
         if (state.isError && otpButtonPressed) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -96,6 +97,7 @@ class _OtpPageState extends State<OtpPage> {
                           height: MediaQuery.of(context).size.height * 0.08,
                         ),
                         TextField(
+                          controller: phoneController,
                           maxLength: 10,
 
                           keyboardType: TextInputType.number,
@@ -106,7 +108,7 @@ class _OtpPageState extends State<OtpPage> {
                           ),
                           onChanged: (value) {
                             context.read<LoginBloc>().add(
-                              NumberFillingForOtpEvent(value),
+                              NumberFillingForOtpEvent(value, selectedCountryCode,),
                             );
                           },
                           onSubmitted: (value) {
@@ -114,19 +116,28 @@ class _OtpPageState extends State<OtpPage> {
                           },
                           decoration: InputDecoration(
                             counterText: "",
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 14.0,
-                                horizontal: 15,
-                              ),
-                              child: Text(
-                                "+91",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 16,
-                                  letterSpacing: 0.5,
-                                ),
+                            prefixIcon: CountryCodePicker(
+                              onChanged: (country) {
+                                setState(() {
+                                  selectedCountryCode = country.dialCode!;
+                                });
+
+                                context.read<LoginBloc>().add(
+                                  NumberFillingForOtpEvent(
+                                    phoneController.text,
+                                    selectedCountryCode,
+                                  ),
+                                );
+                              },
+                              initialSelection: 'IN',
+                              favorite: ['+91','IN'],
+                              showCountryOnly: false,
+                              showOnlyCountryWhenClosed: false,
+                              alignLeft: false,
+                              textStyle: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                                color: Colors.black
                               ),
                             ),
                             labelText: LoginPageData.mobileNo,
@@ -167,8 +178,8 @@ class _OtpPageState extends State<OtpPage> {
                             context.read<LoginBloc>().add(SignInButtonEvent());
                           },
                           child: SizedBox(
-                            height: 45,
-                            width: 200,
+                            height: MediaQuery.of(context).size.height * 0.054,
+                            width: MediaQuery.of(context).size.width * 0.45,
                             child: Container(
                               decoration: BoxDecoration(
                                 gradient: GradientColors.primaryGradient,

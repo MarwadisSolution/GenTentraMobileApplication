@@ -9,9 +9,10 @@ class LoginEvent extends Equatable{
 ///--------------OTP Page-------------------------------------
 class NumberFillingForOtpEvent extends LoginEvent{
   final String number;
-  const NumberFillingForOtpEvent(this.number);
+  final String countryCode;
+  const NumberFillingForOtpEvent(this.number, this.countryCode,);
   @override
-  List<Object?>get props=>[number];
+  List<Object?>get props=>[number,countryCode];
 }
 
 class SignInButtonEvent extends LoginEvent{}
@@ -40,6 +41,7 @@ class TimerTickEvent extends LoginEvent{
   List<Object?>get props=>[seconds];
 }
 class ResetNavigationEvent extends LoginEvent{}
+
 ///----------------------------------Sign up------------------
 class CreateSignupEvent extends LoginEvent{}
 
@@ -51,3 +53,15 @@ class UpdateSignupDataEvent extends LoginEvent{
   @override
   List<Object?>get props=>[signUpData];
 }
+///----password page
+class PasswordEvent extends LoginEvent{
+  final String password;
+  const PasswordEvent(this.password);
+  @override
+  List<Object?>get props=>[password];
+}
+class EyeButtonEvent extends LoginEvent{}
+class SubmitButtonEvent extends LoginEvent{}
+
+///------Address Page
+class AddressSignUpEvent extends LoginEvent{}

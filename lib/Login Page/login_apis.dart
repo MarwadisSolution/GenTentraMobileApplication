@@ -14,7 +14,7 @@ class LoginApi{
 //{ "phone": "+919552936422", "purpose": "LOGIN" }
   Future<String>otpRequest(String number)async{
     print("abcd");
-    (number.startsWith("+91"))?number=number.substring(3):number;
+    //(number.startsWith("+91"))?number=number.substring(3):number;
     print("Number:- $number");
     final response=await _dio.post("$api/api/v1/auth/phone/start",
 
@@ -24,7 +24,7 @@ class LoginApi{
             }
         ),
         data: jsonEncode({
-          "phone": "+91$number",
+          "phone": number,
         })
       // {
       // "success": true,
@@ -52,6 +52,7 @@ class LoginApi{
     print("Number: $number");
 
     int intOTP=int.parse(otp);
+
     try{
       final response = await _dio.post(
       "${api}/api/v1/auth/phone/verify",
@@ -61,7 +62,7 @@ class LoginApi{
         },
       ),
       data: jsonEncode({
-        "phone": "+91$number",
+        "phone": number,
         "code": intOTP,
       }),
     );
@@ -82,11 +83,10 @@ class LoginApi{
     }
     on DioException catch(e){
       print("Dio Error: ${e.type}");
-      print("Message: ${e.message}");
-      print("Response: ${e.response?.data}");
+      // print("Message: ${e.message}");
+      // print("Response: ${e.response?.data}");
       rethrow;
     }
-
   }
   Future<Map<String, dynamic>>passwordVerification(String verificationToken, String password)async{
     final response=await _dio.post("$api/api/v1/auth/phone/complete",
@@ -105,5 +105,4 @@ class LoginApi{
     }
     return response.data["data"];
   }
-
 }

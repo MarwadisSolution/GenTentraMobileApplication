@@ -127,8 +127,10 @@ class _SignupPageState extends State<SignupPage> {
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.06,
                         ),
-                        TextField(
+                        CustomTextField(
                           controller: firstNameController,
+                          labelText: LoginPageData.firstName,
+                          keyboardType: TextInputType.name,
                           onChanged: (value) {
                             context.read<LoginBloc>().add(
                               UpdateSignupDataEvent(
@@ -136,50 +138,16 @@ class _SignupPageState extends State<SignupPage> {
                               ),
                             );
                           },
-                          keyboardType: TextInputType.name,
-                          cursorColor: ColorScheme.of(context).onSurface,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-
-                          decoration: InputDecoration(
-                            counterText: "",
-                            labelText: LoginPageData.firstName,
-
-                            labelStyle: TextStyle(
-                              color: ColorScheme.of(
-                                context,
-                              ).onSurface.withOpacity(0.3),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: ColorScheme.of(
-                                  context,
-                                ).onSurface.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: ColorScheme.of(
-                                  context,
-                                ).onSurface.withOpacity(0.3),
-
-                                width: 1,
-                              ),
-                            ),
-                          ),
                         ),
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.03,
                         ),
 
                         ///-------surname
-                        TextField(
+                        CustomTextField(
                           controller: surnameController,
+                          labelText: LoginPageData.surname,
+                          keyboardType: TextInputType.name,
                           onChanged: (value) {
                             context.read<LoginBloc>().add(
                               UpdateSignupDataEvent(
@@ -187,41 +155,6 @@ class _SignupPageState extends State<SignupPage> {
                               ),
                             );
                           },
-                          keyboardType: TextInputType.name,
-                          cursorColor: ColorScheme.of(context).onSurface,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-
-                          decoration: InputDecoration(
-                            counterText: "",
-                            labelText: LoginPageData.surname,
-                            labelStyle: TextStyle(
-                              color: ColorScheme.of(
-                                context,
-                              ).onSurface.withOpacity(0.3),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: ColorScheme.of(
-                                  context,
-                                ).onSurface.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: ColorScheme.of(
-                                  context,
-                                ).onSurface.withOpacity(0.3),
-
-                                width: 1,
-                              ),
-                            ),
-                          ),
                         ),
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.03,
@@ -360,9 +293,26 @@ class _SignupPageState extends State<SignupPage> {
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.03,
                         ),
-                        TextField(
-                          maxLength: 10,
+                        CustomTextField(
                           controller: numberController,
+                          labelText: LoginPageData.mobileNo,
+                          keyboardType: TextInputType.number,
+                          maxLength: 10,
+                          prefixIcon: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 15,
+                            ),
+                            child: Text(
+                              "+91",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
                           onChanged: (value) {
                             context.read<LoginBloc>().add(
                               UpdateSignupDataEvent(
@@ -370,56 +320,6 @@ class _SignupPageState extends State<SignupPage> {
                               ),
                             );
                           },
-                          keyboardType: TextInputType.number,
-                          cursorColor: ColorScheme.of(context).onSurface,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-
-                          decoration: InputDecoration(
-                            counterText: "",
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 14.0,
-                                horizontal: 15,
-                              ),
-                              child: Text(
-                                "+91",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 16,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                            labelText: LoginPageData.mobileNo,
-                            labelStyle: TextStyle(
-                              color: ColorScheme.of(
-                                context,
-                              ).onSurface.withOpacity(0.3),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: ColorScheme.of(
-                                  context,
-                                ).onSurface.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: ColorScheme.of(
-                                  context,
-                                ).onSurface.withOpacity(0.3),
-
-                                width: 1,
-                              ),
-                            ),
-                          ),
                         ),
                         ///----------------Generate OTP----------
                         SizedBox(
@@ -431,8 +331,8 @@ class _SignupPageState extends State<SignupPage> {
                             context.read<LoginBloc>().add(SignInButtonEvent());
                           },
                           child: SizedBox(
-                            height: 45,
-                            width: 200,
+                            height: MediaQuery.of(context).size.height * 0.054,
+                            width: MediaQuery.of(context).size.width * 0.45,
                             child: Container(
                               decoration: BoxDecoration(
                                 gradient: GradientColors.primaryGradient,
@@ -484,11 +384,15 @@ class _SignupPageState extends State<SignupPage> {
                     ),
                     TextButton(
                       onPressed: () {
-                        MaterialPageRoute(
-                          builder: (context) => BlocProvider(
-                            create: (context) =>
-                                LoginBloc(LoginRepository(LoginApi())),
-                            child: const OtpPage(),
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider(
+                              create: (_) => LoginBloc(
+                                LoginRepository(LoginApi()),
+                              ),
+                              child: const OtpPage(),
+                            ),
                           ),
                         );
                       },

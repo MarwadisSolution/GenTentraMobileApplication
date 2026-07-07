@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/login_pages_data.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/Drawer/bloc_code_in_one.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
@@ -35,8 +36,20 @@ class DrawerPage extends StatelessWidget {
                       ),
                       Expanded(
                         child: ListTile(
-                          title:Text( "Riddesh Kankariya"),
-                          subtitle: Text("Malegaon"),
+                          title:Text( "Riddesh Kankariya",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              letterSpacing: 0.31,
+                              color: ColorScheme.of(context).surface,
+                            ),
+                          ),
+                          subtitle: Text("Malegaon",style: TextStyle(
+                            fontWeight: FontWeight.w300,
+                            fontSize: 12,
+                            letterSpacing: 0.31,
+                            color: ColorScheme.of(context).surface,
+                          ),),
                         ),
                       )
                     ],
@@ -84,6 +97,7 @@ class DrawerPage extends StatelessWidget {
                                 context.read<DrawerBloc>().add(
                                   SelectDrawerItemEvent(2),
                                 );
+                                Navigator.push(context, MaterialPageRoute(builder: (_)=>PartyPage()));
                               },
                             ),
                             drawerItem(

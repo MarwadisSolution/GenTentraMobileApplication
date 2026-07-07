@@ -23,8 +23,8 @@ class MainPage extends StatelessWidget {
         builder: (context, state) {
           return IndexedStack(
             index: state.selectedIndex,
-            children: const [
-              HomePage(),
+            children:  [
+              HomePage(  scaffoldKey: scaffoldKey,),
               // FavoritePage(),
               // ChatPage(),
               // CalendarPage(),

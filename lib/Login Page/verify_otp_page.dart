@@ -6,6 +6,7 @@ import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_bl
 import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_state.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/otp_page.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/Sign%20up/signup_page.dart';
+import 'package:gen_tentra_mobile_application/Login%20Page/password_verification_page.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
 import 'Login Bloc/login_event.dart';
@@ -67,12 +68,16 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (_) => const SignupPage(),
+                builder: (_) => BlocProvider.value(
+                  value: context.read<LoginBloc>(),
+                  child: const SignupPage(),
+                ),
               ),
             );
           }
 
           if (state.navigateToOldUser) {
+            final token = state.verificationToken;
             context.read<LoginBloc>().add(
               ResetNavigationEvent(),
             );
@@ -80,7 +85,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (_) => HomePage(),
+                builder: (_) => PasswordVerificationPage(verificationToken: token),
               ),
             );
           }

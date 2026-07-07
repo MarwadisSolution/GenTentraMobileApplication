@@ -25,22 +25,64 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<CreateSignupEvent>(_onCreateSignupDetails);
     on<LoadSignupDataEvent>(_onLoadFirstAndSurnameDetails);
     on<UpdateSignupDataEvent>(_onUpdateSignUpData);
+
+
+    on<PasswordEvent>((event, emit) {
+      emit(
+        state.copyWith(
+          password: event.password,
+        ),
+      );
+    });
+    //Eye button
+    on<EyeButtonEvent>((event, emit){
+      emit(
+          state.copyWith(
+            obscureText: !state.obscureText,
+          )
+      );
+    });
+    //Submit
+    on<SubmitButtonEvent>((event, emit)async{
+      if(state.password.isEmpty){
+        emit(state.copyWith(isError: true, errorMessage: "Please enter the password"));
+        return;
+      }
+      emit(
+        state.copyWith(isError: false, errorMessage: '', isLoading: true),
+      );
+      try{
+        //Api calling kar na hai-----------------------------
+        //String response=await loginApi.otpRequest(state.email, "");
+        await Future.delayed(const Duration(seconds: 2));
+        emit(state.copyWith(
+          isLoading: false,
+        ));
+      }
+      catch(e){
+        emit(
+            state.copyWith(
+              isLoading: false,
+              isError: false,
+              errorMessage: e.toString(),
+            )
+        );
+      }
+    });
   }
 
   Future<void> _phoneChanged(
     NumberFillingForOtpEvent event,
     Emitter<LoginState> emit,
   ) async {
-    emit(state.copyWith(phoneNumber: event.number));
+    emit(state.copyWith(phoneNumber: "${event.countryCode}${event.number}",));
   }
 
   Future<void> _sendOtp(
     SignInButtonEvent event,
     Emitter<LoginState> emit,
   ) async {
-    final mobileNumber = state.signUpData.number.isNotEmpty
-        ? state.signUpData.number
-        : state.phoneNumber;
+    final mobileNumber = state.phoneNumber;
     print("Mobile Number: ${mobileNumber.toString()}");
     if (mobileNumber.isEmpty) {
       emit(
@@ -57,17 +99,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       );
       return;
     }
-    if (mobileNumber.length != 10) {
-      emit(
-        state.copyWith(
-          isError: false,
-          errorMessage: '',
-        ),
-      );
+    if (!RegExp(r'^\+\d{6,15}$').hasMatch(mobileNumber)) {
       emit(
         state.copyWith(
           isError: true,
-          errorMessage: "Enter valid mobile number",
+          errorMessage: "Enter a valid mobile number",
         ),
       );
       return;
@@ -76,7 +112,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       emit(state.copyWith(isLoading: true));
 
       ///--------api
-      await repository.sendOtp(state.phoneNumber);
+      await repository.sendOtp(mobileNumber);
       emit(state.copyWith(isLoading: false, navigateToOtp: true));
       add(StartOtpTimerEvent());
     } catch (e) {
@@ -242,4 +278,5 @@ void _onCreateSignupDetails(
       )
     );
  }
+
 }

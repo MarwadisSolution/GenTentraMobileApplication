@@ -19,5 +19,17 @@ class LoginPageData{
   static final alreadyHaveAnAccount="Already have an Account?";
   static final signIn= "SIGN IN";
   static final generateOtp="Generate OTP";
+  static final login ="Login";
+  static final everyPlaceMatter="Every place matters!";
+  static final everyPlaceHasA ="Every place has a story, tell us where yours begins ;)";
+  static final password="Password";
+  static final signUp="Sign Up";
+  static final area="Area";
+  static final city="City";
+  static final state="State";
+  static final country="Country";
+  static final bottomArrow="Assets/Login/bottomArrow.svg";
   static final arrowIcon="Assets/arrow.svg";
+  static final eyesOpen="Assets/Login/eye.svg";
+  static final eyesClosed="Assets/Login/eyeClosed.svg";
 }

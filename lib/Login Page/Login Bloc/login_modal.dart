@@ -74,4 +74,54 @@ firstName: json['firstName']??'',
     number: json['number']??'',
   );
 }
+Map<String, dynamic>toJson(){
+  return {
+    'firstName':firstName,
+    'surname':surname,
+    'gender':gender,
+    'number':number,
+  };
+}
+}
+class AddressPageModal{
+  final String area;
+  final String city;
+  final String state;
+  final String country;
+   const AddressPageModal({
+    this.area = '',
+    this.city = '',
+    this.state = '',
+    this.country = '',
+  });
+  AddressPageModal copyWith({
+    String? area,
+    String?city,
+    String?state,
+    String? country,
+  }){
+    return AddressPageModal(
+      area: area ?? this.area,
+      city: city ?? this.city,
+      state: state ?? this.city,
+      country: country ?? this.country,
+    );
+  }
+  factory AddressPageModal.fromJson(Map<String, dynamic>json){
+    return AddressPageModal(
+      area: json['area']??'',
+      city: json['city']??'',
+      state: json['state']??'',
+      country: json['country']??'',
+    );
+  }
+ Map<String, dynamic>toJson(){
+    return{
+      "area":area,
+      "city":city,
+      "state":state,
+      "country":country,
+    };
+ }
+
 }

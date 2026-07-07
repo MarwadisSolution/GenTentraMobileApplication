@@ -9,6 +9,7 @@ import 'reusable_functions.dart';
 class ReusableSliverAppBar extends StatelessWidget {
   final String? title;
   final Widget? titleWidget;
+  final bool automaticallyImplyLeading;
   final double height;
   final Widget? child;
   final VoidCallback? onMenuTap;
@@ -16,6 +17,7 @@ class ReusableSliverAppBar extends StatelessWidget {
     super.key,
     this.title,
     this.titleWidget,
+    this.automaticallyImplyLeading=false,
     this.height=200,
     this.child,
     this.onMenuTap,
@@ -24,7 +26,13 @@ class ReusableSliverAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-          leading: IconButton(
+
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      forceElevated: false,
+
+      automaticallyImplyActions: automaticallyImplyLeading,
+          leading: automaticallyImplyLeading?null:IconButton(
               onPressed: onMenuTap,
               icon: const Icon(Icons.menu,color: Color(0xFFE3E3E3),),
           ),
@@ -41,20 +49,21 @@ class ReusableSliverAppBar extends StatelessWidget {
       title:titleWidget?? Text(
         title??'',
         style:  TextStyle(
+          color: ColorScheme.of(context).surface,
           fontWeight: FontWeight.bold,
           fontSize: 16,
           letterSpacing: 0.5,
         ),
       ),
 
-      backgroundColor: Colors.black,
+    //  backgroundColor: Colors.black,
       automaticallyImplyLeading: true,
 
       iconTheme: IconThemeData
         (color: ColorScheme.of(context).secondary),
       expandedHeight: height,
-      floating: true,
-      snap: true,
+      floating: false,
+      snap: false,
       pinned: true,
     flexibleSpace: Container(
       decoration: const BoxDecoration(
@@ -63,6 +72,7 @@ class ReusableSliverAppBar extends StatelessWidget {
         //   bottom: Radius.circular(20),
         // ),
       ),
+
       child: FlexibleSpaceBar(
         background: child,
       ),
