@@ -1,28 +1,19 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 
+
+import '../Reusable Functions/Drawer/profile_data_cache.dart';
 import '../Reusable Functions/reusable_functions.dart';
+import 'Refresh Token/refresh_token.dart';
 class LoginApi{
-  final Dio _dio=Dio(
-      BaseOptions(
-        sendTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-      )
-  );
-//{ "phone": "+919552936422", "purpose": "LOGIN" }
+  final Dio _dio = apiClient;
+
   Future<String>otpRequest(String number)async{
     print("abcd");
-    //(number.startsWith("+91"))?number=number.substring(3):number;
     print("Number:- $number");
     final response=await _dio.post("$api/api/v1/auth/phone/start",
 
-        options: Options(
-            headers: {
-              'Content-Type': 'application/json'
-            }
-        ),
         data: jsonEncode({
           "phone": number,
         })
@@ -56,11 +47,7 @@ class LoginApi{
     try{
       final response = await _dio.post(
       "${api}/api/v1/auth/phone/verify",
-      options: Options(
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      ),
+
       data: jsonEncode({
         "phone": number,
         "code": intOTP,
@@ -79,22 +66,17 @@ class LoginApi{
       response.data["data"]["verificationToken"],
       "isNewUser":
       response.data["data"]["isNewUser"],
+      "requirePassword":response.data["data"]["requiresPassword"],
     };
     }
     on DioException catch(e){
       print("Dio Error: ${e.type}");
-      // print("Message: ${e.message}");
-      // print("Response: ${e.response?.data}");
       rethrow;
     }
   }
   Future<Map<String, dynamic>>passwordVerification(String verificationToken, String password)async{
     final response=await _dio.post("$api/api/v1/auth/phone/complete",
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json'
-          },
-        ),
+
         data: jsonEncode({
           "verificationToken":verificationToken,
           "password":password,
@@ -104,5 +86,53 @@ class LoginApi{
 
     }
     return response.data["data"];
+  }
+
+  ///------------------------Profile Data---------------
+  final ProfileCache profileCache = ProfileCache();
+
+  Future<Map<String, dynamic>> profileData({
+    bool forceRefresh = false,
+  }) async {
+
+    try {
+
+      // Return cached data first
+      if(!forceRefresh){
+        final cached = await profileCache.getProfile();
+        if(cached != null){
+          return cached;
+        }
+      }
+
+      final response = await _dio.get(
+        "$api/api/v1/profile/me",
+      );
+
+      if(response.statusCode == 200 || response.statusCode == 201){
+
+        final data = Map<String,dynamic>.from(response.data["data"]);
+
+        // Save latest profile
+        await profileCache.saveProfile(data);
+
+        return data;
+      }
+
+      return {"Error":"Failed"};
+
+    }catch(e){
+
+      print(e);
+
+      // If API fails return cache
+      final cached = await profileCache.getProfile();
+
+      if(cached != null){
+        return cached;
+      }
+
+      return {"Error":"Failed"};
+    }
   }
 }

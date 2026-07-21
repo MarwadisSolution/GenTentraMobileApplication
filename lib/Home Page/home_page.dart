@@ -22,6 +22,7 @@ class _HomePageState extends State<HomePage> {
     // TODO: implement initState
     super.initState();
     loadToken();
+
   }
   Future<void> loadToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -32,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   }
   @override
   Widget build(BuildContext context) {
+
     return CustomScrollView(
       slivers: [
         ReusableSliverAppBar(

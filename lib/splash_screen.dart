@@ -122,9 +122,15 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
   Future<void> checkLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    print("refreshToken = ${prefs.getString("refreshToken")}");
+    print("accessToken = ${prefs.getString("accessToken")}");
+    print("isLogged = ${prefs.getBool("isLogged")}");
+
     await Future.delayed(const Duration(seconds: 2));
     if(!mounted)return;
-    final prefs = await SharedPreferences.getInstance();
+    //final prefs = await SharedPreferences.getInstance();
     final refreshToken = prefs.getString("refreshToken");
     if (refreshToken == null || refreshToken.isEmpty) {
       goToLogin();
@@ -162,7 +168,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>
         BlocProvider(create: (_) => LoginBloc(LoginRepository(LoginApi()),
         ),
-          child: const OtpPage(),
+          child: const SignupPage(),
         )
     )
     );

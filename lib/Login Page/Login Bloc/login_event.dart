@@ -64,4 +64,18 @@ class EyeButtonEvent extends LoginEvent{}
 class SubmitButtonEvent extends LoginEvent{}
 
 ///------Address Page
-class AddressSignUpEvent extends LoginEvent{}
+class AddressSignUpEvent extends LoginEvent {
+  final String verificationToken;
+  final SignUpModal signUpData;
+
+  const AddressSignUpEvent(
+      this.verificationToken,
+      this.signUpData,
+      );
+
+  @override
+  List<Object?> get props => [
+    verificationToken,
+    signUpData,
+  ];
+}

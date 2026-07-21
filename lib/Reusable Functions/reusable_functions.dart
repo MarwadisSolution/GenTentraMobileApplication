@@ -5,13 +5,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gal/gal.dart';
-
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
+String temporarySavingOtp="";
+String api = ApiConfig.baseUrl;
 
-String api = "https://visibility-justify-annual-maine.trycloudflare.com";
-
+class ApiConfig {
+  static String baseUrl =
+      "https://fioricet-syndicate-absolutely-ages.trycloudflare.com";
+}
 Future<String?> getAccessToken() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getString("accessToken");
@@ -189,7 +191,7 @@ class CustomTextField extends StatelessWidget {
   }
 }
 ///---------------Image Download----
-Future<void> downloadImage(String imageUrl) async {
+Future<void> downloadImage(String imageUrl, BuildContext context) async {
   try {
     final response = await Dio().get(
       imageUrl,
@@ -200,9 +202,73 @@ Future<void> downloadImage(String imageUrl) async {
       response.data,
       name: "logo_${DateTime.now().millisecondsSinceEpoch}",
     );
-
+ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    backgroundColor: Colors.green,
+    content: Text("Image downloaded successfully",style: TextStyle(color: Colors.white),)));
     print("Image saved successfully");
   } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Colors.red,
+        content: Text("Downloading Failed. Please try again",style: TextStyle(color: Colors.white),)));
     print("Error: $e");
   }
+}
+
+///--------------------------
+///
+Widget buildImageWidget(
+    String imagePath, {
+      double? width,
+      double? height,
+      BoxFit fit = BoxFit.cover,
+    }) {
+  // Relative path from API
+  if (imagePath.startsWith("/api/")) {
+    return Image.network(
+      "$api$imagePath",
+      width: width,
+      height: height,
+      fit: fit,
+      errorBuilder: (_, __, ___) =>
+      const Center(child: Icon(Icons.broken_image)),
+    );
+  }
+
+  // Full network URL
+  if (imagePath.startsWith("http")) {
+    return Image.network(
+      imagePath,
+      width: width,
+      height: height,
+      fit: fit,
+      errorBuilder: (_, __, ___) =>
+      const Center(child: Icon(Icons.broken_image)),
+    );
+  }
+
+  // Local file selected from gallery
+  return Image.file(
+    File(imagePath),
+    width: width,
+    height: height,
+    fit: fit,
+  );
+}
+Future<void> launchWebsite(String url) async {
+  if (url.trim().isEmpty || url == '-') return;
+
+  String formattedUrl = url.trim();
+
+  if (!formattedUrl.startsWith('http://') &&
+      !formattedUrl.startsWith('https://')) {
+    formattedUrl = 'https://$formattedUrl';
+  }
+
+  final Uri uri = Uri.parse(formattedUrl);
+
+  final launched = await launchUrl(
+    uri,
+    mode: LaunchMode.externalApplication,
+  );
+
 }

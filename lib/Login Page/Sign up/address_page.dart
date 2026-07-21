@@ -8,10 +8,15 @@ import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_st
 import 'package:gen_tentra_mobile_application/Login%20Page/login_pages_data.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
+import '../../Reusable Functions/Bottom Navigation/bloc_conde_in_one_navigation.dart';
+import '../../Reusable Functions/Bottom Navigation/main_page.dart';
+import '../../Reusable Functions/Drawer/bloc_code_in_one.dart';
+import '../Login Bloc/login_event.dart';
 import '../Login Bloc/login_modal.dart';
 import '../login_apis.dart';
 class AddressPage extends StatefulWidget {
-  const AddressPage({super.key});
+  final String verificationToken;
+  const AddressPage({super.key, required this.verificationToken});
 
   @override
   State<AddressPage> createState() => _AddressPageState();
@@ -22,24 +27,75 @@ class _AddressPageState extends State<AddressPage> {
   TextEditingController cityController=TextEditingController();
   TextEditingController stateController=TextEditingController();
   TextEditingController countryController=TextEditingController();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    final signupData = context.read<LoginBloc>().state.signUpData;
+    areaController.text = signupData.area;
+    cityController.text = signupData.city;
+    stateController.text=signupData.state;
+    countryController.text = signupData.country;
+  }
+  @override
+  void dispose() {
+    // TODO: implement dispose
+
+    areaController.dispose();
+    cityController.dispose();
+    stateController.dispose();
+    countryController.dispose();
+
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => LoginBloc(LoginRepository(LoginApi())),
-      child: BlocListener<LoginBloc, LoginState>(
-        listener: ((context, state) {
-          if (state.isError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  state.errorMessage,
-                  style: TextStyle(color: ColorScheme.of(context).onPrimary),
-                ),
-              ),
-            );
-          }
-        }
-        ),
+        return BlocListener<LoginBloc, LoginState>(
+            listener: (context, state) {
+
+              if (state.isError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.errorMessage),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+
+              if (state.navigateToHome) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      state.errorMessage.isEmpty
+                          ? "Account created successfully"
+                          : state.errorMessage,
+                    ),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+
+                context.read<LoginBloc>().add(ResetNavigationEvent());
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider(
+                          create: (_) => BottomNavBloc(),
+                        ),
+                        BlocProvider(
+                          create: (_) => DrawerBloc(),
+                        ),
+                      ],
+                      child: MainPage(),
+                    ),
+                  ),
+                      (route) => false,
+                );
+              }
+            },
         child:Scaffold(
           body: SafeArea(
               child: GestureDetector(
@@ -140,6 +196,18 @@ class _AddressPageState extends State<AddressPage> {
                         child: Center(
                           child: InkWell(
                             onTap: () async {
+                              final bloc = context.read<LoginBloc>();
+
+                              final updatedData = bloc.state.signUpData.copyWith(
+                                area: areaController.text,
+                                city: cityController.text,
+                                state: stateController.text,
+                                country: countryController.text,
+                              );
+
+                              bloc.add(UpdateSignupDataEvent(updatedData));
+                               bloc.add(AddressSignUpEvent(widget.verificationToken,updatedData));
+
 
                             },
                             child: Container(
@@ -156,6 +224,7 @@ class _AddressPageState extends State<AddressPage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
+
                                   Text(
                                     LoginPageData.signUp,
                                     style: TextStyle(
@@ -181,8 +250,9 @@ class _AddressPageState extends State<AddressPage> {
                   ),
                 ),
               )),
-        ) ,
-      ),
-    );
+        )
+        );
+
+
   }
 }

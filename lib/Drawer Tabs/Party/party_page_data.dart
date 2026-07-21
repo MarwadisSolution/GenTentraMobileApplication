@@ -10,10 +10,16 @@ class PartyPageData {
   static final event="EVENT";
   static final manifesto="MANIFESTO";
   static final founded="FOUNDED";
+  static final founder="FOUNDER";
+  static final president="PRESIDENT";
+  static final generalSecretary="General Secretary";
+  static final headquarters="HEADQUARTERS";
+  static final website="OFFICIAL WEBSITE";
   static final favoriteIcon="Assets/PartyPage/favourite.svg";
   static final flagIcon="Assets/PartyPage/flagIcon.svg";
   static final foundedIcon="Assets/PartyPage/foundedIcon.svg";
   static final globalIcon="Assets/PartyPage/globalIcon.svg";
   static final headquarterIcon="Assets/PartyPage/headquarterIcon.svg";
   static final personIcon="Assets/PartyPage/personIcon.svg";
+  static final arrow="Assets/arrow.svg";
 }

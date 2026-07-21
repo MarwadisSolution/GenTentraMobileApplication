@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_modal.dart';
 
 import '../../../Reusable Functions/reusable_functions.dart';
+import 'info_tab.dart';
 
 class SymbolTab extends StatefulWidget {
-  final Map<String, dynamic> symbolData;
+  final SymbolModel symbol;
 
-  const SymbolTab({super.key, required this.symbolData});
+  const SymbolTab({super.key, required this.symbol});
 
   @override
   State<SymbolTab> createState() => _SymbolTabState();
@@ -15,99 +19,100 @@ class _SymbolTabState extends State<SymbolTab> {
   @override
   Widget build(BuildContext context) {
     final size=MediaQuery.of(context).size.width;
-    String label = "";
+    final String label = widget.symbol.logoDescription ?? "";
+    return ListView(
+      padding:  EdgeInsets.all(MediaQuery.sizeOf(context).width * 0.05),
+      children: [
 
-    if (widget.symbolData["label"] != null) {
-      final List<dynamic> ops = widget.symbolData["label"];
-
-      label = ops
-          .map((e) => e["insert"]?.toString() ?? "")
-          .join();
-    }
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              overflow: TextOverflow.ellipsis,
-              fontWeight: FontWeight.w400,
-              fontSize: 14,
-              color: ColorScheme.of(context).onSurface,
-              letterSpacing: 0.25,
+        ExpandableQuillContent(
+          content: label
+        ),
+        GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding:  EdgeInsets.all(MediaQuery.sizeOf(context).width *0.012),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: size>400?2:1,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 30,
+              childAspectRatio: 1.8,
             ),
-          ),
-          GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(12),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: size>400?2:1,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.7,
-              ),
-              itemCount: widget.symbolData["urls"].length,
-              itemBuilder: (context, index){
-                final symbol = widget.symbolData["urls"][index];
-                return  CircleAvatar(
-                  radius: 166,
-                  backgroundImage: (symbol != null && symbol.isNotEmpty)
-                      ? NetworkImage(
-                    symbol.startsWith("/api/")
-                        ? "$api$symbol"
-                        : symbol,
-                  )
-                      : null,
-                  child: (symbol == null || symbol.isEmpty)
-                      ? const Icon(
-                    Icons.image,
-                    size: 50,
-                  )
-                      : null,
-                );
-              }),
-          SizedBox(width: MediaQuery.of(context).size.width * 0.06),
-          InkWell(
+            itemCount: widget.symbol.partyLogo.length,
+            itemBuilder: (context, index){
+              final logo = widget.symbol.partyLogo[index];
+              return  Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.transparent,
+                    child:logo.isNotEmpty?
+                    buildImageWidget(logo,fit: BoxFit.cover):null
+
+                  ),
+                ),
+              );
+            }),
+        SizedBox(height: MediaQuery.of(context).size.width * 0.06),
+        Align(
+          alignment: Alignment.center,
+          child: InkWell(
             onTap: () async {
-              if (widget.symbolData["downloadable"] == true ||
-                  widget.symbolData["downloadable"] == "YES") {
-                for (final symbol in widget.symbolData["symbols"]) {
-                  await downloadImage("$api${symbol["url"]}");
+              if (widget.symbol.downloadEnabled == true ||
+                  widget.symbol.downloadEnabled== "YES") {
+                for (final logo in widget.symbol.partyLogo){
+                  await downloadImage(
+                    logo.startsWith("/api/")
+                        ? "$api$logo"
+                        : logo,
+                    context
+                  );
                 }
               }
             },
             child: Container(
-              constraints: const BoxConstraints(minHeight: 37, minWidth: 127),
+
+              constraints: const BoxConstraints(minHeight: 37, maxWidth: 150),
               decoration: BoxDecoration(
-                color: (widget.symbolData["downloadable"] == true ||
-                    widget.symbolData["downloadable"] == "YES")
+                color: (widget.symbol.downloadEnabled == true ||
+                    widget.symbol.downloadEnabled== "YES")
                     ? null
                     : const Color(0xFF666666),
-                gradient: (widget.symbolData["downloadable"] == true ||
-                    widget.symbolData["downloadable"] == "YES")
+                gradient: (widget.symbol.downloadEnabled == true ||
+                    widget.symbol.downloadEnabled == "YES")
                     ? GradientColors.primaryGradient
                     : null,
                 borderRadius: const BorderRadius.all(Radius.circular(20)),
               ),
-              child: const Center(
-                child: Text(
-                  "Download Logo",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                    letterSpacing: 0.37,
-                    color: Colors.white,
-                  ),
+              child:  Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      widget.symbol.partyLogo.length==1?
+                      "Download Logo":"Download Logos",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: MediaQuery.textScalerOf(context).scale(14),
+                        letterSpacing: 0.37,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(width: MediaQuery.of(context).size.width*0.006,),
+                    Transform.rotate(angle: 1.57 ,child: SvgPicture.asset(PartyPageData.arrow,height: MediaQuery.of(context).size.height*0.015,),)
+                  ],
                 ),
               ),
             ),
-          )
-        ],
-      ),
+          ),
+        ),
+        SizedBox(height: MediaQuery.of(context).size.width * 0.06),
+      ],
     );
   }
 }

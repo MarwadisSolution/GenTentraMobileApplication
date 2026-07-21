@@ -7,8 +7,8 @@ import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_ev
 import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_state.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/verify_otp_page.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
-
 import 'Login Bloc/login_modal.dart';
+import 'Sign up/signup_page.dart';
 import 'login_apis.dart';
 import 'login_pages_data.dart';
 
@@ -23,6 +23,10 @@ class _OtpPageState extends State<OtpPage> {
   bool otpButtonPressed=false;
   String selectedCountryCode = "+91";
   final TextEditingController phoneController = TextEditingController();
+  final TextEditingController urlController =
+  TextEditingController(
+    text: ApiConfig.baseUrl,
+  );
   @override
   Widget build(BuildContext context) {
 
@@ -95,6 +99,33 @@ class _OtpPageState extends State<OtpPage> {
                         ),
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.08,
+                        ),
+                        TextField(
+                          controller: urlController,
+                          keyboardType: TextInputType.url,
+                          decoration: InputDecoration(
+                            labelText: "Server URL",
+                            hintText: "https://example.trycloudflare.com",
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: ColorScheme.of(
+                                  context,
+                                ).onSurface.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: ColorScheme.of(
+                                  context,
+                                ).onSurface.withOpacity(0.3),
+
+                                width: 1,
+                              ),
+                            ),
+                          ),
                         ),
                         TextField(
                           controller: phoneController,
@@ -174,6 +205,7 @@ class _OtpPageState extends State<OtpPage> {
                         ),
                         InkWell(
                           onTap: () {
+                            api = urlController.text.trim();
                             otpButtonPressed=true;
                             context.read<LoginBloc>().add(SignInButtonEvent());
                           },
@@ -211,6 +243,51 @@ class _OtpPageState extends State<OtpPage> {
                       ],
                     ),
                   ),
+                ),
+
+              ),
+              bottomNavigationBar: Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).size.width * 0.06,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      LoginPageData.alreadyHaveAnAccount,
+                      style: TextStyle(
+                        color: ColorScheme.of(
+                          context,
+                        ).onSurface.withOpacity(0.6),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>
+                            BlocProvider(create: (_) => LoginBloc(LoginRepository(LoginApi()),
+                            ),
+                              child: const SignupPage(),
+                            )
+                        ));
+                      },
+                      child: ShaderMask(
+                        blendMode: BlendMode.srcIn,
+                        shaderCallback: (bounds) =>
+                            GradientColors.primaryGradient.createShader(
+                              Rect.fromLTRB(0, 0, bounds.width, bounds.height),
+                            ),
+                        child: Text(
+                          LoginPageData.signIn,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

@@ -42,8 +42,8 @@ final apiService=PartyPageApis();
                     future: partiesFuture,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
+                        return  Center(
+                          child: CircularProgressIndicator(color: ColorScheme.of(context).onSurface,),
                         );
                       }
 
@@ -68,9 +68,6 @@ final apiService=PartyPageApis();
                         itemCount: parties.length,
                         itemBuilder: (context, index) {
                           final party = parties[index];
-                          print("Starts");
-                          print(party);
-                          print("Linkk-- ${party["partySymbolUrl"]}");
                           return  InkWell(
 
                             onTap: () {
@@ -87,20 +84,30 @@ final apiService=PartyPageApis();
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
 
-                                CircleAvatar(
-                                  radius: 30,
-                                  backgroundImage: (party["partySymbolUrl"] != null &&
-                                      (party["partySymbolUrl"] as String).isNotEmpty)
-                                      ? NetworkImage(
-                                    (party["partySymbolUrl"] as String).startsWith("/api/")
-                                        ? "$api${party["partySymbolUrl"]}"
-                                        : party["partySymbolUrl"],
-                                  )
-                                      : null,
-                                  child: (party["partySymbolUrl"] == null ||
-                                      (party["partySymbolUrl"] as String).isEmpty)
-                                      ? const Icon(Icons.image,color: Colors.yellow,)
-                                      : null,
+                                Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Color(0xFFD6D6D6),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 30,
+                                    backgroundColor: Colors.white,
+                                    child: (party["partySymbolUrl"] != null &&
+                                        (party["partySymbolUrl"] as String).isNotEmpty)
+                                        ? buildImageWidget(
+                                      party["partySymbolUrl"],
+                                      width: 45,
+                                      height: 45,
+                                      fit: BoxFit.cover,
+                                    )
+                                        :  Icon(
+                                      Icons.image,
+                                      color: ColorScheme.of(context).onSurface,
+                                    ),
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(

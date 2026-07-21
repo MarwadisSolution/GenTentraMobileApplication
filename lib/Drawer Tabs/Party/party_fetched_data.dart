@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_apis.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_modal.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/reusable_functions.dart';
 class PartyFetchedData extends StatefulWidget {
   final Map<String, dynamic> partyData;
@@ -11,89 +12,122 @@ class PartyFetchedData extends StatefulWidget {
 
 class _PartyFetchedDataState extends State<PartyFetchedData> {
   final apiService=PartyPageApis();
-  late Future<List<dynamic>> symbolFuture;
-late Future<List<dynamic>>journeyFuture;
+  late Future<Map<String, dynamic>> partyFullFuture;
+  Future<void> incrementViewCount() async {
+    await apiService.viewCountIncreament(
+      "PARTY",
+      widget.partyData["id"],
+    );
+  }
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    symbolFuture=apiService.fetchSymbolDetails(widget.partyData["id"]);
-    journeyFuture=apiService.fetchTheJourney(widget.partyData['id']);
+    partyFullFuture = apiService.fetchPartySingleWithIdFull(
+      widget.partyData["id"],
+
+    );
+    print("yes");
+    incrementViewCount();
+    print("yesa");
   }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFebebeb),
-      body: CustomScrollView(
-        slivers: [
-
-          SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: BannerSection(
-                partyData: widget.partyData,
-              ),
+    final screenHeight = MediaQuery.of(context).size.height;
+    return GestureDetector(
+      onTap: (){
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: Color(0xFFebebeb),
+        body: Stack(
+          children: [
+            BannerSection(
+              partyData: widget.partyData,
             ),
-          ),
 
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(24),
-                            topRight:Radius.circular(24) )
+
+            DraggableScrollableSheet(
+              initialChildSize: 0.65,
+              minChildSize: 0.65,
+              maxChildSize: 0.8,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(24),
                     ),
-                    child: PartyDetailsSection(partyData: widget.partyData,)),
-             SizedBox(height: 6,),
-                Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                        color: Colors.white,
+                  ),
+                  child:ListView(
+                    controller: scrollController,
+                    padding: EdgeInsets.zero,
+                    children: [
+                      PartyDetailsSection(
+                        partyData: widget.partyData,
+                      ),
+                      Container(
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height*0.01,
+                        color: Color(0xFF000000).withOpacity(0.08),
+                      ),
+                       SizedBox(height: 6),
 
-                    ),
-                    child:FutureBuilder<List<Object?>>(
-                      future: Future.wait([
-                        symbolFuture,
-                        journeyFuture,
-                      ]),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(30),
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        }
+                      Container(
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                        ),
+                        child: FutureBuilder<Map<String, dynamic>>(
+                          future: partyFullFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(30),
+                                  child: CircularProgressIndicator(
+                                    color: ColorScheme.of(context).onSurface,
+                                  ),
+                                ),
+                              );
+                            }
 
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Text(snapshot.error.toString()),
-                          );
-                        }
+                            if (snapshot.hasError) {
+                              return Center(
+                                child: Text(snapshot.error.toString()),
+                              );
+                            }
 
-                        final symbolList = snapshot.data![0] as List<dynamic>;
-                        final journeyList = snapshot.data![1] as List<dynamic>;
+                            final fullData = snapshot.data!;
 
-                        return PartyDetailsSectionByFields(
-                          partyData: widget.partyData,
-                          symbolData: symbolList.isNotEmpty ? symbolList.first : {},
-                          journeyData: {
-                            "items": journeyList,
+                            final PartyProfileModel party =
+                            fullData['party'] as PartyProfileModel;
+
+                            final SymbolModel symbol =
+                            fullData['symbol'] as SymbolModel;
+
+                            final List<JourneyModel> journey =
+                            fullData['journey'] as List<JourneyModel>;
+
+                            final List<LeaderGroupModel> leaders =
+                            fullData['leaderGroup'] as List<LeaderGroupModel>;
+                            return PartyDetailsSectionByFields(
+
+                              party: party,
+                              symbol: symbol,
+                              journeys: journey, leaders: leaders,
+                            );
                           },
-                        );
-                      },
-                    ),
-                ),
-              ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          ),
-
-      ],
+          ],
+        ),
       ),
     );
   }

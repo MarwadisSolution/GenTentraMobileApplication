@@ -4,30 +4,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
+import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 import 'package:readmore/readmore.dart';
+
+import '../party_page_modal.dart';
 class InfoTab extends StatelessWidget {
-  final Map<String, dynamic> partyData;
-  const InfoTab({super.key, required this.partyData});
+  final PartyProfileModel party;
+  const InfoTab({super.key, required this.party});
 
   @override
   Widget build(BuildContext context) {
     return  SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ExpandableQuillContent(
-            content: partyData["info"] ?? "",
-          ),
-SizedBox(height: MediaQuery.of(context).size.height*0.05,),
-          infoData(context, PartyPageData.foundedIcon,PartyPageData.founded,partyData["foundedOn"] ?? "-"  ),
-          infoData(context, PartyPageData.flagIcon,PartyPageData.founded,partyData["founder"] ?? "-"  ),
-          infoData(context, PartyPageData.personIcon,PartyPageData.founded,partyData["president"]?["name"] ?? "-"  ),
-          infoData(context, PartyPageData.personIcon,PartyPageData.founded,partyData["generalSecretary"] ?? "-"  ),
-          infoData(context, PartyPageData.headquarterIcon,PartyPageData.founded,partyData["headquarters"] ?? "-"  ),
-          infoData(context, PartyPageData.globalIcon,PartyPageData.founded,partyData["website"] ?? "-"  ),
-          //infoData(context, PartyPageData.foundedIcon,PartyPageData.founded,partyData["foundedOn"] ?? ""  ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ExpandableQuillContent(
+              content: party.info??"-",
+            ),
+        SizedBox(height: MediaQuery.of(context).size.height*0.05,),
+            infoData(context, PartyPageData.foundedIcon,PartyPageData.founded,party.founded ?? "-"  ),
+            infoData(context, PartyPageData.flagIcon,PartyPageData.founder,party.founder ?? "-"  ),
+            infoData(context, PartyPageData.personIcon,PartyPageData.president,party.president ?? "-"  ),
+            infoData(context, PartyPageData.personIcon,PartyPageData.generalSecretary,party.generalSecretary?? "-"  ),
+            infoData(context, PartyPageData.headquarterIcon,PartyPageData.headquarters,party.headquarters?? "-"  ),
+            infoData(context, PartyPageData.globalIcon,PartyPageData.website,party.officialWebsite?? "-"  ),
+            //infoData(context, PartyPageData.foundedIcon,PartyPageData.founded,partyData["foundedOn"] ?? ""  ),
+          ],
+        ),
       ),
     );
   }
@@ -57,7 +62,24 @@ Widget infoData(BuildContext context,String icon,String title, String data){
           SizedBox(height: MediaQuery.of(context).size.height*0.01,),
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.7,
-            child: Text(
+            child:title==PartyPageData.website?
+            InkWell(
+              onTap: ()=>launchWebsite(data),
+              child: Text(
+                data,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  letterSpacing: 0.31,
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ):
+            Text(
+              
               data,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -128,19 +150,19 @@ class _ExpandableQuillContentState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
 
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          constraints: isExpanded
-              ? const BoxConstraints()
-              : const BoxConstraints(maxHeight: 120),
-          child: QuillEditor.basic(
-            controller: controller,
-            config: const QuillEditorConfig(
-              showCursor: false,
+        ClipRect(
+          child: ConstrainedBox(
+            constraints: isExpanded
+                ? const BoxConstraints()
+                : const BoxConstraints(maxHeight: 120),
+            child: QuillEditor.basic(
+              controller: controller,
+              config: const QuillEditorConfig(
+                showCursor: false,
+              ),
             ),
           ),
         ),
-
         const SizedBox(height: 8),
 
         GestureDetector(

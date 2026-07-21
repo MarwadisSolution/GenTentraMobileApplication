@@ -17,6 +17,7 @@ class LoginPageData{
   static final female="Female";
   static final other="Other";
   static final alreadyHaveAnAccount="Already have an Account?";
+  static final alreadyNoAccount="New Account?";
   static final signIn= "SIGN IN";
   static final generateOtp="Generate OTP";
   static final login ="Login";

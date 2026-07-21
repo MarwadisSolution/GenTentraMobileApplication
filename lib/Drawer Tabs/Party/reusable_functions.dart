@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Favourite/favourite_page_caching.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Favourite/favourite_page_modal.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/journey_tab.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/leadership_tab.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_apis.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_modal.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
 import 'Tabs/info_tab.dart';
 import 'Tabs/symbol_tab.dart';
+import 'following_party_caching.dart';
 
 class BannerSection extends StatefulWidget {
   final Map<String, dynamic> partyData;
@@ -24,10 +30,10 @@ class _BannerSectionState extends State<BannerSection> {
   @override
   Widget build(BuildContext context) {
     final List banners = widget.partyData["bannerImages"] as List? ?? [];
-
     return Stack(
       children: [
         /// Banner Images
+
         SizedBox(
           height: 350,
           width: double.infinity,
@@ -56,7 +62,7 @@ class _BannerSectionState extends State<BannerSection> {
                         return Container(
                           color: Colors.white,
                           child: const Center(
-                            child: Icon(Icons.broken_image),
+                            child: Icon(Icons.image),
                           ),
                         );
                       },
@@ -64,6 +70,19 @@ class _BannerSectionState extends State<BannerSection> {
                   },
                 ),
         ),
+        Positioned(
+            top: 45,
+            left: 30,
+            child: InkWell(
+                onTap: (){
+                  Navigator.pop(context);
+                },
+                child: Transform.rotate(
+                    angle: 3.14,
+                    child: SvgPicture.asset("Assets/arrow.svg",color: Colors.black,
+                    height: MediaQuery.of(context).size.height*0.02,
+                      width:MediaQuery.of(context).size.width*0.01 ,
+                    )))),
 
         if (banners.length > 1)
           Positioned(
@@ -101,7 +120,6 @@ class _BannerSectionState extends State<BannerSection> {
 
 class PartyDetailsSection extends StatefulWidget {
   final Map<String, dynamic> partyData;
-
   const PartyDetailsSection({super.key, required this.partyData});
 
   @override
@@ -109,8 +127,110 @@ class PartyDetailsSection extends StatefulWidget {
 }
 
 class _PartyDetailsSectionState extends State<PartyDetailsSection> {
+  final apiService=PartyPageApis();
   bool following=false;
   bool favorite=false;
+  String viewCount="0";
+  String followCount="0";
+  bool isLoading=false;
+  final FavouritePageCaching favouritePageCaching=FavouritePageCaching();
+  final FollowingPartyCaching followingPartyCaching = FollowingPartyCaching();
+
+ Future<void>loadFavouriteStatus()async{
+   final id=widget.partyData["id"];
+   if(id==null) return;
+   favorite=await favouritePageCaching.isFavourite(id);
+   if(mounted){
+     setState(() {
+
+     });
+   }
+ }
+  Future<void> loadFollowingStatus() async {
+    final id = widget.partyData["id"];
+    if (id == null) return;
+
+    following = await followingPartyCaching.isFollowing(id);
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+  Future<void> syncFollowingCache() async {
+    final data = await apiService.iFollowParty();
+
+    if (data.isEmpty || data.first == "Error") return;
+
+    final ids = data
+        .where((e) => e["followeeType"] == "PARTY")
+        .map<int>((e) => e["followeeId"] as int)
+        .toList();
+
+    await followingPartyCaching.saveFollowingIds(ids);
+
+    await loadFollowingStatus();
+  }
+  Future<String> viewCountFunction()async{
+String viewValue;
+    int view=await apiService.getViewCount("PARTY", widget.partyData["id"]);
+if(view>9999999){
+  viewValue= "${view.toString().substring(0, 1)}C";
+}
+else if(view>99999){
+  viewValue= "${view.toString().substring(0, 1)}L";
+}
+    else if(view>1000){
+      viewValue= "${view.toString().substring(0, 1)}K";
+    }
+
+    else viewValue=view.toString();
+    return viewValue;
+}
+///---------Follow
+  Future<String> viewFollowFunction()async{
+    String followValue;
+    int follow=await apiService.getFollowCount("PARTY", widget.partyData["id"]);
+    if(follow>9999999){
+      followValue= "${follow.toString().substring(0, 1)}C";
+    }
+    else if(follow>99999){
+      followValue= "${follow.toString().substring(0, 1)}L";
+    }
+    else if(follow>1000){
+      followValue= "${follow.toString().substring(0, 1)}K";
+    }
+
+    else followValue=follow.toString();
+    return followValue;
+  }
+
+ @override
+ void initState() {
+   super.initState();
+   syncFollowingCache();
+   loadFavouriteStatus();
+   _initializeView();
+   _initializeFollow();
+ }
+
+  Future<void> _initializeView() async {
+    final count = await viewCountFunction();
+
+    if (!mounted) return;
+
+    setState(() {
+      viewCount = count;
+    });
+  }
+  Future<void> _initializeFollow() async {
+    final count = await viewFollowFunction();
+
+    if (!mounted) return;
+
+    setState(() {
+      followCount = count;
+    });
+  }
   @override
   Widget build(BuildContext context) {
 print("First");
@@ -131,31 +251,33 @@ print("First");
           Row(
             children: [
               Container(
-                width: 80,
-                height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  image: (widget.partyData["partySymbolUrl"] != null &&
-                      (widget.partyData["partySymbolUrl"] as String).isNotEmpty)
-                      ? DecorationImage(
-                    image: NetworkImage(
-                      (widget.partyData["partySymbolUrl"] as String).startsWith("/api/")
-                          ? "$api${widget.partyData["partySymbolUrl"]}"
-                          : widget.partyData["partySymbolUrl"],
-                    ),
-                    fit: BoxFit.contain, // or BoxFit.contain
-                  )
-                      : null,
-                  color: Colors.grey.shade200,
+                  border: Border.all(
+                    color: const Color(0xFFD6D6D6),
+                    width: 1,
+                  ),
                 ),
-                child: (widget.partyData["partySymbolUrl"] == null ||
-                    (widget.partyData["partySymbolUrl"] as String).isEmpty)
-                    ? const Icon(
-                  Icons.image,
-                  color: Colors.yellow,
-                  size: 35,
-                )
-                    : null,
+                child: CircleAvatar(
+                  radius: 40, // 80x80 container = radius 40
+                  backgroundColor: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10), // Space between border and image
+                    child: (widget.partyData["partySymbolUrl"] != null &&
+                        (widget.partyData["partySymbolUrl"] as String).isNotEmpty)
+                        ? buildImageWidget(
+                      widget.partyData["partySymbolUrl"],
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.contain,
+                    )
+                        : const Icon(
+                      Icons.image,
+                      color: Colors.yellow,
+                      size: 35,
+                    ),
+                  ),
+                ),
               ),
 
               SizedBox(width: MediaQuery.of(context).size.width * 0.06),
@@ -185,7 +307,7 @@ print("First");
                         ),
                         Expanded(
                           child: Text(
-                            widget.partyData["headquarters"] ?? "",
+                            widget.partyData["state"] ?? "",
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -223,7 +345,7 @@ print("First");
                       ),
                     ),
                     Text(
-                      "250M",
+                      viewCount,
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 18,
@@ -247,7 +369,7 @@ print("First");
                       ),
                     ),
                     Text(
-                      "19M",
+                      followCount,
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 18,
@@ -259,9 +381,44 @@ print("First");
                 ),
                 SizedBox(width: MediaQuery.of(context).size.width * 0.06),
                 InkWell(
-                  onTap: () {
-                    following=!following;
-                    setState(() {});
+                  onTap: () async {
+                    if (isLoading) return;
+
+                    setState(() {
+                      isLoading = true;
+                    });
+
+                    try {
+                      if (!following) {
+                        await apiService.followParty(
+                          "PARTY",
+                          widget.partyData["id"],
+                        );
+
+                        await followingPartyCaching.addFollowing(
+                          widget.partyData["id"],
+                        );
+
+                        following = true;
+                      } else {
+                        await apiService.deleteFollowing(
+                          "PARTY",
+                          widget.partyData["id"],
+                        );
+
+                        await followingPartyCaching.removeFollowing(
+                          widget.partyData["id"],
+                        );
+
+                        following = false;
+                      }
+                    } finally {
+                      if (mounted) {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
+                    }
                   },
                   child: Container(
                     constraints: BoxConstraints(minHeight: 37, minWidth: 127),
@@ -271,14 +428,25 @@ print("First");
                       borderRadius: BorderRadius.all(Radius.circular(20))
                     ),
                     child: Center(
-                      child: Text(
-                        PartyPageData.following,
+                      child: isLoading
+                          ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                          : Text(
+                        following
+                            ? PartyPageData.following
+                            : "Follow",
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 12,
                           letterSpacing: 0.37,
-                          color: Color(0xFFFFFFFF),
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -289,7 +457,23 @@ print("First");
 
                 padding: EdgeInsetsGeometry.only(top: 10),
                 child: InkWell(
-                  onTap: () {
+                  onTap: () async {
+                    final id = widget.partyData["id"];
+
+                    if (id == null) return;
+
+                    if (favorite) {
+                      await favouritePageCaching.removeFavourite(id);
+                    } else {
+                      await favouritePageCaching.addFavourite(
+                        FavouritePageModal(
+                          id: id,
+                          name: widget.partyData["name"] ?? "",
+                          partySymbolUrl: widget.partyData["partySymbolUrl"] ?? "",
+                        ),
+                      );
+                    }
+
                     setState(() {
                       favorite = !favorite;
                     });
@@ -311,22 +495,7 @@ print("First");
 
 
 }
-// Widget statTile({required String title, required String value}) {
-//   return Column(
-//     children: [
-//       Text(
-//         value,
-//         textAlign: TextAlign.center,
-//         style: const TextStyle(fontWeight: FontWeight.bold),
-//       ),
-//       const SizedBox(height: 4),
-//       Text(
-//         title,
-//         style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-//       ),
-//     ],
-//   );
-// }
+
 Widget detailCard({required String title, required String value}) {
   return Card(
     elevation: 0,
@@ -349,15 +518,17 @@ Widget detailCard({required String title, required String value}) {
   );
 }
 class PartyDetailsSectionByFields extends StatelessWidget {
-  final Map<String, dynamic> partyData;
-  final Map<String, dynamic> symbolData;
-  final Map<String, dynamic> journeyData;
+  final PartyProfileModel party;
+  final SymbolModel symbol;
+  final List<JourneyModel> journeys;
+  final List<LeaderGroupModel>leaders;
 
   const PartyDetailsSectionByFields({
     super.key,
-    required this.partyData,
-    required this.symbolData,
-    required this.journeyData,
+    required this.party,
+    required this.symbol,
+    required this.journeys,
+    required this.leaders,
   });
 
   @override
@@ -396,44 +567,22 @@ class PartyDetailsSectionByFields extends StatelessWidget {
           ),
 
           SizedBox(
-            height: MediaQuery.of(context).size.height,
+            height: MediaQuery.of(context).size.height * 0.65,
             child: TabBarView(
               children: [
-                InfoTab( partyData: partyData,),
-                SymbolTab(symbolData: symbolData),
-
-                JourneyTab(journeyData: journeyData),
-                _leadershipTab(),
+                InfoTab(
+                  party: party,
+                ),
+                SymbolTab(
+                  symbol: symbol,
+                ),
+                JourneyTab(
+                  journeys: journeys,
+                ),
+                LeadershipTab(leaders: leaders,),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _leadershipTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          if (partyData["founder"] != null)
-            detailCard(
-              title: "Founder",
-              value: partyData["founder"],
-            ),
-
-          if (partyData["president"] != null)
-            detailCard(
-              title: "President",
-              value: partyData["president"]["name"] ?? "-",
-            ),
-
-          if (partyData["generalSecretary"] != null)
-            detailCard(
-              title: "General Secretary",
-              value: partyData["generalSecretary"],
-            ),
         ],
       ),
     );

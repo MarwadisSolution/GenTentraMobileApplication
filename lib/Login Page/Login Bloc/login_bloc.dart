@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_event.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_state.dart';
+import 'package:gen_tentra_mobile_application/Login%20Page/Sign%20up/signup_apis.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'login_modal.dart';
 
@@ -25,7 +27,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<CreateSignupEvent>(_onCreateSignupDetails);
     on<LoadSignupDataEvent>(_onLoadFirstAndSurnameDetails);
     on<UpdateSignupDataEvent>(_onUpdateSignUpData);
-
+    on<AddressSignUpEvent>(_onAddressSignUp);
 
     on<PasswordEvent>((event, emit) {
       emit(
@@ -112,6 +114,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       emit(state.copyWith(isLoading: true));
 
       ///--------api
+
       await repository.sendOtp(mobileNumber);
       emit(state.copyWith(isLoading: false, navigateToOtp: true));
       add(StartOtpTimerEvent());
@@ -152,12 +155,15 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       );
       final response=await repository.verifyOtp(state.phoneNumber,
           event.otp,);
+      print("OTP VERIFIED SUCCESS");
+      print("isNewUser = ${response.isNewUser}");
       emit(
         state.copyWith(
           isVerifyingOtp: false,
           isSuccess: true,
           isError: false,
           errorMessage: "",
+          requirePassword: response.requirePassword,
           verificationToken: response.verificationToken,
           navigateToNewUser: response.isNewUser,
           navigateToOldUser: !response.isNewUser,
@@ -165,6 +171,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       );
     }
     catch(e){
+
       emit(
         state.copyWith(
           isVerifyingOtp: false,
@@ -229,6 +236,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     navigateToOtp: false,
     navigateToNewUser: false,
     navigateToOldUser: false,
+      navigateToHome: false
     )
     );
   }
@@ -257,10 +265,7 @@ void _onCreateSignupDetails(
       await Future.delayed(const Duration(seconds: 1));
       final signUpData=SignUpModal(
         ///-----Replace karna ka api ke response se
-        firstName: "Riddesh",
-        surname: "Kankariya",
-        gender: "Male",
-        number: "9552936422",
+
       );
       emit(state.copyWith(isLoading: false, signUpData: signUpData));
     }
@@ -278,5 +283,71 @@ void _onCreateSignupDetails(
       )
     );
  }
+  Future<void> _onAddressSignUp(
+      AddressSignUpEvent event,
+      Emitter<LoginState> emit,
+      ) async {
+    emit(state.copyWith(
+      isLoading: true,
+      isError: false,
+      errorMessage: '',
+    ));
 
+    try {
+      final response = await SignupApis().signUp(
+        event.verificationToken,
+        event.signUpData,
+      );
+
+      final auth = response.data["data"]["auth"];
+
+      final prefs = await SharedPreferences.getInstance();
+
+      await prefs.setString(
+        "accessToken",
+        auth["accessToken"],
+      );
+
+      await prefs.setString(
+        "refreshToken",
+        auth["refreshToken"],
+      );
+
+      await prefs.setString(
+        "userUuid",
+        auth["userUuid"],
+      );
+
+      await prefs.setBool(
+        "isLogged",
+        true,
+      );
+
+      await prefs.setInt(
+        "loginTime",
+        DateTime.now().millisecondsSinceEpoch,
+      );
+      print("===== SIGNUP SAVED =====");
+      print("Saved accessToken = ${prefs.getString("accessToken")}");
+      print("Saved refreshToken = ${prefs.getString("refreshToken")}");
+      print("Saved userUuid = ${prefs.getString("userUuid")}");
+      print("Saved isLogged = ${prefs.getBool("isLogged")}");
+      emit(
+        state.copyWith(
+          isLoading: false,
+          isSuccess: true,
+          navigateToHome: true,
+          errorMessage: response.data["message"] ?? "Account created successfully",
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          isLoading: false,
+          isError: true,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
 }

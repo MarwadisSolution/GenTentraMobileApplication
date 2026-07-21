@@ -1,3 +1,4 @@
+import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -24,8 +25,12 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController surnameController = TextEditingController();
   final TextEditingController genderController = TextEditingController();
   final TextEditingController numberController = TextEditingController();
- bool otpButtonPressed=false;
- int selectedGender=0;
+  bool otpButtonPressed = false;
+  int selectedGender = 0;
+  String selectedCountryCode = "+91";
+  final TextEditingController urlController = TextEditingController(
+    text: api,
+  );
   @override
   void initState() {
     // TODO: implement initState
@@ -34,7 +39,26 @@ class _SignupPageState extends State<SignupPage> {
     firstNameController.text = signupData.firstName;
     surnameController.text = signupData.surname;
     genderController.text = signupData.gender;
-    numberController.text = signupData.number;
+    // numberController.text = signupData.number;
+    if (signupData.gender.isEmpty) {
+      selectedGender = 0;
+
+      context.read<LoginBloc>().add(
+        UpdateSignupDataEvent(
+          signupData.copyWith(gender: "Male"),
+        ),
+      );
+    } else {
+      genderController.text = signupData.gender;
+
+      if (signupData.gender == "Male") {
+        selectedGender = 0;
+      } else if (signupData.gender == "Female") {
+        selectedGender = 1;
+      } else {
+        selectedGender = 2;
+      }
+    }
   }
 
   @override
@@ -52,7 +76,8 @@ class _SignupPageState extends State<SignupPage> {
   Widget build(BuildContext context) {
     return BlocListener<LoginBloc, LoginState>(
       listenWhen: (previous, current) =>
-      previous.errorMessage != current.errorMessage,
+          previous.errorMessage != current.errorMessage ||
+          previous.navigateToOtp != current.navigateToOtp,
       listener: (context, state) {
         if (state.isError && otpButtonPressed) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -64,9 +89,17 @@ class _SignupPageState extends State<SignupPage> {
           otpButtonPressed = false;
         }
         if (state.navigateToOtp) {
-          Navigator.pushReplacement(
+          print("NAVIGATING TO VERIFY PAGE");
+          context.read<LoginBloc>().add(ResetNavigationEvent());
+
+          Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => VerifyOtpPage()),
+            MaterialPageRoute(
+              builder: (_) => BlocProvider.value(
+                value: context.read<LoginBloc>(),
+                child: const VerifyOtpPage(),
+              ),
+            ),
           );
         }
       },
@@ -85,7 +118,6 @@ class _SignupPageState extends State<SignupPage> {
                   ),
                   child: Center(
                     child: Column(
-
                       children: [
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.07,
@@ -160,174 +192,277 @@ class _SignupPageState extends State<SignupPage> {
                           height: MediaQuery.of(context).size.height * 0.03,
                         ),
                         Align(
-                            alignment: Alignment.topLeft,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  Text(LoginPageData.gender,
-                                    style: TextStyle(fontWeight: FontWeight.w400,fontSize: 14,
-                                      color: ColorScheme.of(
+                          alignment: Alignment.topLeft,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                Text(
+                                  LoginPageData.gender,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 14,
+                                    color: ColorScheme.of(
                                       context,
-                                    ).onSurface.withOpacity(0.3), ),),
-                                  SizedBox(width: 30,),
-                                  //------Male
-                                  InkWell(
-                                    onTap: () {
-                                      selectedGender=0;
-
-                                        context.read<LoginBloc>().add(
-                                          UpdateSignupDataEvent(
-                                            state.signUpData.copyWith(gender: "Male"),
-                                          ),
-                                        );
-                                    },
-                                    child: Container(
-                                      constraints: BoxConstraints(
-                                        maxWidth: 75,
-                                        minHeight: 30
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: selectedGender==0?null:ColorScheme.of(context).onSurface.withOpacity(0.26),
-                                        gradient: selectedGender==0?GradientColors.primaryGradient:null,
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            LoginPageData.male,
-                                            style: TextStyle(
-                                              color: ColorScheme.of(context).surface,
-                                              fontWeight: FontWeight.w400,
-                                              fontSize: 15,
-                                              letterSpacing: 0.37
-                                            ),
-                                          ),
-
-                                        ],
-                                      ),
-                                    ),
+                                    ).onSurface.withOpacity(0.3),
                                   ),
-                     ///------Female
-                                  SizedBox(width: 6,),
-                                  InkWell(
-                                    onTap: () {
-                                      selectedGender=1;
+                                ),
+                                SizedBox(width: 30),
+                                //------Male
+                                InkWell(
+                                  onTap: () {
+                                    selectedGender = 0;
 
-                                      context.read<LoginBloc>().add(
-                                        UpdateSignupDataEvent(
-                                          state.signUpData.copyWith(gender: "Female"),
+                                    context.read<LoginBloc>().add(
+                                      UpdateSignupDataEvent(
+                                        state.signUpData.copyWith(
+                                          gender: "Male",
                                         ),
-                                      );
-                                    },
-                                    child: Container(
-                                      constraints: BoxConstraints(
-                                          maxWidth: 75,
-                                          minHeight: 30
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: selectedGender==1?null:ColorScheme.of(context).onSurface.withOpacity(0.26),
-                                        gradient: selectedGender==1?GradientColors.primaryGradient:null,
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            LoginPageData.female,
-                                            style: TextStyle(
-                                                color: ColorScheme.of(context).surface,
-                                                fontWeight: FontWeight.w400,
-                                                fontSize: 15,
-                                                letterSpacing: 0.37
-                                            ),
-                                          ),
-
-                                        ],
-                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    constraints: BoxConstraints(
+                                      maxWidth: 75,
+                                      minHeight: 30,
                                     ),
-                                  ),
-                                  SizedBox(width: 6,),
-                                  InkWell(
-                                    onTap: () {
-                                      selectedGender=2;
-
-                                      context.read<LoginBloc>().add(
-                                        UpdateSignupDataEvent(
-                                          state.signUpData.copyWith(gender: "Other"),
+                                    decoration: BoxDecoration(
+                                      color: selectedGender == 0
+                                          ? null
+                                          : ColorScheme.of(
+                                              context,
+                                            ).onSurface.withOpacity(0.26),
+                                      gradient: selectedGender == 0
+                                          ? GradientColors.primaryGradient
+                                          : null,
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          LoginPageData.male,
+                                          style: TextStyle(
+                                            color: ColorScheme.of(
+                                              context,
+                                            ).surface,
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 15,
+                                            letterSpacing: 0.37,
+                                          ),
                                         ),
-                                      );
-                                    },
-                                    child: Container(
-                                      constraints: BoxConstraints(
-                                          maxWidth: 75,
-                                          minHeight: 30
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: selectedGender==2?null:ColorScheme.of(context).onSurface.withOpacity(0.26),
-                                        gradient: selectedGender==2?GradientColors.primaryGradient:null,
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            LoginPageData.other,
-                                            style: TextStyle(
-                                                color: ColorScheme.of(context).surface,
-                                                fontWeight: FontWeight.w400,
-                                                fontSize: 15,
-                                                letterSpacing: 0.37
-                                            ),
-                                          ),
-
-                                        ],
-                                      ),
+                                      ],
                                     ),
                                   ),
-                                ],
+                                ),
+
+                                ///------Female
+                                SizedBox(width: 6),
+                                InkWell(
+                                  onTap: () {
+                                    selectedGender = 1;
+
+                                    context.read<LoginBloc>().add(
+                                      UpdateSignupDataEvent(
+                                        state.signUpData.copyWith(
+                                          gender: "Female",
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    constraints: BoxConstraints(
+                                      maxWidth: 75,
+                                      minHeight: 30,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: selectedGender == 1
+                                          ? null
+                                          : ColorScheme.of(
+                                              context,
+                                            ).onSurface.withOpacity(0.26),
+                                      gradient: selectedGender == 1
+                                          ? GradientColors.primaryGradient
+                                          : null,
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          LoginPageData.female,
+                                          style: TextStyle(
+                                            color: ColorScheme.of(
+                                              context,
+                                            ).surface,
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 15,
+                                            letterSpacing: 0.37,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 6),
+                                InkWell(
+                                  onTap: () {
+                                    selectedGender = 2;
+
+                                    context.read<LoginBloc>().add(
+                                      UpdateSignupDataEvent(
+                                        state.signUpData.copyWith(
+                                          gender: "Other",
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    constraints: BoxConstraints(
+                                      maxWidth: 75,
+                                      minHeight: 30,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: selectedGender == 2
+                                          ? null
+                                          : ColorScheme.of(
+                                              context,
+                                            ).onSurface.withOpacity(0.26),
+                                      gradient: selectedGender == 2
+                                          ? GradientColors.primaryGradient
+                                          : null,
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          LoginPageData.other,
+                                          style: TextStyle(
+                                            color: ColorScheme.of(
+                                              context,
+                                            ).surface,
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 15,
+                                            letterSpacing: 0.37,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        ///---URL Temp
+                        TextField(
+                          controller: urlController,
+                          keyboardType: TextInputType.url,
+                          decoration: InputDecoration(
+                            labelText: "Server URL",
+                            hintText: "https://example.trycloudflare.com",
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: ColorScheme.of(context).onSurface.withOpacity(0.3),
                               ),
-                            )),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: ColorScheme.of(context).onSurface.withOpacity(0.3),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.03,
+                        ),
                         ///-----Number
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.03,
                         ),
-                        CustomTextField(
+                        TextField(
                           controller: numberController,
-                          labelText: LoginPageData.mobileNo,
-                          keyboardType: TextInputType.number,
                           maxLength: 10,
-                          prefixIcon: const Padding(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 14,
-                              horizontal: 15,
-                            ),
-                            child: Text(
-                              "+91",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
+                          keyboardType: TextInputType.number,
+                          cursorColor: ColorScheme.of(context).onSurface,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
                           onChanged: (value) {
                             context.read<LoginBloc>().add(
-                              UpdateSignupDataEvent(
-                                state.signUpData.copyWith(number: value),
+                              NumberFillingForOtpEvent(
+                                value,
+                                selectedCountryCode,
                               ),
                             );
                           },
+                          decoration: InputDecoration(
+                            counterText: "",
+                            prefixIcon: CountryCodePicker(
+                              onChanged: (country) {
+                                setState(() {
+                                  selectedCountryCode = country.dialCode!;
+                                });
+
+                                context.read<LoginBloc>().add(
+                                  NumberFillingForOtpEvent(
+                                    numberController.text,
+                                    selectedCountryCode,
+                                  ),
+                                );
+                              },
+                              initialSelection: 'IN',
+                              favorite: const ['+91', 'IN'],
+                              showCountryOnly: false,
+                              showOnlyCountryWhenClosed: false,
+                              alignLeft: false,
+                              textStyle: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
+                            ),
+                            labelText: LoginPageData.mobileNo,
+                            labelStyle: TextStyle(
+                              color: ColorScheme.of(
+                                context,
+                              ).onSurface.withOpacity(0.3),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: ColorScheme.of(
+                                  context,
+                                ).onSurface.withOpacity(0.3),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: ColorScheme.of(
+                                  context,
+                                ).onSurface.withOpacity(0.3),
+                              ),
+                            ),
+                          ),
                         ),
+
                         ///----------------Generate OTP----------
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.06,
                         ),
                         InkWell(
                           onTap: () {
-                            otpButtonPressed=true;
+                            api = urlController.text.trim();
+                            otpButtonPressed = true;
                             context.read<LoginBloc>().add(SignInButtonEvent());
                           },
                           child: SizedBox(
@@ -351,7 +486,7 @@ class _SignupPageState extends State<SignupPage> {
                                   ),
                                   SizedBox(
                                     width:
-                                    MediaQuery.of(context).size.width *
+                                        MediaQuery.of(context).size.width *
                                         0.02,
                                   ),
                                   SvgPicture.asset(LoginPageData.arrowIcon),
@@ -388,9 +523,8 @@ class _SignupPageState extends State<SignupPage> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => BlocProvider(
-                              create: (_) => LoginBloc(
-                                LoginRepository(LoginApi()),
-                              ),
+                              create: (_) =>
+                                  LoginBloc(LoginRepository(LoginApi())),
                               child: const OtpPage(),
                             ),
                           ),
@@ -403,7 +537,7 @@ class _SignupPageState extends State<SignupPage> {
                               Rect.fromLTRB(0, 0, bounds.width, bounds.height),
                             ),
                         child: Text(
-                         LoginPageData.signIn,
+                          LoginPageData.signIn,
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,

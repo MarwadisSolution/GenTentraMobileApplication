@@ -24,17 +24,36 @@ class AuthService{
       }
       );
       if(response.statusCode==200 || response.statusCode==201){
-        final auth=response.data["data"]["auth"];
-        await prefs.setString("accessToken", auth["accessToken"]);
-        await prefs.setString("refreshToken", auth["refreshToken"]);
-        await prefs.setString("userUuid", auth["userUuid"]);
+        final auth = response.data["data"];
+        await prefs.setString(
+          "accessToken",
+          auth["accessToken"],
+        );
+
+        await prefs.setString(
+          "refreshToken",
+          auth["refreshToken"],
+        );
+
+        await prefs.setString(
+          "userUuid",
+          auth["userUuid"],
+        );
         await prefs.setInt("loginTime", DateTime.now().millisecondsSinceEpoch,);
         await prefs.setBool("isLogged", true);
         return true;
       }
       return false;
     }
-    catch(e){
+    catch (e) {
+      print("========== REFRESH FAILED ==========");
+      print(e);
+
+      if (e is DioException) {
+        print("StatusCode = ${e.response?.statusCode}");
+        print("Response = ${e.response?.data}");
+      }
+
       return false;
     }
   }

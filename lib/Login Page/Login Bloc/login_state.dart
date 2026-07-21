@@ -9,6 +9,7 @@ class LoginState extends Equatable {
 
   final bool navigateToOtp;
   final bool navigateToNewUser;
+  final bool requirePassword;
   final bool navigateToOldUser;
 
   final String phoneNumber;
@@ -29,7 +30,7 @@ class LoginState extends Equatable {
   final String city;
   final String state;
   final String country;
-
+  final bool navigateToHome;
   const LoginState({
     this.isLoading = false,
     this.isVerifyingOtp=false,
@@ -37,6 +38,7 @@ class LoginState extends Equatable {
     this.errorMessage = '',
     this.navigateToOtp=false,
     this.navigateToNewUser=false,
+    this.requirePassword =false,
     this.navigateToOldUser=false,
     this.phoneNumber = '',
     this.otp = '',
@@ -54,6 +56,7 @@ this.isSuccess=false,
     this.city = '',
     this.state = '',
     this.country = '',
+    this.navigateToHome = false,
   });
 
   LoginState copyWith({
@@ -63,7 +66,9 @@ this.isSuccess=false,
     String? errorMessage,
     bool? navigateToOtp,
     bool? navigateToNewUser,
+    bool?requirePassword ,
     bool? navigateToOldUser,
+
     String? phoneNumber,
     String? otp,
     String? verificationToken,
@@ -80,6 +85,7 @@ bool?isSuccess,
     String? city,
     String? state,
     String? country,
+    bool? navigateToHome,
 
   }) {
     return LoginState(
@@ -89,7 +95,9 @@ bool?isSuccess,
       errorMessage: errorMessage ?? this.errorMessage,
       navigateToOtp: navigateToOtp ?? this.navigateToOtp,
       navigateToNewUser: navigateToNewUser ?? this.navigateToNewUser,
+      requirePassword : requirePassword ??this.requirePassword ,
       navigateToOldUser: navigateToOldUser ?? this.navigateToOldUser,
+
       phoneNumber: phoneNumber ?? this.phoneNumber,
       otp: otp ?? this.otp,
       verificationToken: verificationToken ?? this.verificationToken,
@@ -106,6 +114,7 @@ bool?isSuccess,
       city: city ?? this.city,
       state: state ?? this.state,
       country: country ?? this.country,
+      navigateToHome: navigateToHome ?? this.navigateToHome,
     );
   }
 
@@ -117,6 +126,7 @@ bool?isSuccess,
     errorMessage,
     navigateToOtp,
     navigateToNewUser,
+    requirePassword ,
     navigateToOldUser,
     phoneNumber,
     otp,

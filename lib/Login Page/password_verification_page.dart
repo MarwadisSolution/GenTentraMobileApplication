@@ -34,7 +34,8 @@ class _PasswordVerificationPageState extends State<PasswordVerificationPage> {
       );
 
       final auth = result["auth"];
-
+      print("Result = $result");
+      print("Auth = $auth");
       final prefs = await SharedPreferences.getInstance();
 
       await prefs.setString("accessToken", auth["accessToken"]);
@@ -242,6 +243,11 @@ class _PasswordVerificationPageState extends State<PasswordVerificationPage> {
                                             true,
                                           );
                                           print(result);
+                                          print("===== PASSWORD SAVED =====");
+                                          print("Saved accessToken = ${prefs.getString("accessToken")}");
+                                          print("Saved refreshToken = ${prefs.getString("refreshToken")}");
+                                          print("Saved userUuid = ${prefs.getString("userUuid")}");
+                                          print("Saved isLogged = ${prefs.getBool("isLogged")}");
 
                                           Navigator.pushReplacement(
                                             context,

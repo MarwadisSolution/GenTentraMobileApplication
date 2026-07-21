@@ -1,30 +1,38 @@
+import '../../Reusable Functions/reusable_functions.dart';
 import '../login_apis.dart';
 
 class OtpVerificationResponse {
 final bool isNewUser;
+final bool requirePassword;
 final String verificationToken;
+
     OtpVerificationResponse({
   required this.isNewUser,
+      required this.requirePassword,
       required this.verificationToken,
+
 });
 
-    factory OtpVerificationResponse.fromJson(
-        Map<String, dynamic>json
-        ){
-      return OtpVerificationResponse(
-          isNewUser: json["isNewUser"],
-          verificationToken: json["verificationToken"],
-      );
-    }
+factory OtpVerificationResponse.fromJson(
+    Map<String, dynamic> json,
+    ) {
+  return OtpVerificationResponse(
+    isNewUser: json["isNewUser"] ?? false,
+    requirePassword: json["requirePassword"] ?? false,
+    verificationToken: json["verificationToken"] ?? "",
+  );
+}
 }
 class LoginRepository {
 
   final LoginApi loginApi;
 
   LoginRepository(this.loginApi);
-
+///------Remove temporary Saving otp as till now we have not taken message system so using it
   Future<void> sendOtp(String number) async {
-    await loginApi.otpRequest(number);
+
+     temporarySavingOtp= await loginApi.otpRequest(number);
+
   }
 
   Future<OtpVerificationResponse> verifyOtp(
@@ -46,24 +54,42 @@ class SignUpModal{
 final String firstName;
 final String surname;
 final String gender;
-final String number;
+final String coverUrl;
+final String area;
+final String city;
+final String state;
+final String country;
+
 const SignUpModal({
 this.firstName='',
   this.surname='',
   this.gender='',
-  this.number='',
+  this.coverUrl='',
+  this.area='',
+  this.city='',
+  this.state='',
+  this.country='',
 });
 SignUpModal copyWith({
   String? firstName,
   String? surname,
   String?gender,
-  String? number,
+ String? coverUrl,
+  String?area,
+  String?city,
+  String? state,
+  String? country,
+
 }){
   return SignUpModal(
     firstName: firstName??this.firstName,
 surname: surname??this.surname,
     gender: gender??this.gender,
-    number: number??this.number,
+    coverUrl: coverUrl??this.coverUrl,
+    area: area??this.area,
+    city: city??this.city,
+    state: state??this.state,
+    country: country??this.country,
   );
 }
 factory SignUpModal.fromJson(Map<String, dynamic>json){
@@ -71,7 +97,11 @@ factory SignUpModal.fromJson(Map<String, dynamic>json){
 firstName: json['firstName']??'',
     surname: json['surname']??'',
     gender: json['gender']??'',
-    number: json['number']??'',
+    coverUrl: json['coverUrl']??'',
+    area: json['area']??'',
+    city: json['city']??'',
+    state: json['state']??'',
+    country: json['country']??'',
   );
 }
 Map<String, dynamic>toJson(){
@@ -79,49 +109,11 @@ Map<String, dynamic>toJson(){
     'firstName':firstName,
     'surname':surname,
     'gender':gender,
-    'number':number,
+    'coverUrl':coverUrl,
+    'area':area,
+    'city':city,
+    'state':state,
+    'country':country,
   };
 }
-}
-class AddressPageModal{
-  final String area;
-  final String city;
-  final String state;
-  final String country;
-   const AddressPageModal({
-    this.area = '',
-    this.city = '',
-    this.state = '',
-    this.country = '',
-  });
-  AddressPageModal copyWith({
-    String? area,
-    String?city,
-    String?state,
-    String? country,
-  }){
-    return AddressPageModal(
-      area: area ?? this.area,
-      city: city ?? this.city,
-      state: state ?? this.city,
-      country: country ?? this.country,
-    );
-  }
-  factory AddressPageModal.fromJson(Map<String, dynamic>json){
-    return AddressPageModal(
-      area: json['area']??'',
-      city: json['city']??'',
-      state: json['state']??'',
-      country: json['country']??'',
-    );
-  }
- Map<String, dynamic>toJson(){
-    return{
-      "area":area,
-      "city":city,
-      "state":state,
-      "country":country,
-    };
- }
-
 }
