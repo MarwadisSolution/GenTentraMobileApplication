@@ -128,7 +128,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                     final leader = group.leaders[leaderIndex];
                     return SizedBox(
                       width: w * 0.28,
-                      height: 165,
+                      height: h*0.2,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [

@@ -12,7 +12,7 @@ String api = ApiConfig.baseUrl;
 
 class ApiConfig {
   static String baseUrl =
-      "https://fioricet-syndicate-absolutely-ages.trycloudflare.com";
+      "";
 }
 Future<String?> getAccessToken() async {
   final prefs = await SharedPreferences.getInstance();

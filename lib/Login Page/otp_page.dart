@@ -105,7 +105,7 @@ class _OtpPageState extends State<OtpPage> {
                           keyboardType: TextInputType.url,
                           decoration: InputDecoration(
                             labelText: "Server URL",
-                            hintText: "https://example.trycloudflare.com",
+                            //hintText: "https://example.trycloudflare.com",
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide(
@@ -127,6 +127,7 @@ class _OtpPageState extends State<OtpPage> {
                             ),
                           ),
                         ),
+                       SizedBox(height: MediaQuery.of(context).size.height * 0.03,),
                         TextField(
                           controller: phoneController,
                           maxLength: 10,

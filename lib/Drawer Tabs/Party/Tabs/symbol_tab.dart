@@ -18,6 +18,17 @@ class SymbolTab extends StatefulWidget {
 class _SymbolTabState extends State<SymbolTab> {
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    final isMobile = w < 600;
+    final isTablet = w >= 600 && w < 900;
+    final isDesktop = w >= 900;
+
+    final gridCount = isDesktop
+        ? 3
+        : isTablet
+        ? 2
+        : 1;
     final size=MediaQuery.of(context).size.width;
     final String label = widget.symbol.logoDescription ?? "";
     return ListView(
@@ -32,7 +43,7 @@ class _SymbolTabState extends State<SymbolTab> {
             physics: const NeverScrollableScrollPhysics(),
             padding:  EdgeInsets.all(MediaQuery.sizeOf(context).width *0.012),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: size>400?2:1,
+              crossAxisCount: gridCount,
               crossAxisSpacing: 12,
               mainAxisSpacing: 30,
               childAspectRatio: 1.8,

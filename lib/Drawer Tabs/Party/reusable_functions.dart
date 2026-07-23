@@ -35,15 +35,12 @@ class _BannerSectionState extends State<BannerSection> {
         /// Banner Images
 
         SizedBox(
-          height: 350,
+          height: MediaQuery.of(context).size.height*0.8,
           width: double.infinity,
           child: banners.isEmpty
-              ? Container(
-                  //color: Colors.red,
-                  child: const Center(
+              ?  const Center(
                     child: Icon(Icons.image, size: 60, color: Colors.grey),
-                  ),
-                )
+                  )
               : PageView.builder(
                   controller: _pageController,
                   itemCount: banners.length,
@@ -522,6 +519,7 @@ class PartyDetailsSectionByFields extends StatelessWidget {
   final SymbolModel symbol;
   final List<JourneyModel> journeys;
   final List<LeaderGroupModel>leaders;
+  final ScrollController scrollController;
 
   const PartyDetailsSectionByFields({
     super.key,
@@ -529,6 +527,7 @@ class PartyDetailsSectionByFields extends StatelessWidget {
     required this.symbol,
     required this.journeys,
     required this.leaders,
+    required this.scrollController,
   });
 
   @override
@@ -572,6 +571,7 @@ class PartyDetailsSectionByFields extends StatelessWidget {
               children: [
                 InfoTab(
                   party: party,
+                  scrollController: scrollController,
                 ),
                 SymbolTab(
                   symbol: symbol,

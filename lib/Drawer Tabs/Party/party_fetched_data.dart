@@ -49,9 +49,9 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
 
 
             DraggableScrollableSheet(
-              initialChildSize: 0.65,
-              minChildSize: 0.65,
-              maxChildSize: 0.8,
+              initialChildSize: 0.25,
+              minChildSize: 0.25,
+              maxChildSize: 0.9,
               builder: (context, scrollController) {
                 return Container(
                   decoration: const BoxDecoration(
@@ -117,6 +117,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
                               party: party,
                               symbol: symbol,
                               journeys: journey, leaders: leaders,
+                              scrollController: scrollController,
                             );
                           },
                         ),

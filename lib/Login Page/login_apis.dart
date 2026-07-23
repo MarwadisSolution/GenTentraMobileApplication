@@ -50,7 +50,7 @@ class LoginApi{
 
       data: jsonEncode({
         "phone": number,
-        "code": intOTP,
+        "code": otp,
       }),
     );
     print("I am here");

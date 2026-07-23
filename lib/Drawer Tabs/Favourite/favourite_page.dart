@@ -33,6 +33,17 @@ class _FavouritePageState extends State<FavouritePage> {
 
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    final isMobile = w < 600;
+    final isTablet = w >= 600 && w < 900;
+    final isDesktop = w >= 900;
+
+    final gridCount = isDesktop
+        ? 6
+        : isTablet
+        ? 5
+        : 3;
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -103,8 +114,8 @@ class _FavouritePageState extends State<FavouritePage> {
                               physics:
                               const NeverScrollableScrollPhysics(),
                               gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
+                               SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: gridCount,
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
                                 childAspectRatio: 1,

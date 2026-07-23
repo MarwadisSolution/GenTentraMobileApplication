@@ -359,12 +359,15 @@ class _SignupPageState extends State<SignupPage> {
                           ),
                         ),
                         ///---URL Temp
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.02,
+                        ),
                         TextField(
                           controller: urlController,
                           keyboardType: TextInputType.url,
                           decoration: InputDecoration(
                             labelText: "Server URL",
-                            hintText: "https://example.trycloudflare.com",
+                            // hintText: "https://example.trycloudflare.com",
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide(
@@ -381,7 +384,7 @@ class _SignupPageState extends State<SignupPage> {
                         ),
 
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.03,
+                          height: MediaQuery.of(context).size.height * 0.01,
                         ),
                         ///-----Number
                         SizedBox(

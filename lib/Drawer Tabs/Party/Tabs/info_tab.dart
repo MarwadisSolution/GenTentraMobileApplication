@@ -10,7 +10,9 @@ import 'package:readmore/readmore.dart';
 import '../party_page_modal.dart';
 class InfoTab extends StatelessWidget {
   final PartyProfileModel party;
-  const InfoTab({super.key, required this.party});
+  final ScrollController scrollController;
+  const InfoTab({super.key, required this.party,
+    required this.scrollController,});
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +33,7 @@ class InfoTab extends StatelessWidget {
             infoData(context, PartyPageData.headquarterIcon,PartyPageData.headquarters,party.headquarters?? "-"  ),
             infoData(context, PartyPageData.globalIcon,PartyPageData.website,party.officialWebsite?? "-"  ),
             //infoData(context, PartyPageData.foundedIcon,PartyPageData.founded,partyData["foundedOn"] ?? ""  ),
+            SizedBox(height: MediaQuery.of(context).size.height*0.03,),
           ],
         ),
       ),
