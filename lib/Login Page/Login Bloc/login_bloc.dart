@@ -6,6 +6,7 @@ import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_st
 import 'package:gen_tentra_mobile_application/Login%20Page/Sign%20up/signup_apis.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../Reusable Functions/reusable_functions.dart';
 import 'login_modal.dart';
 
 Timer? _timer;
@@ -23,6 +24,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<StartOtpTimerEvent>(_startTimer);
     on<TimerTickEvent>(_timerTick);
     on<ResetNavigationEvent>(_resetNavigation);
+    on<ClearOtpStatusEvent>(_clearOtpStatusEvent);
+   on<ClearOtpResentEvent>(_clearOtpResentEvent);
     ///----Signup---------
     on<CreateSignupEvent>(_onCreateSignupDetails);
     on<LoadSignupDataEvent>(_onLoadFirstAndSurnameDetails);
@@ -30,44 +33,36 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<AddressSignUpEvent>(_onAddressSignUp);
 
     on<PasswordEvent>((event, emit) {
-      emit(
-        state.copyWith(
-          password: event.password,
-        ),
-      );
+      emit(state.copyWith(password: event.password));
     });
     //Eye button
-    on<EyeButtonEvent>((event, emit){
-      emit(
-          state.copyWith(
-            obscureText: !state.obscureText,
-          )
-      );
+    on<EyeButtonEvent>((event, emit) {
+      emit(state.copyWith(obscureText: !state.obscureText));
     });
     //Submit
-    on<SubmitButtonEvent>((event, emit)async{
-      if(state.password.isEmpty){
-        emit(state.copyWith(isError: true, errorMessage: "Please enter the password"));
+    on<SubmitButtonEvent>((event, emit) async {
+      if (state.password.isEmpty) {
+        emit(
+          state.copyWith(
+            isError: true,
+            errorMessage: "Please enter the password",
+          ),
+        );
         return;
       }
-      emit(
-        state.copyWith(isError: false, errorMessage: '', isLoading: true),
-      );
-      try{
+      emit(state.copyWith(isError: false, errorMessage: '', isLoading: true));
+      try {
         //Api calling kar na hai-----------------------------
         //String response=await loginApi.otpRequest(state.email, "");
         await Future.delayed(const Duration(seconds: 2));
-        emit(state.copyWith(
-          isLoading: false,
-        ));
-      }
-      catch(e){
+        emit(state.copyWith(isLoading: false));
+      } catch (e) {
         emit(
-            state.copyWith(
-              isLoading: false,
-              isError: false,
-              errorMessage: e.toString(),
-            )
+          state.copyWith(
+            isLoading: false,
+            isError: false,
+            errorMessage: e.toString(),
+          ),
         );
       }
     });
@@ -77,7 +72,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     NumberFillingForOtpEvent event,
     Emitter<LoginState> emit,
   ) async {
-    emit(state.copyWith(phoneNumber: "${event.countryCode}${event.number}",));
+    emit(state.copyWith(phoneNumber: "${event.countryCode}${event.number}"));
   }
 
   Future<void> _sendOtp(
@@ -87,12 +82,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     final mobileNumber = state.phoneNumber;
     print("Mobile Number: ${mobileNumber.toString()}");
     if (mobileNumber.isEmpty) {
-      emit(
-        state.copyWith(
-          isError: false,
-          errorMessage: '',
-        ),
-      );
+      emit(state.copyWith(isError: false, errorMessage: ''));
       emit(
         state.copyWith(
           isError: true,
@@ -116,7 +106,14 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       ///--------api
 
       await repository.sendOtp(mobileNumber);
-      emit(state.copyWith(isLoading: false, navigateToOtp: true));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          isError: false,
+          errorMessage: "",
+          navigateToOtp: true,
+        ),
+      );
       add(StartOtpTimerEvent());
     } catch (e) {
       emit(
@@ -133,28 +130,19 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(state.copyWith(otp: event.otp));
   }
 
-  Future<void>_verifyOtp(
-      VerifyOtpEvent event,
-      Emitter<LoginState> emit,
-      )async{
-    if(event.otp.length!=6){
-      emit(state.copyWith(
-        isError: true,
-        errorMessage: "Enter valid OTP",
-      )
-      );
+  Future<void> _verifyOtp(
+    VerifyOtpEvent event,
+    Emitter<LoginState> emit,
+  ) async {
+    if (event.otp.length != 6) {
+      emit(state.copyWith(isError: true, errorMessage: "Enter valid OTP"));
       return;
     }
-    try{
+    try {
       emit(
-          state.copyWith(
-            isVerifyingOtp: true,
-            isError: false,
-            errorMessage: "",
-        )
+        state.copyWith(isVerifyingOtp: true, isError: false, errorMessage: ""),
       );
-      final response=await repository.verifyOtp(state.phoneNumber,
-          event.otp,);
+      final response = await repository.verifyOtp(state.phoneNumber, event.otp);
       print("OTP VERIFIED SUCCESS");
       print("isNewUser = ${response.isNewUser}");
       emit(
@@ -169,9 +157,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           navigateToOldUser: !response.isNewUser,
         ),
       );
-    }
-    catch(e){
-
+    } catch (e) {
       emit(
         state.copyWith(
           isVerifyingOtp: false,
@@ -181,117 +167,125 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       );
     }
   }
-  Future<void>_resendOtp(
+
+  Future<void> _resendOtp(
       ResendOtpEvent event,
       Emitter<LoginState> emit,
-      )async{
-    await repository.sendOtp(state.phoneNumber,);
-    add(StartOtpTimerEvent());
+      ) async {
+    try {
+      await repository.sendOtp(state.phoneNumber);
+
+      print("Resend completed");
+      print("temporarySavingOtp = $temporarySavingOtp");
+
+      emit(state.copyWith(otpResent: true));
+
+      print("otpResent emitted");
+
+      add(StartOtpTimerEvent());
+    } catch (e) {
+      emit(
+        state.copyWith(
+          isError: true,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
   }
-  void _startTimer(
-      StartOtpTimerEvent event,
-      Emitter<LoginState> emit,
-      ) {
+
+  void _startTimer(StartOtpTimerEvent event, Emitter<LoginState> emit) {
     _timer?.cancel();
 
-    int seconds = 60;
+    int seconds = 30;
 
+    emit(state.copyWith(resendTimer: seconds, canResendOtp: false));
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      seconds--;
+
+      add(TimerTickEvent(seconds));
+
+      if (seconds <= 0) {
+        timer.cancel();
+      }
+    });
+  }
+
+  void _timerTick(TimerTickEvent event, Emitter<LoginState> emit) {
     emit(
       state.copyWith(
-        resendTimer: seconds,
-        canResendOtp: false,
+        resendTimer: event.seconds,
+        canResendOtp: event.seconds == 0,
       ),
     );
-
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-          (timer) {
-        seconds--;
-
-        add(TimerTickEvent(seconds));
-
-        if (seconds <= 0) {
-          timer.cancel();
-        }
-      },
-    );
   }
-  void _timerTick(
-      TimerTickEvent event,
-      Emitter<LoginState> emit,
-      ){
+
+  void _resetNavigation(ResetNavigationEvent event, Emitter<LoginState> emit) {
     emit(
-    state.copyWith(
-    resendTimer: event.seconds,
-  canResendOtp: event.seconds==0,
-    )
+      state.copyWith(
+        navigateToOtp: false,
+        navigateToNewUser: false,
+        navigateToOldUser: false,
+        navigateToHome: false,
+        isError: false,
+        errorMessage: "",
+      ),
     );
   }
-  void _resetNavigation(
-  ResetNavigationEvent event,
-  Emitter<LoginState> emit,
-  ){
-    emit(
-    state.copyWith(
-    navigateToOtp: false,
-    navigateToNewUser: false,
-    navigateToOldUser: false,
-      navigateToHome: false
-    )
-    );
-  }
+
   @override
   Future<void> close() {
     //print("LOGIN BLOC CLOSED ${identityHashCode(this)}");
-  _timer?.cancel();
-  return super.close();
+    _timer?.cancel();
+    return super.close();
+  }
+
+  void _clearOtpStatusEvent(
+    ClearOtpStatusEvent event,
+    Emitter<LoginState> emit,
+  ) {
+    emit(state.copyWith(isSuccess: false, isError: false, errorMessage: ""));
+  }
+  void _clearOtpResentEvent(ClearOtpResentEvent event, Emitter<LoginState>emit){
+    emit(state.copyWith(otpResent: false));
   }
 
   ///-----------Sign up
-void _onCreateSignupDetails(
+  void _onCreateSignupDetails(
     CreateSignupEvent event,
-    Emitter<LoginState>emit,
-    ){
-    emit(
-      LoginState(signUpData: const SignUpModal()),
-    );
- }
- Future<void> _onLoadFirstAndSurnameDetails(
-     LoadSignupDataEvent event,
-     Emitter<LoginState> emit,
-     )async{
-    emit(state.copyWith(isLoading: true, errorMessage: null));
-    try{
-      await Future.delayed(const Duration(seconds: 1));
-      final signUpData=SignUpModal(
-        ///-----Replace karna ka api ke response se
+    Emitter<LoginState> emit,
+  ) {
+    emit(LoginState(signUpData: const SignUpModal()));
+  }
 
+  Future<void> _onLoadFirstAndSurnameDetails(
+    LoadSignupDataEvent event,
+    Emitter<LoginState> emit,
+  ) async {
+    emit(state.copyWith(isLoading: true, errorMessage: null));
+    try {
+      await Future.delayed(const Duration(seconds: 1));
+      final signUpData = SignUpModal(
+        ///-----Replace karna ka api ke response se
       );
       emit(state.copyWith(isLoading: false, signUpData: signUpData));
-    }
-    catch(e){
+    } catch (e) {
       emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
     }
- }
- void _onUpdateSignUpData(
-     UpdateSignupDataEvent event,
-     Emitter<LoginState>emit,
-     ){
-    emit(
-      state.copyWith(
-        signUpData: event.signUpData,
-      )
-    );
- }
+  }
+
+  void _onUpdateSignUpData(
+    UpdateSignupDataEvent event,
+    Emitter<LoginState> emit,
+  ) {
+    emit(state.copyWith(signUpData: event.signUpData));
+  }
+
   Future<void> _onAddressSignUp(
-      AddressSignUpEvent event,
-      Emitter<LoginState> emit,
-      ) async {
-    emit(state.copyWith(
-      isLoading: true,
-      isError: false,
-      errorMessage: '',
-    ));
+    AddressSignUpEvent event,
+    Emitter<LoginState> emit,
+  ) async {
+    emit(state.copyWith(isLoading: true, isError: false, errorMessage: ''));
 
     try {
       final response = await SignupApis().signUp(
@@ -303,30 +297,15 @@ void _onCreateSignupDetails(
 
       final prefs = await SharedPreferences.getInstance();
 
-      await prefs.setString(
-        "accessToken",
-        auth["accessToken"],
-      );
+      await prefs.setString("accessToken", auth["accessToken"]);
 
-      await prefs.setString(
-        "refreshToken",
-        auth["refreshToken"],
-      );
+      await prefs.setString("refreshToken", auth["refreshToken"]);
 
-      await prefs.setString(
-        "userUuid",
-        auth["userUuid"],
-      );
+      await prefs.setString("userUuid", auth["userUuid"]);
 
-      await prefs.setBool(
-        "isLogged",
-        true,
-      );
+      await prefs.setBool("isLogged", true);
 
-      await prefs.setInt(
-        "loginTime",
-        DateTime.now().millisecondsSinceEpoch,
-      );
+      await prefs.setInt("loginTime", DateTime.now().millisecondsSinceEpoch);
       print("===== SIGNUP SAVED =====");
       print("Saved accessToken = ${prefs.getString("accessToken")}");
       print("Saved refreshToken = ${prefs.getString("refreshToken")}");
@@ -337,7 +316,8 @@ void _onCreateSignupDetails(
           isLoading: false,
           isSuccess: true,
           navigateToHome: true,
-          errorMessage: response.data["message"] ?? "Account created successfully",
+          errorMessage:
+              response.data["message"] ?? "Account created successfully",
         ),
       );
     } catch (e) {

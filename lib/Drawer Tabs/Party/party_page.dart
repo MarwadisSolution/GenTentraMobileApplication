@@ -4,6 +4,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_api
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_bar_reusable.dart';
 
 import '../../Reusable Functions/reusable_functions.dart';
+
 class PartyPage extends StatefulWidget {
   const PartyPage({super.key});
 
@@ -13,16 +14,24 @@ class PartyPage extends StatefulWidget {
 
 class _PartyPageState extends State<PartyPage> {
   late Future<List<dynamic>> partiesFuture;
-final apiService=PartyPageApis();
+  final apiService = PartyPageApis();
+
   @override
   void initState() {
     super.initState();
     partiesFuture = apiService.fetchPartiesAlreadyFormed();
   }
+
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
+    final w = MediaQuery
+        .of(context)
+        .size
+        .width;
+    final h = MediaQuery
+        .of(context)
+        .size
+        .height;
     final isMobile = w < 600;
     final isTablet = w >= 600 && w < 900;
     final isDesktop = w >= 900;
@@ -38,105 +47,144 @@ final apiService=PartyPageApis();
           gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
         ),
         child: CustomScrollView(
-          slivers: [
-            ReusableSliverAppBar(title: "PARTY'S",automaticallyImplyLeading: true,height: 60,),
-            SliverSections(
-              child: Container(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight:Radius.circular(20) )
-                ),
-                child:   FutureBuilder<List<dynamic>>(
-                    future: partiesFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return  Center(
-                          child: CircularProgressIndicator(color: ColorScheme.of(context).onSurface,),
-                        );
-                      }
-
-                      if (snapshot.hasError) {
-                        return Center(
-                          child: Text(snapshot.error.toString()),
-                        );
-                      }
-
-                      final parties = snapshot.data ?? [];
-
-                      return  GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(12),
-                        gridDelegate:  SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: gridCount,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.7,
-                        ),
-                        itemCount: parties.length,
-                        itemBuilder: (context, index) {
-                          final party = parties[index];
-                          return  InkWell(
-
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => PartyFetchedData(
-                                    partyData: party,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-
-                                Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Color(0xFFD6D6D6),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: CircleAvatar(
-                                    radius: 30,
-                                    backgroundColor: Colors.white,
-                                    child: (party["partySymbolUrl"] != null &&
-                                        (party["partySymbolUrl"] as String).isNotEmpty)
-                                        ? buildImageWidget(
-                                      party["partySymbolUrl"],
-                                      width: 45,
-                                      height: 45,
-                                      fit: BoxFit.cover,
-                                    )
-                                        :  Icon(
-                                      Icons.image,
-                                      color: ColorScheme.of(context).onSurface,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  party["name"] ?? "",
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
+            slivers: [
+              ReusableSliverAppBar(
+                title: "PARTY'S", automaticallyImplyLeading: true, height: 60,),
+              SliverSections(
+                child: Container(
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery
+                          .of(context)
+                          .size
+                          .height,
+                    ),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            topRight: Radius.circular(20))
+                    ),
+                    child: FutureBuilder<List<dynamic>>(
+                      future: partiesFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(
+                            child: CircularProgressIndicator(color: ColorScheme
+                                .of(context)
+                                .onSurface,),
                           );
-                        },
-                      );
-                    },
-                  )
+                        }
+
+                        if (snapshot.hasError) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  duration: Duration(seconds: 2),
+                                  backgroundColor: Colors.red,
+                                  content: Text(
+                                      snapshot.error.toString().contains(
+                                          "has a status code of 530")
+                                          ? "Please contact the owner"
+                                          : snapshot.error.toString().contains(
+                                          "The connection errored") ?
+                                      "You are offline"
+                                          : snapshot.error.toString()),
+                                )
+                            );
+                          });
+                          // Text(
+                          //     state.errorMessage.contains("has a status code of 429")
+                          //         ? "You have made too many requests. Please wait ${state.resendTimer}s."
+                          //         : state.errorMessage.contains("The connection errored")
+                          //         ? "You are offline"
+                          //         : state.errorMessage),
+                          return Center(
+                            child: Text(
+                              "Something went wrong", style: TextStyle(
+                                color: ColorScheme
+                                    .of(context)
+                                    .onSurface),),
+                          );
+                        }
+
+                        final parties = snapshot.data ?? [];
+
+                        return GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(12),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: gridCount,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 0.7,
+                          ),
+                          itemCount: parties.length,
+                          itemBuilder: (context, index) {
+                            final party = parties[index];
+                            return InkWell(
+
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        PartyFetchedData(
+                                          partyData: party,
+                                        ),
+                                  ),
+                                );
+                              },
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Color(0xFFD6D6D6),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: CircleAvatar(
+                                      radius: 30,
+                                      backgroundColor: Colors.white,
+                                      child: (party["partySymbolUrl"] != null &&
+                                          (party["partySymbolUrl"] as String)
+                                              .isNotEmpty)
+                                          ? buildImageWidget(
+                                        party["partySymbolUrl"],
+                                        width: 45,
+                                        height: 45,
+                                        fit: BoxFit.cover,
+                                      )
+                                          : Icon(
+                                        Icons.image,
+                                        color: ColorScheme
+                                            .of(context)
+                                            .onSurface,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    party["name"] ?? "",
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    )
+                ),
               ),
-            ),
-        ]
+            ]
         ),
       ),
     );

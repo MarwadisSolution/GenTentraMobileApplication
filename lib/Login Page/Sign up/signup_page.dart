@@ -8,6 +8,7 @@ import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_st
 import 'package:gen_tentra_mobile_application/Login%20Page/otp_page.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/verify_otp_page.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Login Bloc/login_modal.dart';
 import '../login_apis.dart';
@@ -28,13 +29,17 @@ class _SignupPageState extends State<SignupPage> {
   bool otpButtonPressed = false;
   int selectedGender = 0;
   String selectedCountryCode = "+91";
-  final TextEditingController urlController = TextEditingController(
-    text: api,
-  );
+  int phoneMaxLength = 10;
+  // final TextEditingController urlController = TextEditingController(text: api);
+  // void clearCacheFirst()async{
+  //   final prefs = await SharedPreferences.getInstance();
+  //   await prefs.clear();
+  // }
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+  //clearCacheFirst();
     final signupData = context.read<LoginBloc>().state.signUpData;
     firstNameController.text = signupData.firstName;
     surnameController.text = signupData.surname;
@@ -44,9 +49,7 @@ class _SignupPageState extends State<SignupPage> {
       selectedGender = 0;
 
       context.read<LoginBloc>().add(
-        UpdateSignupDataEvent(
-          signupData.copyWith(gender: "Male"),
-        ),
+        UpdateSignupDataEvent(signupData.copyWith(gender: "Male")),
       );
     } else {
       genderController.text = signupData.gender;
@@ -358,34 +361,40 @@ class _SignupPageState extends State<SignupPage> {
                             ),
                           ),
                         ),
+
                         ///---URL Temp
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.02,
                         ),
-                        TextField(
-                          controller: urlController,
-                          keyboardType: TextInputType.url,
-                          decoration: InputDecoration(
-                            labelText: "Server URL",
-                            // hintText: "https://example.trycloudflare.com",
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: ColorScheme.of(context).onSurface.withOpacity(0.3),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: ColorScheme.of(context).onSurface.withOpacity(0.3),
-                              ),
-                            ),
-                          ),
-                        ),
+                        // TextField(
+                        //   controller: urlController,
+                        //   keyboardType: TextInputType.url,
+                        //   decoration: InputDecoration(
+                        //     labelText: "Server URL",
+                        //     // hintText: "https://example.trycloudflare.com",
+                        //     enabledBorder: OutlineInputBorder(
+                        //       borderRadius: BorderRadius.circular(10),
+                        //       borderSide: BorderSide(
+                        //         color: ColorScheme.of(
+                        //           context,
+                        //         ).onSurface.withOpacity(0.3),
+                        //       ),
+                        //     ),
+                        //     focusedBorder: OutlineInputBorder(
+                        //       borderRadius: BorderRadius.circular(10),
+                        //       borderSide: BorderSide(
+                        //         color: ColorScheme.of(
+                        //           context,
+                        //         ).onSurface.withOpacity(0.3),
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
 
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.01,
                         ),
+
                         ///-----Number
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.03,
@@ -413,6 +422,31 @@ class _SignupPageState extends State<SignupPage> {
                               onChanged: (country) {
                                 setState(() {
                                   selectedCountryCode = country.dialCode!;
+                                  switch (country.code) {
+                                    case "IN":
+                                      phoneMaxLength = 10;
+                                      break;
+
+                                    case "US":
+                                    case "CA":
+                                      phoneMaxLength = 10;
+                                      break;
+
+                                    case "AU":
+                                      phoneMaxLength = 9;
+                                      break;
+
+                                    case "AE":
+                                      phoneMaxLength = 9;
+                                      break;
+
+                                    case "GB":
+                                      phoneMaxLength = 10;
+                                      break;
+
+                                    default:
+                                      phoneMaxLength = 15;
+                                  }
                                 });
 
                                 context.read<LoginBloc>().add(
@@ -464,37 +498,49 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                         InkWell(
                           onTap: () {
-                            api = urlController.text.trim();
+                           // api = urlController.text.trim();
                             otpButtonPressed = true;
                             context.read<LoginBloc>().add(SignInButtonEvent());
                           },
                           child: SizedBox(
                             height: MediaQuery.of(context).size.height * 0.054,
                             width: MediaQuery.of(context).size.width * 0.45,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: GradientColors.primaryGradient,
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    LoginPageData.generateOtp,
-                                    style: TextStyle(
-                                      color: ColorScheme.of(context).surface,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16,
-                                    ),
+                            child: ValueListenableBuilder(
+                              valueListenable: numberController,
+                              builder: (context, value, child) {
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    gradient:numberController.text.length==phoneMaxLength
+                                        ? GradientColors.primaryGradient
+                                        : null,
+                                    color: numberController.text.length==phoneMaxLength
+                                        ? null
+                                        : Colors.grey,
+                                    borderRadius: BorderRadius.circular(30),
                                   ),
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width *
-                                        0.02,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        LoginPageData.generateOtp,
+                                        style: TextStyle(
+                                          color: ColorScheme.of(
+                                            context,
+                                          ).surface,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                            0.02,
+                                      ),
+                                      SvgPicture.asset(LoginPageData.arrowIcon),
+                                    ],
                                   ),
-                                  SvgPicture.asset(LoginPageData.arrowIcon),
-                                ],
-                              ),
+                                );
+                              },
                             ),
                           ),
                         ),

@@ -11,6 +11,7 @@ import '../../Login Page/Login Bloc/login_bloc.dart';
 import '../../Login Page/Login Bloc/login_modal.dart';
 import '../../Login Page/Sign up/signup_page.dart';
 import '../../Login Page/login_apis.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 class DrawerPage extends StatefulWidget {
   const DrawerPage({super.key});
 
@@ -139,13 +140,12 @@ class _DrawerPageState extends State<DrawerPage> {
                                 },
                               ),
                               drawerItem(
-                                "Favourites",                               // "Start Campaign",
+                                "Start Campaign",                               // "Start Campaign",
                                 isBold: state.selectedIndex == 3,
                                 onTapping: () {
                                   context.read<DrawerBloc>().add(
                                     SelectDrawerItemEvent(3),
                                   );
-                                  Navigator.push(context, MaterialPageRoute(builder: (_)=>FavouritePage()));
                                 },
                               ),
                                Divider(color: Color(0xFFBCBCBC),indent: MediaQuery.of(context).size.width*0.042,endIndent: MediaQuery.of(context).size.width*0.09,),
@@ -211,7 +211,9 @@ class _DrawerPageState extends State<DrawerPage> {
                               drawerItem(
                                 "Settings",
                                 isBold: state.selectedIndex == 10,
-                                onTapping: () {
+                                onTapping: () async{
+                                  final prefs = await SharedPreferences.getInstance();
+                                  await prefs.clear();
                                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>
                                       BlocProvider(create: (_) => LoginBloc(LoginRepository(LoginApi()),
                                       ),

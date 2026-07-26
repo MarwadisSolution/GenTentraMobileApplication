@@ -7,6 +7,7 @@ import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_ev
 import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_state.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/verify_otp_page.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'Login Bloc/login_modal.dart';
 import 'Sign up/signup_page.dart';
 import 'login_apis.dart';
@@ -20,202 +21,303 @@ class OtpPage extends StatefulWidget {
 }
 
 class _OtpPageState extends State<OtpPage> {
-  bool otpButtonPressed=false;
+  bool otpButtonPressed = false;
   String selectedCountryCode = "+91";
+  int phoneMaxLength = 10;
   final TextEditingController phoneController = TextEditingController();
-  final TextEditingController urlController =
-  TextEditingController(
-    text: ApiConfig.baseUrl,
-  );
+  // final TextEditingController urlController =
+  // TextEditingController(
+  //   text: ApiConfig.baseUrl,
+  // );
+  // void clearCacheFirst()async{
+  //   final prefs = await SharedPreferences.getInstance();
+  //   await prefs.clear();
+  // }
+@override
+  void initState(){
+    // TODO: implement initState
+    super.initState();
+    //clearCacheFirst();
+
+  }
   @override
   Widget build(BuildContext context) {
-
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) {
-        if (state.isError && otpButtonPressed) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: Colors.red,
-              content: Text(state.errorMessage),
-            ),
-          );
-          otpButtonPressed = false;
-        }
         if (state.navigateToOtp) {
           print("NAVIGATING TO VERIFY PAGE");
           context.read<LoginBloc>().add(
             ResetNavigationEvent(),
           );
-
+          context.read<LoginBloc>().add(ClearOtpStatusEvent());
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => BlocProvider.value(
-                value: context.read<LoginBloc>(),
-                child: const VerifyOtpPage(),
-              ),
+              builder: (_) =>
+                  BlocProvider.value(
+                    value: context.read<LoginBloc>(),
+                    child: const VerifyOtpPage(),
+                  ),
             ),
           );
         }
+        else if (state.isError && otpButtonPressed && ModalRoute
+            .of(context)
+            ?.isCurrent == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+              content: Text(
+                  state.errorMessage.contains("has a status code of 429")
+                      ? "You have made too many requests. Please wait ${state.resendTimer}s."
+                      : state.errorMessage.contains("has a status code of 530")?"Please contact the owner":state.errorMessage.contains("The connection errored")
+                      ? "You are offline"
+                      : state.errorMessage),
+            ),
+          );
+          otpButtonPressed = false;
+        }
       },
-        child: GestureDetector(
-            onTap: () {
-              FocusScope.of(context).unfocus();
-            },
-            child: Scaffold(
-              body: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: MediaQuery.of(context).size.height * 0.03,
-                    right: MediaQuery.of(context).size.height * 0.03,
-                  ),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.07,
-                        ),
-                        Text(
-                          LoginPageData.welcomeBack,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 24,
-                            letterSpacing: 0.31,
-                          ),
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.005,
-                        ),
-                        Text(
-                          LoginPageData.wereGlad,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 15,
-                            letterSpacing: 0.31,
-                            color: ColorScheme.of(
-                              context,
-                            ).onSurface.withOpacity(0.6),
-                          ),
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.08,
-                        ),
-                        TextField(
-                          controller: urlController,
-                          keyboardType: TextInputType.url,
-                          decoration: InputDecoration(
-                            labelText: "Server URL",
-                            //hintText: "https://example.trycloudflare.com",
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: ColorScheme.of(
-                                  context,
-                                ).onSurface.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: ColorScheme.of(
-                                  context,
-                                ).onSurface.withOpacity(0.3),
+      child: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.03,
+                right: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.03,
+              ),
+              child: Center(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.07,
+                    ),
+                    Text(
+                      LoginPageData.welcomeBack,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 24,
+                        letterSpacing: 0.31,
+                      ),
+                    ),
+                    SizedBox(
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.005,
+                    ),
+                    Text(
+                      LoginPageData.wereGlad,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 15,
+                        letterSpacing: 0.31,
+                        color: ColorScheme
+                            .of(
+                          context,
+                        )
+                            .onSurface
+                            .withOpacity(0.6),
+                      ),
+                    ),
+                    SizedBox(
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.08,
+                    ),
+                    // TextField(
+                    //   controller: urlController,
+                    //   keyboardType: TextInputType.url,
+                    //   decoration: InputDecoration(
+                    //     labelText: "Server URL",
+                    //     //hintText: "https://example.trycloudflare.com",
+                    //     enabledBorder: OutlineInputBorder(
+                    //       borderRadius: BorderRadius.circular(10),
+                    //       borderSide: BorderSide(
+                    //         color: ColorScheme
+                    //             .of(
+                    //           context,
+                    //         )
+                    //             .onSurface
+                    //             .withOpacity(0.3),
+                    //         width: 1,
+                    //       ),
+                    //     ),
+                    //     focusedBorder: OutlineInputBorder(
+                    //       borderRadius: BorderRadius.circular(10),
+                    //       borderSide: BorderSide(
+                    //         color: ColorScheme
+                    //             .of(
+                    //           context,
+                    //         )
+                    //             .onSurface
+                    //             .withOpacity(0.3),
+                    //
+                    //         width: 1,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.03,),
+                    TextField(
+                      controller: phoneController,
+                      maxLength: phoneMaxLength,
 
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                        ),
-                       SizedBox(height: MediaQuery.of(context).size.height * 0.03,),
-                        TextField(
-                          controller: phoneController,
-                          maxLength: 10,
+                      keyboardType: TextInputType.number,
+                      cursorColor: ColorScheme
+                          .of(context)
+                          .onSurface,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      onChanged: (value) {
+                        context.read<LoginBloc>().add(
+                          NumberFillingForOtpEvent(value, selectedCountryCode,),
+                        );
+                      },
+                      onSubmitted: (value) {
+                        context.read<LoginBloc>().add(SignInButtonEvent());
+                      },
+                      decoration: InputDecoration(
+                        counterText: "",
+                        prefixIcon: CountryCodePicker(
+                          onChanged: (country) {
+                            setState(() {
+                              selectedCountryCode = country.dialCode!;
+                              switch (country.code) {
+                                case "IN":
+                                  phoneMaxLength = 10;
+                                  break;
 
-                          keyboardType: TextInputType.number,
-                          cursorColor: ColorScheme.of(context).onSurface,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          onChanged: (value) {
+                                case "US":
+                                case "CA":
+                                  phoneMaxLength = 10;
+                                  break;
+
+                                case "AU":
+                                  phoneMaxLength = 9;
+                                  break;
+
+                                case "AE":
+                                  phoneMaxLength = 9;
+                                  break;
+
+                                case "GB":
+                                  phoneMaxLength = 10;
+                                  break;
+
+                                default:
+                                  phoneMaxLength = 15;
+
+                            }
+                            });
+
                             context.read<LoginBloc>().add(
-                              NumberFillingForOtpEvent(value, selectedCountryCode,),
+                              NumberFillingForOtpEvent(
+                                phoneController.text,
+                                selectedCountryCode,
+                              ),
                             );
                           },
-                          onSubmitted: (value) {
-                            context.read<LoginBloc>().add(SignInButtonEvent());
-                          },
-                          decoration: InputDecoration(
-                            counterText: "",
-                            prefixIcon: CountryCodePicker(
-                              onChanged: (country) {
-                                setState(() {
-                                  selectedCountryCode = country.dialCode!;
-                                });
-
-                                context.read<LoginBloc>().add(
-                                  NumberFillingForOtpEvent(
-                                    phoneController.text,
-                                    selectedCountryCode,
-                                  ),
-                                );
-                              },
-                              initialSelection: 'IN',
-                              favorite: ['+91','IN'],
-                              showCountryOnly: false,
-                              showOnlyCountryWhenClosed: false,
-                              alignLeft: false,
-                              textStyle: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16,
-                                color: Colors.black
-                              ),
-                            ),
-                            labelText: LoginPageData.mobileNo,
-                            labelStyle: TextStyle(
-                              color: ColorScheme.of(
-                                context,
-                              ).onSurface.withOpacity(0.3),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: ColorScheme.of(
-                                  context,
-                                ).onSurface.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: ColorScheme.of(
-                                  context,
-                                ).onSurface.withOpacity(0.3),
-
-                                width: 1,
-                              ),
-                            ),
+                          initialSelection: 'IN',
+                          favorite: ['+91', 'IN'],
+                          showCountryOnly: false,
+                          showOnlyCountryWhenClosed: false,
+                          alignLeft: false,
+                          textStyle: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                              color: Colors.black
                           ),
                         ),
-
-                        ///----------------Generate OTP----------
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.06,
+                        labelText: LoginPageData.mobileNo,
+                        labelStyle: TextStyle(
+                          color: ColorScheme
+                              .of(
+                            context,
+                          )
+                              .onSurface
+                              .withOpacity(0.3),
                         ),
-                        InkWell(
-                          onTap: () {
-                            api = urlController.text.trim();
-                            otpButtonPressed=true;
-                            context.read<LoginBloc>().add(SignInButtonEvent());
-                          },
-                          child: SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.054,
-                            width: MediaQuery.of(context).size.width * 0.45,
-                            child: Container(
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: ColorScheme
+                                .of(
+                              context,
+                            )
+                                .onSurface
+                                .withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: ColorScheme
+                                .of(
+                              context,
+                            )
+                                .onSurface
+                                .withOpacity(0.3),
+
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    ///----------------Generate OTP----------
+                    SizedBox(
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.06,
+                    ),
+                    InkWell(
+                      onTap: () {
+                        //api = urlController.text.trim();
+                        otpButtonPressed = true;
+                        context.read<LoginBloc>().add(SignInButtonEvent());
+                      },
+                      child: SizedBox(
+                        height: MediaQuery
+                            .of(context)
+                            .size
+                            .height * 0.054,
+                        width: MediaQuery
+                            .of(context)
+                            .size
+                            .width * 0.45,
+                        child: ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: phoneController,
+                          builder: (context, value, child) {
+                            return Container(
                               decoration: BoxDecoration(
-                                gradient: GradientColors.primaryGradient,
+                                gradient:phoneController.text.length==phoneMaxLength
+                                    ? GradientColors.primaryGradient
+                                    : null,
+                                color: phoneController.text.length==phoneMaxLength
+                                    ? null
+                                    : Colors.grey,
                                 borderRadius: BorderRadius.circular(30),
                               ),
                               child: Row(
@@ -224,75 +326,91 @@ class _OtpPageState extends State<OtpPage> {
                                   Text(
                                     LoginPageData.generateOtp,
                                     style: TextStyle(
-                                      color: ColorScheme.of(context).surface,
+                                      color: ColorScheme
+                                          .of(context)
+                                          .surface,
                                       fontWeight: FontWeight.w500,
                                       fontSize: 16,
                                     ),
                                   ),
                                   SizedBox(
                                     width:
-                                        MediaQuery.of(context).size.width *
+                                    MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width *
                                         0.02,
                                   ),
                                   SvgPicture.asset(LoginPageData.arrowIcon),
                                 ],
                               ),
-                            ),
-                          ),
-                        ),
+                            );
+                          },
 
-                      ],
-                    ),
-                  ),
-                ),
-
-              ),
-              bottomNavigationBar: Padding(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).size.width * 0.06,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      LoginPageData.alreadyHaveAnAccount,
-                      style: TextStyle(
-                        color: ColorScheme.of(
-                          context,
-                        ).onSurface.withOpacity(0.6),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>
-                            BlocProvider(create: (_) => LoginBloc(LoginRepository(LoginApi()),
-                            ),
-                              child: const SignupPage(),
-                            )
-                        ));
-                      },
-                      child: ShaderMask(
-                        blendMode: BlendMode.srcIn,
-                        shaderCallback: (bounds) =>
-                            GradientColors.primaryGradient.createShader(
-                              Rect.fromLTRB(0, 0, bounds.width, bounds.height),
-                            ),
-                        child: Text(
-                          LoginPageData.signIn,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
                         ),
                       ),
                     ),
+
                   ],
                 ),
               ),
             ),
+
           ),
+          bottomNavigationBar: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery
+                  .of(context)
+                  .size
+                  .width * 0.06,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  LoginPageData.alreadyNoAccount,
+                  style: TextStyle(
+                    color: ColorScheme
+                        .of(
+                      context,
+                    )
+                        .onSurface
+                        .withOpacity(0.6),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                        context, MaterialPageRoute(builder: (_) =>
+                        BlocProvider(create: (_) =>
+                            LoginBloc(LoginRepository(LoginApi()),
+                            ),
+                          child: const SignupPage(),
+                        )
+                    ));
+                  },
+                  child: ShaderMask(
+                    blendMode: BlendMode.srcIn,
+                    shaderCallback: (bounds) =>
+                        GradientColors.primaryGradient.createShader(
+                          Rect.fromLTRB(0, 0, bounds.width, bounds.height),
+                        ),
+                    child: Text(
+                      LoginPageData.signUp,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
 
     );
   }

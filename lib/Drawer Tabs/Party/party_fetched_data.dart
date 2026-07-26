@@ -27,9 +27,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
       widget.partyData["id"],
 
     );
-    print("yes");
     incrementViewCount();
-    print("yesa");
+
   }
 
   @override

@@ -74,16 +74,20 @@ class LoginApi{
       rethrow;
     }
   }
-  Future<Map<String, dynamic>>passwordVerification(String verificationToken, String password)async{
+  Future<Map<String, dynamic>>passwordVerification(String verificationToken, String? password)async{
+    final Map<String, dynamic> body = {
+      "verificationToken": verificationToken,
+    };
+
+    if (password != null && password.isNotEmpty) {
+      body["password"] = password;
+    }
     final response=await _dio.post("$api/api/v1/auth/phone/complete",
 
-        data: jsonEncode({
-          "verificationToken":verificationToken,
-          "password":password,
-        })
+        data: jsonEncode(body)
     );
     if(response.data["success"]==false){
-
+      print(response.statusCode);
     }
     return response.data["data"];
   }
@@ -126,7 +130,7 @@ class LoginApi{
       print(e);
 
       // If API fails return cache
-      final cached = await profileCache.getProfile();
+     final cached = await profileCache.getProfile();
 
       if(cached != null){
         return cached;

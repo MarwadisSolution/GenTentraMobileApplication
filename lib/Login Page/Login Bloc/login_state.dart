@@ -18,6 +18,7 @@ class LoginState extends Equatable {
   final int resendTimer;
   final bool canResendOtp;
   final bool isSuccess;
+  final bool otpResent;
 
   final String password;
   final bool obscureText;
@@ -46,6 +47,7 @@ class LoginState extends Equatable {
     this.resendTimer=60,
     this.canResendOtp=false,
 this.isSuccess=false,
+    this.otpResent = false,
     this.password='',
     this.obscureText=true,
     this.signUpData=const SignUpModal(),
@@ -75,6 +77,7 @@ this.isSuccess=false,
     int? resendTimer,
     bool? canResendOtp,
 bool?isSuccess,
+    bool? otpResent,
     String?password,
     bool?obscureText,
     SignUpModal? signUpData,
@@ -104,6 +107,7 @@ bool?isSuccess,
       resendTimer: resendTimer ?? this.resendTimer,
       canResendOtp: canResendOtp ?? this.canResendOtp,
       isSuccess: isSuccess ?? this.isSuccess,
+      otpResent: otpResent ?? this.otpResent,
       password: password?? this.password,
       obscureText: obscureText ?? this.obscureText,
       signUpData: signUpData??this.signUpData,
@@ -134,6 +138,7 @@ bool?isSuccess,
     resendTimer,
     canResendOtp,
     isSuccess,
+    otpResent,
     password,
     obscureText,
     signUpData,
@@ -144,5 +149,6 @@ bool?isSuccess,
     city,
     state,
     country,
+    navigateToHome,
   ];
 }

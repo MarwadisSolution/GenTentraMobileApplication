@@ -7,11 +7,13 @@ import 'package:gen_tentra_mobile_application/Login%20Page/Sign%20up/address_pag
 import 'package:gen_tentra_mobile_application/Login%20Page/Sign%20up/signup_page.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/password_verification_page.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Reusable Functions/Bottom Navigation/bloc_conde_in_one_navigation.dart';
 import '../Reusable Functions/Bottom Navigation/main_page.dart';
 import '../Reusable Functions/Drawer/bloc_code_in_one.dart';
 import 'Login Bloc/login_event.dart';
+import 'login_apis.dart';
 import 'login_pages_data.dart';
 
 class VerifyOtpPage extends StatefulWidget {
@@ -23,22 +25,25 @@ class VerifyOtpPage extends StatefulWidget {
 
 class _VerifyOtpPageState extends State<VerifyOtpPage> {
   late final List<TextEditingController> otpControllers;
+  late LoginBloc loginBloc;
 
   @override
   void initState() {
     super.initState();
-    // print("VERIFY PAGE INIT ${identityHashCode(this)}");
+
+    loginBloc = context.read<LoginBloc>();
     otpControllers = List.generate(6, (_) => TextEditingController());
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
       if (temporarySavingOtp.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            duration: Duration(seconds: 6),
+            duration: const Duration(seconds: 6),
             backgroundColor: Colors.white,
             content: Text(
-             "OTP:- $temporarySavingOtp",
+              "OTP: $temporarySavingOtp",
               style: const TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
@@ -53,9 +58,12 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
 
   @override
   void dispose() {
+    //loginBloc.add(ClearOtpStatusEvent());
+
     for (final controller in otpControllers) {
       controller.dispose();
     }
+
     super.dispose();
   }
 
@@ -67,74 +75,100 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
   Widget build(BuildContext context) {
     // print("VERIFY PAGE BUILD");
     return BlocListener<LoginBloc, LoginState>(
-
       listenWhen: (previous, current) =>
           previous.isError != current.isError ||
           previous.navigateToNewUser != current.navigateToNewUser ||
-          previous.navigateToOldUser != current.navigateToOldUser,
-      listener: (context, state) {
+          previous.navigateToOldUser != current.navigateToOldUser ||
+          previous.otpResent != current.otpResent,
+      listener: (context, state) async {
+        print("Listener called: otpResent=${state.otpResent}");
         print(
           "Listener => "
-              "success=${state.isSuccess}, "
-              "error=${state.isError}, "
-              "newUser=${state.navigateToNewUser}, "
-              "oldUser=${state.navigateToOldUser}, "
-              "message=${state.errorMessage}, "
-          "require password=${state.requirePassword}"
+          "success=${state.isSuccess}, "
+          "error=${state.isError}, "
+          "newUser=${state.navigateToNewUser}, "
+          "oldUser=${state.navigateToOldUser}, "
+          "message=${state.errorMessage}, "
+          "require password=${state.requirePassword}",
         );
+        if (state.otpResent) {
+          if (temporarySavingOtp.isNotEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                duration: const Duration(seconds: 6),
+                backgroundColor: Colors.white,
+                content: Text(
+                  "OTP:- $temporarySavingOtp",
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+
+          context.read<LoginBloc>().add(ClearOtpResentEvent());
+        }
         if (state.isError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.errorMessage),
+              content: Text(
+                state.errorMessage.contains(
+                      "The status code of 401 has the following meaning:",
+                    )
+                    ? "OTP is wrong"
+                    : state.errorMessage.contains("has a status code of 530")
+                    ? "Please contact the owner"
+                    : state.errorMessage.contains("The connection errored")
+                    ? "You are offline"
+                    : state.errorMessage,
+              ),
               backgroundColor: Colors.red,
             ),
           );
         }
-        if(state.navigateToOldUser==true && state.requirePassword==true){
-          final token = state.verificationToken;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  PasswordVerificationPage(verificationToken: token),
-            ),
-          );
-        }
+        // if (state.navigateToOldUser == true && state.requirePassword == true) {
+        //   final token = state.verificationToken;
+        //   Navigator.pushReplacement(
+        //     context,
+        //     MaterialPageRoute(
+        //       builder: (_) =>
+        //           PasswordVerificationPage(verificationToken: token),
+        //     ),
+        //   );
+        // }
         if (state.navigateToNewUser) {
-
           final token = state.verificationToken;
 
-          if (state.requirePassword == false) {
-            final bloc = context.read<LoginBloc>();
+          loginBloc.add(ResetNavigationEvent());
 
-            bloc.add(ResetNavigationEvent());
+          if (!mounted) return;
 
+          if (!state.requirePassword) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (_) => BlocProvider.value(
-                  value: bloc,
-                  child: AddressPage(
-                    verificationToken: token,
-                  ),
+                  value: loginBloc,
+                  child: AddressPage(verificationToken: token),
                 ),
               ),
             );
           } else {
-
-            ///-----------Yaha pe password page pe redirect hona chaiye (Password page banaya nhi hai abhi tak)
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (_) => BlocProvider.value(
-                  value: context.read<LoginBloc>(),
+                  value: loginBloc,
                   child: const SignupPage(),
                 ),
               ),
             );
           }
 
-          context.read<LoginBloc>().add(ResetNavigationEvent());
+          return;
         }
         // if (state.navigateToNewUser) {
         //   context.read<LoginBloc>().add(ResetNavigationEvent());
@@ -150,49 +184,78 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
         //   );
         // }
 
-        if (state.navigateToOldUser && state.requirePassword==true) {
+        if (state.navigateToOldUser && state.requirePassword == true) {
           final token = state.verificationToken;
-          context.read<LoginBloc>().add(ResetNavigationEvent());
-          ScaffoldMessenger.of(context).showSnackBar(
+          loginBloc.add(ResetNavigationEvent());
 
-              SnackBar(
-                  duration: Duration(seconds: 2),
-                  backgroundColor: Colors.green,
-                  content: Text("You already have account. Now add password.",style: TextStyle(color: Colors.white),)));
-          Navigator.pushReplacement(
+          if (!mounted) return;
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //
+          //     SnackBar(
+          //         duration: Duration(seconds: 2),
+          //         backgroundColor: Colors.green,
+          //         content: Text("You already have account. Now add password.",
+          //           style: TextStyle(color: Colors.white),)));
+          Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
               builder: (_) =>
                   PasswordVerificationPage(verificationToken: token),
             ),
+            (route) => false,
           );
-        }
-        else if(state.navigateToOldUser==true && state.requirePassword==false){
-          ScaffoldMessenger.of(context).showSnackBar(
+          return;
+        } else if (state.navigateToOldUser && !state.requirePassword) {
+          loginBloc.add(ResetNavigationEvent());
+          try {
+            final result = await LoginApi().passwordVerification(
+              state.verificationToken,
+              null,
+            );
 
-              SnackBar(
-                duration: Duration(seconds: 2),
-                  backgroundColor: Colors.green,
-                  content: Text("You already have account.",style: TextStyle(color: Colors.white),)));
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (_) => MultiBlocProvider(
-                providers: [
-                  BlocProvider(
-                    create: (_) => BottomNavBloc(),
-                  ),
-                  BlocProvider(
-                    create: (_) => DrawerBloc(),
-                  ),
-                ],
-                child: MainPage(),
+            final auth = result["auth"];
+
+            final prefs = await SharedPreferences.getInstance();
+
+            await prefs.setString("accessToken", auth["accessToken"]);
+            await prefs.setString("refreshToken", auth["refreshToken"]);
+            await prefs.setString("userUuid", auth["userUuid"]);
+            await prefs.setInt(
+              "loginTime",
+              DateTime.now().millisecondsSinceEpoch,
+            );
+            await prefs.setBool("isLogged", true);
+
+            if (!mounted) return;
+
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (_) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(create: (_) => BottomNavBloc()),
+                    BlocProvider(create: (_) => DrawerBloc()),
+                  ],
+                  child: MainPage(),
+                ),
               ),
-            ),
-                (route) => false,
-          );
-        }
+              (route) => false,
+            );
+            return;
+          } catch (e) {
+            if (!context.mounted) return;
 
+            final messenger = ScaffoldMessenger.maybeOf(context);
+            if (messenger == null) return;
+
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(e.toString()),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
       },
       child: BlocBuilder<LoginBloc, LoginState>(
         buildWhen: (previous, current) {
@@ -203,7 +266,6 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
               previous.navigateToOldUser != current.navigateToOldUser;
         },
         builder: (context, state) {
-
           return GestureDetector(
             onTap: () {
               FocusScope.of(context).unfocus();
@@ -228,6 +290,9 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                               angle: 3.14159,
                               child: InkWell(
                                 onTap: () {
+                                  context.read<LoginBloc>().add(
+                                    ClearOtpStatusEvent(),
+                                  );
                                   Navigator.pop(context);
                                 },
                                 child: SvgPicture.asset(
@@ -268,15 +333,16 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                             height: MediaQuery.of(context).size.height * 0.08,
                           ),
                           OtpInputFields(
-
                             key: const ValueKey("otp_fields"),
                             otpControllers: otpControllers,
                           ),
                           SizedBox(height: 10),
                           if (state.isVerifyingOtp)
-                             Padding(
+                            Padding(
                               padding: EdgeInsets.only(top: 20),
-                              child: CircularProgressIndicator(color: ColorScheme.of(context).onSurface,),
+                              child: CircularProgressIndicator(
+                                color: ColorScheme.of(context).onSurface,
+                              ),
                             ),
                           if (state.isSuccess)
                             Row(
@@ -440,7 +506,6 @@ class _OtpInputFieldsState extends State<OtpInputFields>
         (index) => SizedBox(
           width: 35,
           child: TextField(
-
             controller: widget.otpControllers[index],
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,

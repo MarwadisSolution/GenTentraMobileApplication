@@ -83,8 +83,8 @@ class _BannerSectionState extends State<BannerSection> {
 
         if (banners.length > 1)
           Positioned(
-            top: 320,
-            left: 170,
+            top: MediaQuery.of(context).size.height*0.68,
+            left: MediaQuery.of(context).size.width*0.6,
             right: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -230,7 +230,6 @@ else if(view>99999){
   }
   @override
   Widget build(BuildContext context) {
-print("First");
     return Container(
       padding: const EdgeInsets.only(
         top: 20, // Space for floating symbol

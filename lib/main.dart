@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gen_tentra_mobile_application/splash_screen.dart';
+import 'package:gen_tentra_mobile_application/temp_screen_for_url.dart';
 
 import 'Home Page/home_page.dart';
 import 'Login Page/otp_page.dart';
@@ -29,7 +30,7 @@ class MyApp extends StatelessWidget {
           onSurface: Color(0xFF000000),
         ),
       ),
-       home: SplashScreen()
+       home: TempScreenForUrl()
 
     );
   }

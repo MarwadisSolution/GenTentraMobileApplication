@@ -12,6 +12,7 @@ class AuthService{
   final Dio _dio;
   AuthService(this._dio);
   Future<bool>refreshAccessToken()async{
+    print("Yes I came");
     try{
       final prefs=await SharedPreferences.getInstance();
       final refreshToken=prefs.getString('refreshToken');
@@ -25,6 +26,8 @@ class AuthService{
       );
       if(response.statusCode==200 || response.statusCode==201){
         final auth = response.data["data"];
+        print("Auths");
+        print(auth);
         await prefs.setString(
           "accessToken",
           auth["accessToken"],
@@ -81,6 +84,7 @@ class DioClient{
         if(error.response?.statusCode==403){
           print("Refreshing Token...");
           final success=await authService.refreshAccessToken();
+          print("Refreshed");
           if(success){
             final prefs=await SharedPreferences.getInstance();
             final newToken=prefs.getString("accessToken");

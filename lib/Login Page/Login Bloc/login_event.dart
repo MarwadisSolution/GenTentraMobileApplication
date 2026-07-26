@@ -40,6 +40,8 @@ class TimerTickEvent extends LoginEvent{
   @override
   List<Object?>get props=>[seconds];
 }
+class ClearOtpStatusEvent extends LoginEvent {}
+class ClearOtpResentEvent extends LoginEvent {}
 class ResetNavigationEvent extends LoginEvent{}
 
 ///----------------------------------Sign up------------------
