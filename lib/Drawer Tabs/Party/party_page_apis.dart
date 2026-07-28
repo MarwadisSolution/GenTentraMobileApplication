@@ -110,16 +110,16 @@ class PartyPageApis{
   
   
   ///-------------------View Apis
-  Future<void>viewCountIncreament(String type,int partyId)async{
-    try{
-      final response=await _dio.post("$api/api/v1/stats/views/$type/$partyId");
-      print("View");
-print(response);
-    }
-    catch(e){
-      print("Error in viewing:- $e");
-    }
-  }
+//   Future<void>viewCountIncreament(String type,int partyId)async{
+//     try{
+//       final response=await _dio.post("$api/api/v1/stats/views/$type/$partyId");
+//       print("View");
+// print(response);
+//     }
+//     catch(e){
+//       print("Error in viewing:- $e");
+//     }
+//   }
   Future<int>getViewCount(String type,int partyId)async{
     try{
       final response=await _dio.get("$api/api/v1/stats/views/$type/$partyId");

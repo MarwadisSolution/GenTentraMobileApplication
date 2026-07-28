@@ -71,9 +71,11 @@ class _OtpPageState extends State<OtpPage> {
               content: Text(
                   state.errorMessage.contains("has a status code of 429")
                       ? "You have made too many requests. Please wait ${state.resendTimer}s."
-                      : state.errorMessage.contains("has a status code of 530")?"Please contact the owner":state.errorMessage.contains("The connection errored")
-                      ? "You are offline"
-                      : state.errorMessage),
+                      : state.errorMessage.contains("has a status code of 530")?"Please contact the owner":
+                   state.errorMessage.contains("Failed host lookup:")?"Please start the server":
+                  state.errorMessage.contains("The connection errored")
+                      ? "You are offline":
+                     state.errorMessage),
             ),
           );
           otpButtonPressed = false;

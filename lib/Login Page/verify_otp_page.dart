@@ -123,22 +123,13 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                     ? "Please contact the owner"
                     : state.errorMessage.contains("The connection errored")
                     ? "You are offline"
-                    : state.errorMessage,
+                    : state.errorMessage.contains("Failed host lookup:")?"Please contact the owner":state.errorMessage
               ),
               backgroundColor: Colors.red,
             ),
           );
         }
-        // if (state.navigateToOldUser == true && state.requirePassword == true) {
-        //   final token = state.verificationToken;
-        //   Navigator.pushReplacement(
-        //     context,
-        //     MaterialPageRoute(
-        //       builder: (_) =>
-        //           PasswordVerificationPage(verificationToken: token),
-        //     ),
-        //   );
-        // }
+
         if (state.navigateToNewUser) {
           final token = state.verificationToken;
 
@@ -146,7 +137,9 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
 
           if (!mounted) return;
 
+print(state.requirePassword);
           if (!state.requirePassword) {
+
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -225,7 +218,8 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
               DateTime.now().millisecondsSinceEpoch,
             );
             await prefs.setBool("isLogged", true);
-
+            print("No required password accessToken = ${prefs.getString("accessToken")}");
+            print("No required password refreshToken = ${prefs.getString("refreshToken")}");
             if (!mounted) return;
 
             Navigator.pushAndRemoveUntil(

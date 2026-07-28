@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_timeline_selector.dart';
 
 import '../../../Reusable Functions/reusable_functions.dart';
 import '../party_page_modal.dart';
@@ -17,6 +16,9 @@ class _JourneyTabState extends State<JourneyTab> {
   int selectedIndex = 0;
   late List<JourneyModel> journeys;
   late PageController _pageController;
+  late PageController _timelineController;
+  late PageController _textController; // Added missing controller
+
   @override
   void initState() {
     super.initState();
@@ -30,41 +32,76 @@ class _JourneyTabState extends State<JourneyTab> {
 
     _pageController = PageController(
       initialPage: selectedIndex,
-      viewportFraction: 0.82, // shows part of adjacent images
+      viewportFraction: 0.82,
+    );
+
+    _timelineController = PageController(
+      initialPage: selectedIndex,
+      viewportFraction: 0.25,
+    );
+
+    _textController = PageController(
+      initialPage: selectedIndex,
     );
   }
+
   @override
   void dispose() {
     _pageController.dispose();
+    _timelineController.dispose();
+    _textController.dispose(); // Added missing disposal
     super.dispose();
+  }
+
+  // Helper to keep all 3 PageView controllers synchronized
+  void _onYearChanged(int newIndex) {
+    if (selectedIndex == newIndex) return;
+
+    setState(() {
+      selectedIndex = newIndex;
+    });
+
+    void animateIfNeeded(PageController controller) {
+      if (controller.hasClients && controller.page?.round() != newIndex) {
+        controller.animateToPage(
+          newIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    }
+
+    animateIfNeeded(_pageController);
+    animateIfNeeded(_timelineController);
+    animateIfNeeded(_textController);
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size.width;
+
     if (journeys.isEmpty) {
-      return const Center(child: Text("No journey available"));
+      return Center(
+        child: Text(
+          "No journey available",
+          style: TextStyle(color: ColorScheme.of(context).onSurface),
+        ),
+      );
     }
-    final journey = journeys[selectedIndex];
 
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
       },
       child: ListView(
-        padding: const EdgeInsets.all(20),
         children: [
-          /// Image
+          /// 1. IMAGE CAROUSEL
           SizedBox(
-            height: size * 0.8,
+            height: size * 0.7,
             child: PageView.builder(
               controller: _pageController,
               itemCount: journeys.length,
-              onPageChanged: (index) {
-                setState(() {
-                  selectedIndex = index;
-                });
-              },
+              onPageChanged: _onYearChanged,
               itemBuilder: (context, index) {
                 final item = journeys[index];
                 return AnimatedContainer(
@@ -91,48 +128,124 @@ class _JourneyTabState extends State<JourneyTab> {
               },
             ),
           ),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-          Center(
-            child: Text(
-              journey.title,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF070707),
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.center,
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.006,
-              width: MediaQuery.of(context).size.width * 0.09,
-              decoration: BoxDecoration(color: Color(0xFFFB5051)),
-            ),
-          ),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-          Text(
-            journey.description,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Color(0xFF000000).withOpacity(0.6)),
-          ),
-          const SizedBox(height: 40),
-          ReusableTimelineSelector(
-            items: journeys.map((e) => e.year).toList(),
-            selectedIndex: selectedIndex,
-            onChanged: (index) {
-              _pageController.animateToPage(
-                index,
-                duration: const Duration(milliseconds: 350),
-                curve: Curves.easeInOut,
-              );
 
-              setState(() {
-                selectedIndex = index;
-              });
-            },
+           SizedBox(height: MediaQuery.of(context).size.height*0.02),
+
+          /// 2. TEXT CONTENT PAGEVIEW (Title, Red Line, Description)
+          SizedBox(
+            height: MediaQuery.of(context).size.height*0.27,
+            child: PageView.builder(
+              controller: _textController,
+              itemCount: journeys.length,
+              onPageChanged: _onYearChanged,
+              itemBuilder: (context, index) {
+                final item = journeys[index];
+
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width * 0.05,
+                  ),
+                  child: Column(
+                    children: [
+                      /// Title
+                      Text(
+                        item.title,
+                        textAlign: TextAlign.center,
+                        style:  TextStyle(
+                          fontSize: MediaQuery.textScalerOf(context).scale(20),
+                          letterSpacing: 0.31,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF070707),
+                        ),
+                      ),
+                       SizedBox(height: MediaQuery.of(context).size.height*0.01),
+
+                      /// Red Line Divider
+                      Container(
+                        height: MediaQuery.of(context).size.height * 0.006,
+                        width: MediaQuery.of(context).size.width * 0.09,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFB5051),
+                        ),
+                      ),
+                       SizedBox(height:  MediaQuery.of(context).size.height*0.02),
+
+                      /// Description
+                      Text(
+                        item.description,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: MediaQuery.textScalerOf(context).scale(14),
+                          color: const Color(0xFF000000).withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
-          SizedBox(height: MediaQuery.of(context).size.width * 0.06),
+
+         // SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+
+          /// 3. CIRCULAR TIMELINE PICKER
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.09,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Center Spotlight Circle with Red Indicator Dot
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.25,
+                  height: MediaQuery.of(context).size.width * 0.25,
+                  decoration: const BoxDecoration(
+                    color: Colors.black,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Align(
+                    alignment: const Alignment(0, 0.65),
+                    child: Container(
+                      width:6 ,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFE3A31),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Horizontal Timeline PageView
+                PageView.builder(
+                  controller: _timelineController,
+                  itemCount: journeys.length,
+                  onPageChanged: _onYearChanged,
+                  itemBuilder: (context, index) {
+                    final isSelected = index == selectedIndex;
+
+                    return Center(
+                      child: AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 200),
+                        style: TextStyle(
+                          fontSize: isSelected ? MediaQuery.textScalerOf(context).scale(20) : MediaQuery.textScalerOf(context).scale(16),
+                          fontWeight: isSelected
+                              ? FontWeight.w500
+                              : FontWeight.w300,
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF000000).withOpacity(0.4),
+                        ),
+                        child: Text(journeys[index].year),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: MediaQuery.of(context).size.height * 0.06),
         ],
       ),
     );

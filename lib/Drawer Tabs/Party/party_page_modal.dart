@@ -18,7 +18,8 @@ class PartyProfileModel {
   final String? partyIdeologies;
   final String? visionMission;
   final List? bannerImages;
-  final bool isHidden;
+  final bool? isHidden;
+  final int? viewCount;
   const PartyProfileModel({
     this.id,
     this.partyName = '',
@@ -37,8 +38,8 @@ class PartyProfileModel {
     this.partyIdeologies = '',
     this.visionMission = '',
     this.bannerImages,
-    this.isHidden=false,
-
+    this.isHidden,
+    this.viewCount,
   });
 
   PartyProfileModel copyWith({
@@ -60,6 +61,7 @@ class PartyProfileModel {
     String? visionMission,
     List? bannerImages,
     bool? isHidden,
+    int? viewCount,
   }) {
     return PartyProfileModel(
       id: id ?? this.id,
@@ -80,6 +82,7 @@ class PartyProfileModel {
       visionMission: visionMission ?? this.visionMission,
       bannerImages: bannerImages ?? this.bannerImages,
       isHidden: isHidden??this.isHidden,
+      viewCount: viewCount??this.viewCount,
     );
   }
 
@@ -107,6 +110,7 @@ class PartyProfileModel {
           ? List<dynamic>.from(json['bannerImages'])
           : [],
       isHidden: json["hidden"]??false,
+      viewCount: json["viewCount"]??0///------------------Baki hai
     );
   }
 

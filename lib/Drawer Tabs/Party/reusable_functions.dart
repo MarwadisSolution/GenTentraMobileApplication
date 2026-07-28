@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Favourite/favourite_api.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Favourite/favourite_page_caching.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Favourite/favourite_page_modal.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/journey_tab.dart';
@@ -26,13 +27,13 @@ class BannerSection extends StatefulWidget {
 class _BannerSectionState extends State<BannerSection> {
   final PageController _pageController = PageController();
   int currentIndex = 0;
-
+  final apiService=PartyPageApis();
   @override
   Widget build(BuildContext context) {
     final List banners = widget.partyData["bannerImages"] as List? ?? [];
     return Stack(
       children: [
-        /// Banner Images
+        ///Banner Images
 
         SizedBox(
           height: MediaQuery.of(context).size.height*0.8,
@@ -125,24 +126,27 @@ class PartyDetailsSection extends StatefulWidget {
 
 class _PartyDetailsSectionState extends State<PartyDetailsSection> {
   final apiService=PartyPageApis();
+  final apiServiceFav=FavouriteApi();
   bool following=false;
   bool favorite=false;
   String viewCount="0";
   String followCount="0";
   bool isLoading=false;
-  final FavouritePageCaching favouritePageCaching=FavouritePageCaching();
+  //final FavouritePageCaching favouritePageCaching=FavouritePageCaching();
   final FollowingPartyCaching followingPartyCaching = FollowingPartyCaching();
 
- Future<void>loadFavouriteStatus()async{
-   final id=widget.partyData["id"];
-   if(id==null) return;
-   favorite=await favouritePageCaching.isFavourite(id);
-   if(mounted){
-     setState(() {
+  Future<void> loadFavouriteStatus() async {
+    final id = widget.partyData["id"];
+    if (id == null) return;
 
-     });
-   }
- }
+    final favouriteIds = await apiServiceFav.getFavouritePartyIds();
+
+    favorite = favouriteIds.contains(id);
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
   Future<void> loadFollowingStatus() async {
     final id = widget.partyData["id"];
     if (id == null) return;
@@ -228,8 +232,10 @@ else if(view>99999){
       followCount = count;
     });
   }
+
   @override
   Widget build(BuildContext context) {
+
     return Container(
       padding: const EdgeInsets.only(
         top: 20, // Space for floating symbol
@@ -455,24 +461,33 @@ else if(view>99999){
                 child: InkWell(
                   onTap: () async {
                     final id = widget.partyData["id"];
-
                     if (id == null) return;
 
-                    if (favorite) {
-                      await favouritePageCaching.removeFavourite(id);
-                    } else {
-                      await favouritePageCaching.addFavourite(
-                        FavouritePageModal(
-                          id: id,
-                          name: widget.partyData["name"] ?? "",
-                          partySymbolUrl: widget.partyData["partySymbolUrl"] ?? "",
-                        ),
-                      );
-                    }
-
                     setState(() {
-                      favorite = !favorite;
+                      isLoading = true;
                     });
+
+                    try {
+                      if (favorite) {
+                        await apiServiceFav.deleteFavourite(id);
+                      } else {
+                        await apiServiceFav.postFavourite(id);
+                      }
+
+                      if (mounted) {
+                        setState(() {
+                          favorite = !favorite;
+                        });
+                      }
+                    } catch (e) {
+                      print(e);
+                    } finally {
+                      if (mounted) {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
+                    }
                   },
                   child: SvgPicture.asset(
                     PartyPageData.favoriteIcon,
@@ -488,8 +503,6 @@ else if(view>99999){
       ),
     );
   }
-
-
 }
 
 Widget detailCard({required String title, required String value}) {

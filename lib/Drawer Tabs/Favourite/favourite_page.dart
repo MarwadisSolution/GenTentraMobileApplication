@@ -4,6 +4,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_api
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_bar_reusable.dart';
 
 import '../../Reusable Functions/reusable_functions.dart';
+import 'favourite_api.dart';
 import 'favourite_page_caching.dart';
 import 'favourite_page_modal.dart';
 
@@ -15,19 +16,21 @@ class FavouritePage extends StatefulWidget {
 }
 
 class _FavouritePageState extends State<FavouritePage> {
-  final FavouritePageCaching cache = FavouritePageCaching();
+ // final FavouritePageCaching cache = FavouritePageCaching();
 
   late Future<List<FavouritePageModal>> favouriteFuture;
   final apiService = PartyPageApis();
+  final FavouriteApi favouriteApi = FavouriteApi();
   @override
   void initState() {
     super.initState();
-    favouriteFuture = cache.getFavourites();
+    favouriteFuture = favouriteApi.getDataOfFavourite();
+    print("Data:- ${favouriteFuture.toString()}");
   }
 
   Future<void> refreshFavourite() async {
     setState(() {
-      favouriteFuture = cache.getFavourites();
+      favouriteFuture = favouriteApi.getDataOfFavourite();
     });
   }
 

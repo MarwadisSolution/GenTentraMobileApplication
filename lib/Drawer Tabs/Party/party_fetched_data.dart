@@ -13,12 +13,12 @@ class PartyFetchedData extends StatefulWidget {
 class _PartyFetchedDataState extends State<PartyFetchedData> {
   final apiService=PartyPageApis();
   late Future<Map<String, dynamic>> partyFullFuture;
-  Future<void> incrementViewCount() async {
-    await apiService.viewCountIncreament(
-      "PARTY",
-      widget.partyData["id"],
-    );
-  }
+  // Future<void> incrementViewCount() async {
+  //   await apiService.viewCountIncreament(
+  //     "PARTY",
+  //     widget.partyData["id"],
+  //   );
+  // }
   @override
   void initState() {
     // TODO: implement initState
@@ -27,7 +27,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
       widget.partyData["id"],
 
     );
-    incrementViewCount();
+   // incrementViewCount();
 
   }
 

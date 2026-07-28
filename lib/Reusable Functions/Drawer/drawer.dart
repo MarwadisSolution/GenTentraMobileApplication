@@ -213,7 +213,12 @@ class _DrawerPageState extends State<DrawerPage> {
                                 isBold: state.selectedIndex == 10,
                                 onTapping: () async{
                                   final prefs = await SharedPreferences.getInstance();
+                                  print("Saved accessToken = ${prefs.getString("accessToken")}");
+                                  print("Saved refreshToken = ${prefs.getString("refreshToken")}");
                                   await prefs.clear();
+
+                                  print("After accessToken = ${prefs.getString("accessToken")}");
+                                  print("After refreshToken = ${prefs.getString("refreshToken")}");
                                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>
                                       BlocProvider(create: (_) => LoginBloc(LoginRepository(LoginApi()),
                                       ),

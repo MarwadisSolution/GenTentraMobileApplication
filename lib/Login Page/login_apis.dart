@@ -29,11 +29,16 @@ class LoginApi{
       // "ts": "2026-05-24T17:31:43.006365552Z"
       // }
     );
+    print("Yes");
+    print(response.data);
+    print(response.statusCode);
     print(response.data["data"]["devCode"]);
     if(response.data["success"]==false) {
       print(response.data["error"]["message"]);
       throw Exception(response.data["error"]["message"]);
     }
+    print(response.data);
+    print(response.statusCode);
     return response.data["data"]["devCode"];
   }
   Future<Map<String, dynamic>> otpVerify(
