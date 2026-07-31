@@ -71,16 +71,45 @@ class PartyPageApis{
                 (e) => MemberDirectoryModel.fromJson(
               Map<String, dynamic>.from(e),
             ),
-          )
-              .toList();
+          ).toList();
         }
-        print('Leadership:- ${fullParty['leadershipGroups']}');
+        final Map<String, List<MemberDirectoryModel>>membersByRegion ={};
+        for(final member in memberDirectory){
+          membersByRegion.putIfAbsent(member.region, ()=><MemberDirectoryModel>[]);
+          membersByRegion[member.region]!.add(member);
+        }
+        for (final entry in membersByRegion.entries) {
+          print("========== ${entry.key} ==========");
+
+          for (final member in entry.value) {
+            print(
+              "ID: ${member.politicianId}, "
+                  "Name: ${member.personName}, "
+                  "Designation: ${member.designation}",
+            );
+          }
+
+          print("--------------------------------");
+        }
+        // for (final member in memberDirectory) {
+        //   print("ID: ${member.politicianId}");
+        //   print("Name: ${member.personName}");
+        //   print("Designation: ${member.designation}");
+        //   print("Image: ${member.imagePath}");
+        //   print("Region: ${member.region}");
+        //   print("PartyId: ${member.partyId}");
+        //   print("Status: ${member.status}");
+        //   print("Last Updated: ${member.lastUpdated}");
+        //   print("-----------------------");
+        // }
+        // print('Leadership:- ${fullParty['leadershipGroups']}');
         return {
           'party':partyDetails,
           'symbol':symbol,
           'journey':journey,
           'leaderGroup':leaderGroup,
-          'members':memberDirectory
+          'members':memberDirectory,
+          'membersByRegion': membersByRegion,
         };
       }
 

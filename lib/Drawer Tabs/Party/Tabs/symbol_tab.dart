@@ -46,35 +46,45 @@ class _SymbolTabState extends State<SymbolTab> {
               crossAxisCount: gridCount,
               crossAxisSpacing: 12,
               mainAxisSpacing: 30,
-              childAspectRatio: 1.8,
+              childAspectRatio: 1.4,
             ),
             itemCount: widget.symbol.partyLogo.length,
             itemBuilder: (context, index){
               final logo = widget.symbol.partyLogo[index];
-              return  Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+              return CircleAvatar(
+                // radius: 50,
+               backgroundColor: Colors.white,
+               child: ClipOval(
+                 child:
+                       logo.isNotEmpty?
+                         buildImageWidget(logo,fit: BoxFit.cover):null
 
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.transparent,
-                    child:logo.isNotEmpty?
-                    buildImageWidget(logo,fit: BoxFit.cover):null
-
-                  ),
-                ),
+               ),
               );
+              // return  Container(
+              //   decoration: BoxDecoration(
+              //     shape: BoxShape.circle,
+              //
+              //   ),
+              //
+              //   // child: ClipRRect(
+              //   //   borderRadius: BorderRadius.circular(12),
+              //   //   child: CircleAvatar(
+              //   //     radius: 166,
+              //   //     backgroundColor: Colors.transparent,
+              //   //     child:logo.isNotEmpty?
+              //   //     buildImageWidget(logo,fit: BoxFit.cover):null
+              //   //   ),
+              //   // ),
+              // );
             }),
         SizedBox(height: MediaQuery.of(context).size.width * 0.06),
-        Align(
+        ?widget.symbol.partyLogo.length!=0?   Align(
           alignment: Alignment.center,
           child: InkWell(
             onTap: () async {
               if (widget.symbol.downloadEnabled == true ||
-                  widget.symbol.downloadEnabled== "YES") {
+                  widget.symbol.downloadEnabled== "YES" ) {
                 for (final logo in widget.symbol.partyLogo){
                   await downloadImage(
                     logo.startsWith("/api/")
@@ -121,7 +131,7 @@ class _SymbolTabState extends State<SymbolTab> {
               ),
             ),
           ),
-        ),
+        ):null,
         SizedBox(height: MediaQuery.of(context).size.width * 0.06),
       ],
     );

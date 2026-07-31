@@ -28,9 +28,9 @@ class GradientColors {
 }
 class GradientColorsForBellowAppbar {
   static const LinearGradient gradientBelowAppbar = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [ Color(0xFFFE3A31),Color(0xFFFD8454)],
+    begin: Alignment.topLeft,
+    end: Alignment.topRight,
+    colors: [ Color(0xFFFE3A31),Color(0xFFFD8454),],
   );
 }
 //------------------------------------------------------

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Favourite/favourite_api.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Favourite/favourite_page_caching.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Favourite/favourite_page_modal.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/journey_tab.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/leadership_tab.dart';
@@ -130,8 +129,9 @@ class _PartyDetailsSectionState extends State<PartyDetailsSection> {
   bool following=false;
   bool favorite=false;
   String viewCount="0";
-  String followCount="0";
+  int followCount=0;
   bool isLoading=false;
+
   //final FavouritePageCaching favouritePageCaching=FavouritePageCaching();
   final FollowingPartyCaching followingPartyCaching = FollowingPartyCaching();
 
@@ -146,6 +146,17 @@ class _PartyDetailsSectionState extends State<PartyDetailsSection> {
     if (mounted) {
       setState(() {});
     }
+  }
+  String formatFollowCount(int count) {
+    if (count > 9999999) {
+      return "${count.toString().substring(0, 1)}C";
+    } else if (count > 99999) {
+      return "${count.toString().substring(0, 1)}L";
+    } else if (count > 1000) {
+      return "${count.toString().substring(0, 1)}K";
+    }
+
+    return count.toString();
   }
   Future<void> loadFollowingStatus() async {
     final id = widget.partyData["id"];
@@ -188,21 +199,11 @@ else if(view>99999){
     return viewValue;
 }
 ///---------Follow
-  Future<String> viewFollowFunction()async{
-    String followValue;
-    int follow=await apiService.getFollowCount("PARTY", widget.partyData["id"]);
-    if(follow>9999999){
-      followValue= "${follow.toString().substring(0, 1)}C";
-    }
-    else if(follow>99999){
-      followValue= "${follow.toString().substring(0, 1)}L";
-    }
-    else if(follow>1000){
-      followValue= "${follow.toString().substring(0, 1)}K";
-    }
-
-    else followValue=follow.toString();
-    return followValue;
+  Future<int> getFollowCount() async {
+    return await apiService.getFollowCount(
+      "PARTY",
+      widget.partyData["id"],
+    );
   }
 
  @override
@@ -224,7 +225,7 @@ else if(view>99999){
     });
   }
   Future<void> _initializeFollow() async {
-    final count = await viewFollowFunction();
+    final count = await getFollowCount();
 
     if (!mounted) return;
 
@@ -261,25 +262,47 @@ else if(view>99999){
                   ),
                 ),
                 child: CircleAvatar(
-                  radius: 40, // 80x80 container = radius 40
+                  radius:  MediaQuery.of(context).size.width*0.085,
                   backgroundColor: Colors.white,
-                  child: Padding(
-                    padding: const EdgeInsets.all(10), // Space between border and image
-                    child: (widget.partyData["partySymbolUrl"] != null &&
-                        (widget.partyData["partySymbolUrl"] as String).isNotEmpty)
-                        ? buildImageWidget(
-                      widget.partyData["partySymbolUrl"],
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.contain,
-                    )
-                        : const Icon(
-                      Icons.image,
-                      color: Colors.yellow,
-                      size: 35,
+                  child: ClipOval(
+                    child: SizedBox.expand(
+                      child:       (widget.partyData["partySymbolUrl"] != null &&
+                              (widget.partyData["partySymbolUrl"] as String).isNotEmpty)
+                              ? buildImageWidget(
+                            widget.partyData["partySymbolUrl"],
+                            // width: 50,
+                            // height: 50,
+                            fit: BoxFit.contain,
+                          )
+                              : const Icon(
+                            Icons.image,
+                            color: Colors.grey,
+                            size: 35,
+                          ),
                     ),
                   ),
-                ),
+                )
+                // CircleAvatar(
+                //   radius: 40, // 80x80 container = radius 40
+                //   backgroundColor: Colors.white,
+                //   child: Padding(
+                //     padding: const EdgeInsets.all(10), // Space between border and image
+                //     child:
+                //     (widget.partyData["partySymbolUrl"] != null &&
+                //         (widget.partyData["partySymbolUrl"] as String).isNotEmpty)
+                //         ? buildImageWidget(
+                //       widget.partyData["partySymbolUrl"],
+                //       width: 50,
+                //       height: 50,
+                //       fit: BoxFit.contain,
+                //     )
+                //         : const Icon(
+                //       Icons.image,
+                //       color: Colors.grey,
+                //       size: 35,
+                //     ),
+                //   ),
+                // ),
               ),
 
               SizedBox(width: MediaQuery.of(context).size.width * 0.06),
@@ -371,7 +394,7 @@ else if(view>99999){
                       ),
                     ),
                     Text(
-                      followCount,
+                      formatFollowCount(followCount),
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 18,
@@ -402,6 +425,10 @@ else if(view>99999){
                         );
 
                         following = true;
+                        followCount++;
+                        setState(() {
+
+                        });
                       } else {
                         await apiService.deleteFollowing(
                           "PARTY",
@@ -413,6 +440,11 @@ else if(view>99999){
                         );
 
                         following = false;
+                        if (followCount > 0) {
+                          followCount--;
+                          setState(() {
+                          });
+                        }
                       }
                     } finally {
                       if (mounted) {
@@ -463,9 +495,9 @@ else if(view>99999){
                     final id = widget.partyData["id"];
                     if (id == null) return;
 
-                    setState(() {
-                      isLoading = true;
-                    });
+                    // setState(() {
+                    //   isLoading = true;
+                    // });
 
                     try {
                       if (favorite) {
@@ -483,9 +515,9 @@ else if(view>99999){
                       print(e);
                     } finally {
                       if (mounted) {
-                        setState(() {
-                          isLoading = false;
-                        });
+                        // setState(() {
+                        //   isLoading = false;
+                        // });
                       }
                     }
                   },
@@ -530,7 +562,9 @@ class PartyDetailsSectionByFields extends StatelessWidget {
   final PartyProfileModel party;
   final SymbolModel symbol;
   final List<JourneyModel> journeys;
-  final List<LeaderGroupModel>leaders;
+  final List<LeaderGroupModel> leaders;
+  final List<MemberDirectoryModel> members;
+  final Map<String, List<MemberDirectoryModel>> membersByRegion;
   final ScrollController scrollController;
 
   const PartyDetailsSectionByFields({
@@ -539,64 +573,78 @@ class PartyDetailsSectionByFields extends StatelessWidget {
     required this.symbol,
     required this.journeys,
     required this.leaders,
+    required this.members,
+    required this.membersByRegion,
     required this.scrollController,
   });
 
   @override
   Widget build(BuildContext context) {
-    print("Second");
     return DefaultTabController(
       length: 4,
-      child: Column(
-        children: [
-          TabBar(
-            isScrollable: true,
-            labelStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600, // Selected
-              letterSpacing: 0.25,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w400, // Unselected
-              letterSpacing: 0.25,
-            ),
-            labelColor: const Color(0xFF000000),
-            unselectedLabelColor: const Color(0xFF666666),
-            indicatorColor: Colors.red,
-            dividerColor: ColorScheme.of(context).onSurface.withOpacity(0.2),
-            tabs:  [
-            //  Tab(child: Text (PartyPageData.info,style: TextStyle(fontSize: 14,fontWeight: FontWeight.w400,letterSpacing: 0.25,color: Color(0xFF666666)),)),
-             Tab(text: PartyPageData.info,),
-              Tab(text:PartyPageData.symbol),
-              Tab(text: PartyPageData.journey),
-              Tab(text: PartyPageData.leadership),
-              // Tab(text: PartyPageData.feed),
-              // Tab(text: PartyPageData.event),
-              // Tab(text: PartyPageData.manifesto),
-            ],
-          ),
-
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.65,
-            child: TabBarView(
-              children: [
-                InfoTab(
-                  party: party,
-                  scrollController: scrollController,
+      child: NestedScrollView(
+        // Pass the scrollController from DraggableScrollableSheet here
+        controller: scrollController,
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return [
+            SliverPersistentHeader(
+              pinned: true, // This pins the TabBar to the top when scrolling
+              delegate: _SliverTabBarDelegate(
+                TabBar(
+                  tabAlignment: TabAlignment.start,
+                  padding: EdgeInsets.only(
+                    left: MediaQuery.of(context).size.width * 0.02,
+                  ),
+                  isScrollable: true,
+                  labelStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.25,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.25,
+                  ),
+                  labelColor: const Color(0xFF000000),
+                  unselectedLabelColor: const Color(0xFF666666),
+                  indicatorColor: Colors.red,
+                  dividerColor: ColorScheme.of(context)
+                      .onSurface
+                      .withOpacity(0.2),
+                  tabs: const [
+                    Tab(text: PartyPageData.info),
+                    Tab(text: PartyPageData.symbol),
+                    Tab(text: PartyPageData.journey),
+                    Tab(text: PartyPageData.leadership),
+                  ],
                 ),
-                SymbolTab(
-                  symbol: symbol,
-                ),
-                JourneyTab(
-                  journeys: journeys,
-                ),
-                LeadershipTab(leaders: leaders,),
-              ],
+              ),
             ),
-          ),
-        ],
+          ];
+        },
+        body: TabBarView(
+          children: [
+            InfoTab(
+              party: party,
+              scrollController: scrollController,
+            ),
+            SymbolTab(
+              symbol: symbol,
+            ),
+            JourneyTab(
+              journeys: journeys,
+            ),
+            LeadershipTab(
+              leaders: leaders,
+              members: members,
+              membersByRegion: membersByRegion,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+

@@ -129,7 +129,7 @@ class _JourneyTabState extends State<JourneyTab> {
             ),
           ),
 
-           SizedBox(height: MediaQuery.of(context).size.height*0.02),
+          SizedBox(height: MediaQuery.of(context).size.height*0.02),
 
           /// 2. TEXT CONTENT PAGEVIEW (Title, Red Line, Description)
           SizedBox(
@@ -158,7 +158,7 @@ class _JourneyTabState extends State<JourneyTab> {
                           color: Color(0xFF070707),
                         ),
                       ),
-                       SizedBox(height: MediaQuery.of(context).size.height*0.01),
+                      SizedBox(height: MediaQuery.of(context).size.height*0.01),
 
                       /// Red Line Divider
                       Container(
@@ -168,7 +168,7 @@ class _JourneyTabState extends State<JourneyTab> {
                           color: Color(0xFFFB5051),
                         ),
                       ),
-                       SizedBox(height:  MediaQuery.of(context).size.height*0.02),
+                      SizedBox(height:  MediaQuery.of(context).size.height*0.02),
 
                       /// Description
                       Text(
@@ -187,7 +187,7 @@ class _JourneyTabState extends State<JourneyTab> {
             ),
           ),
 
-         // SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+          // SizedBox(height: MediaQuery.of(context).size.height * 0.02),
 
           /// 3. CIRCULAR TIMELINE PICKER
           SizedBox(

@@ -13,12 +13,7 @@ class PartyFetchedData extends StatefulWidget {
 class _PartyFetchedDataState extends State<PartyFetchedData> {
   final apiService=PartyPageApis();
   late Future<Map<String, dynamic>> partyFullFuture;
-  // Future<void> incrementViewCount() async {
-  //   await apiService.viewCountIncreament(
-  //     "PARTY",
-  //     widget.partyData["id"],
-  //   );
-  // }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -27,13 +22,12 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
       widget.partyData["id"],
 
     );
-   // incrementViewCount();
 
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
+
     return GestureDetector(
       onTap: (){
         FocusScope.of(context).unfocus();
@@ -59,25 +53,21 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
                       top: Radius.circular(24),
                     ),
                   ),
-                  child:ListView(
-                    controller: scrollController,
-                    padding: EdgeInsets.zero,
+                  child: Column(
                     children: [
+                      // Non-scrollable header area of sheet
                       PartyDetailsSection(
                         partyData: widget.partyData,
                       ),
                       Container(
                         width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height*0.01,
-                        color: Color(0xFF000000).withOpacity(0.08),
+                        height: MediaQuery.of(context).size.height * 0.01,
+                        color: const Color(0xFF000000).withOpacity(0.08),
                       ),
-                       SizedBox(height: 6),
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.006),
 
-                      Container(
-                        width: double.infinity,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                        ),
+                      // Scrollable tab content with sticky tabs
+                      Expanded(
                         child: FutureBuilder<Map<String, dynamic>>(
                           future: partyFullFuture,
                           builder: (context, snapshot) {
@@ -99,24 +89,21 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
                             }
 
                             final fullData = snapshot.data!;
+                            final PartyProfileModel party = fullData['party'] as PartyProfileModel;
+                            final SymbolModel symbol = fullData['symbol'] as SymbolModel;
+                            final List<JourneyModel> journey = fullData['journey'] as List<JourneyModel>;
+                            final List<LeaderGroupModel> leaders = fullData['leaderGroup'] as List<LeaderGroupModel>;
+                            final List<MemberDirectoryModel> members = fullData['members'] as List<MemberDirectoryModel>;
+                            final Map<String, List<MemberDirectoryModel>> membersByRegion = fullData['membersByRegion'] as Map<String, List<MemberDirectoryModel>>;
 
-                            final PartyProfileModel party =
-                            fullData['party'] as PartyProfileModel;
-
-                            final SymbolModel symbol =
-                            fullData['symbol'] as SymbolModel;
-
-                            final List<JourneyModel> journey =
-                            fullData['journey'] as List<JourneyModel>;
-
-                            final List<LeaderGroupModel> leaders =
-                            fullData['leaderGroup'] as List<LeaderGroupModel>;
                             return PartyDetailsSectionByFields(
-
                               party: party,
                               symbol: symbol,
-                              journeys: journey, leaders: leaders,
-                              scrollController: scrollController,
+                              journeys: journey,
+                              leaders: leaders,
+                              members: members,
+                              membersByRegion: membersByRegion,
+                              scrollController: scrollController, // Attached to NestedScrollView
                             );
                           },
                         ),
@@ -125,10 +112,41 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
                   ),
                 );
               },
-            ),
+            )
           ],
         ),
       ),
     );
+  }
+}
+
+
+///----------_SliverTabBarDelegate
+class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar tabBar;
+
+  _SliverTabBarDelegate(this.tabBar);
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+      BuildContext context,
+      double shrinkOffset,
+      bool overlapsContent,
+      ) {
+    return Container(
+      color: Colors.white, // Background color when pinned
+      child: tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverTabBarDelegate oldDelegate) {
+    return false;
   }
 }

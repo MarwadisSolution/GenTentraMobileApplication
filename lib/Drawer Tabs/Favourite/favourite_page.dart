@@ -5,7 +5,6 @@ import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_ba
 
 import '../../Reusable Functions/reusable_functions.dart';
 import 'favourite_api.dart';
-import 'favourite_page_caching.dart';
 import 'favourite_page_modal.dart';
 
 class FavouritePage extends StatefulWidget {
@@ -50,14 +49,15 @@ class _FavouritePageState extends State<FavouritePage> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
+
+           gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
         ),
         child: CustomScrollView(
           slivers: [
             ReusableSliverAppBar(
               title: "My Favourite",
               automaticallyImplyLeading: true,
-              height: 60,
+              height: h*0.06,
             ),
             SliverSections(
               child: Container(
@@ -84,7 +84,7 @@ class _FavouritePageState extends State<FavouritePage> {
                         "My Favorite Party’s",
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
-                          fontSize: MediaQuery.textScalerOf(context).scale(15),
+                          fontSize: MediaQuery.textScalerOf(context).scale(16),
                         ),
                       ),
                       // SizedBox(
@@ -116,12 +116,13 @@ class _FavouritePageState extends State<FavouritePage> {
                               shrinkWrap: true,
                               physics:
                               const NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.all(MediaQuery.of(context).size.height*0.005),
                               gridDelegate:
                                SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: gridCount,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: 1,
+                                 crossAxisSpacing: 5,
+                                 mainAxisSpacing: 5,
+                                 childAspectRatio: 0.9,
                               ),
                               itemCount: favourites.length,
                               itemBuilder: (context, index) {
@@ -169,8 +170,8 @@ class _FavouritePageState extends State<FavouritePage> {
                                           child: party.partySymbolUrl.isNotEmpty
                                               ? buildImageWidget(
                                             party.partySymbolUrl,
-                                            width: 45,
-                                            height: 45,
+                                            width: w*0.12,
+                                            height: h*0.06,
                                             fit: BoxFit.cover,
                                           )
                                               : Icon(
@@ -181,7 +182,7 @@ class _FavouritePageState extends State<FavouritePage> {
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(height: 8),
+                                       SizedBox(height:h*0.008 ),
                                       Text(
                                         party.name,
                                         maxLines: 1,

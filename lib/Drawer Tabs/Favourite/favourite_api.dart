@@ -56,7 +56,7 @@ class FavouriteApi {
       );
       if(response.data["success"]==true){
         final List data=response.data["data"];
-        print("Printing:- ${response.data}");
+       // print("Printing:- ${response.data}");
         for (final item in data) {
           print(item);
         }

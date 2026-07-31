@@ -49,7 +49,7 @@ class _PartyPageState extends State<PartyPage> {
         child: CustomScrollView(
             slivers: [
               ReusableSliverAppBar(
-                title: "PARTY'S", automaticallyImplyLeading: true, height: 60,),
+                title: "PARTY'S", automaticallyImplyLeading: true, height: h*0.06,),
               SliverSections(
                 child: Container(
                     constraints: BoxConstraints(
@@ -113,12 +113,12 @@ class _PartyPageState extends State<PartyPage> {
                         return GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          padding: const EdgeInsets.all(12),
+                          padding:  EdgeInsets.all(MediaQuery.of(context).size.height*0.005),
                           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: gridCount,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.7,
+                            crossAxisSpacing: 5,
+                            mainAxisSpacing: 5,
+                            childAspectRatio: 0.9,
                           ),
                           itemCount: parties.length,
                           itemBuilder: (context, index) {
@@ -149,23 +149,28 @@ class _PartyPageState extends State<PartyPage> {
                                       ),
                                     ),
                                     child: CircleAvatar(
-                                      radius: 30,
+                                      radius:  MediaQuery.of(context).size.width*0.07,
                                       backgroundColor: Colors.white,
-                                      child: (party["partySymbolUrl"] != null &&
-                                          (party["partySymbolUrl"] as String)
-                                              .isNotEmpty)
-                                          ? buildImageWidget(
-                                        party["partySymbolUrl"],
-                                        width: 45,
-                                        height: 45,
-                                        fit: BoxFit.cover,
+                                      child: ClipOval(
+                                        child: SizedBox.expand(
+                                          child:  (party["partySymbolUrl"] != null &&
+                                              (party["partySymbolUrl"] as String)
+                                                  .isNotEmpty)
+                                              ? buildImageWidget(
+                                            party["partySymbolUrl"],
+                                            // width: MediaQuery.of(context).size.width*0.02,
+                                            // height: MediaQuery.of(context).size.width*0.02,
+                                            fit: BoxFit.contain,
+                                          )
+                                              : Icon(
+                                            Icons.image,
+                                            color: ColorScheme
+                                                .of(context)
+                                                .onSurface,
+                                          ),
+                                        ),
                                       )
-                                          : Icon(
-                                        Icons.image,
-                                        color: ColorScheme
-                                            .of(context)
-                                            .onSurface,
-                                      ),
+
                                     ),
                                   ),
                                   const SizedBox(height: 8),
