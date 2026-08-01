@@ -53,21 +53,25 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
                       top: Radius.circular(24),
                     ),
                   ),
-                  child: Column(
+                  child:ListView(
+                    controller: scrollController,
+                    padding: EdgeInsets.zero,
                     children: [
-                      // Non-scrollable header area of sheet
                       PartyDetailsSection(
                         partyData: widget.partyData,
                       ),
                       Container(
                         width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height * 0.01,
-                        color: const Color(0xFF000000).withOpacity(0.08),
+                        height: MediaQuery.of(context).size.height*0.01,
+                        color: Color(0xFF000000).withOpacity(0.08),
                       ),
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.006),
+                       SizedBox(height: MediaQuery.of(context).size.height*0.006),
 
-                      // Scrollable tab content with sticky tabs
-                      Expanded(
+                      Container(
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                        ),
                         child: FutureBuilder<Map<String, dynamic>>(
                           future: partyFullFuture,
                           builder: (context, snapshot) {
@@ -89,21 +93,31 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
                             }
 
                             final fullData = snapshot.data!;
-                            final PartyProfileModel party = fullData['party'] as PartyProfileModel;
-                            final SymbolModel symbol = fullData['symbol'] as SymbolModel;
-                            final List<JourneyModel> journey = fullData['journey'] as List<JourneyModel>;
-                            final List<LeaderGroupModel> leaders = fullData['leaderGroup'] as List<LeaderGroupModel>;
-                            final List<MemberDirectoryModel> members = fullData['members'] as List<MemberDirectoryModel>;
-                            final Map<String, List<MemberDirectoryModel>> membersByRegion = fullData['membersByRegion'] as Map<String, List<MemberDirectoryModel>>;
 
+                            final PartyProfileModel party =
+                            fullData['party'] as PartyProfileModel;
+
+                            final SymbolModel symbol =
+                            fullData['symbol'] as SymbolModel;
+
+                            final List<JourneyModel> journey =
+                            fullData['journey'] as List<JourneyModel>;
+
+                            final List<LeaderGroupModel> leaders =
+                            fullData['leaderGroup'] as List<LeaderGroupModel>;
+                            final List<MemberDirectoryModel> members =
+                            fullData['members'] as List<MemberDirectoryModel>;
+
+                            final Map<String, List<MemberDirectoryModel>> membersByRegion =
+                            fullData['membersByRegion'] as Map<String, List<MemberDirectoryModel>>;
                             return PartyDetailsSectionByFields(
+
                               party: party,
                               symbol: symbol,
-                              journeys: journey,
-                              leaders: leaders,
+                              journeys: journey, leaders: leaders,
                               members: members,
                               membersByRegion: membersByRegion,
-                              scrollController: scrollController, // Attached to NestedScrollView
+                              scrollController: scrollController,
                             );
                           },
                         ),
@@ -112,7 +126,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
                   ),
                 );
               },
-            )
+            ),
           ],
         ),
       ),
@@ -122,10 +136,10 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
 
 
 ///----------_SliverTabBarDelegate
-class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
+class SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar tabBar;
 
-  _SliverTabBarDelegate(this.tabBar);
+  SliverTabBarDelegate(this.tabBar);
 
   @override
   double get minExtent => tabBar.preferredSize.height;
@@ -146,7 +160,7 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  bool shouldRebuild(_SliverTabBarDelegate oldDelegate) {
+  bool shouldRebuild(SliverTabBarDelegate oldDelegate) {
     return false;
   }
 }

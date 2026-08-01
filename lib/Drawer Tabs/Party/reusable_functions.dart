@@ -562,7 +562,7 @@ class PartyDetailsSectionByFields extends StatelessWidget {
   final PartyProfileModel party;
   final SymbolModel symbol;
   final List<JourneyModel> journeys;
-  final List<LeaderGroupModel> leaders;
+  final List<LeaderGroupModel>leaders;
   final List<MemberDirectoryModel> members;
   final Map<String, List<MemberDirectoryModel>> membersByRegion;
   final ScrollController scrollController;
@@ -580,71 +580,65 @@ class PartyDetailsSectionByFields extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("Second");
     return DefaultTabController(
       length: 4,
-      child: NestedScrollView(
-        // Pass the scrollController from DraggableScrollableSheet here
-        controller: scrollController,
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-          return [
-            SliverPersistentHeader(
-              pinned: true, // This pins the TabBar to the top when scrolling
-              delegate: _SliverTabBarDelegate(
-                TabBar(
-                  tabAlignment: TabAlignment.start,
-                  padding: EdgeInsets.only(
-                    left: MediaQuery.of(context).size.width * 0.02,
-                  ),
-                  isScrollable: true,
-                  labelStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.25,
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 0.25,
-                  ),
-                  labelColor: const Color(0xFF000000),
-                  unselectedLabelColor: const Color(0xFF666666),
-                  indicatorColor: Colors.red,
-                  dividerColor: ColorScheme.of(context)
-                      .onSurface
-                      .withOpacity(0.2),
-                  tabs: const [
-                    Tab(text: PartyPageData.info),
-                    Tab(text: PartyPageData.symbol),
-                    Tab(text: PartyPageData.journey),
-                    Tab(text: PartyPageData.leadership),
-                  ],
+      child: Column(
+        children: [
+          TabBar(
+            tabAlignment: TabAlignment.start,
+            padding: EdgeInsets.only(left: MediaQuery.of(context).size.width*0.02),
+            isScrollable: true,
+            labelStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600, // Selected
+              letterSpacing: 0.25,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w400, // Unselected
+              letterSpacing: 0.25,
+            ),
+            labelColor: const Color(0xFF000000),
+            unselectedLabelColor: const Color(0xFF666666),
+            indicatorColor: Colors.red,
+            dividerColor: ColorScheme.of(context).onSurface.withOpacity(0.2),
+            tabs:  [
+            //  Tab(child: Text (PartyPageData.info,style: TextStyle(fontSize: 14,fontWeight: FontWeight.w400,letterSpacing: 0.25,color: Color(0xFF666666)),)),
+             Tab(text: PartyPageData.info,),
+              Tab(text:PartyPageData.symbol),
+              Tab(text: PartyPageData.journey),
+              Tab(text: PartyPageData.leadership),
+              // Tab(text: PartyPageData.feed),
+              // Tab(text: PartyPageData.event),
+              // Tab(text: PartyPageData.manifesto),
+            ],
+          ),
+
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.65,
+            child: TabBarView(
+              children: [
+                InfoTab(
+                  party: party,
+                  scrollController: scrollController,
                 ),
-              ),
+                SymbolTab(
+                  symbol: symbol,
+                ),
+                JourneyTab(
+                  journeys: journeys,
+                ),
+                LeadershipTab(
+                  leaders: leaders,
+                  members: members,
+                  membersByRegion: membersByRegion,
+                ),
+              ],
             ),
-          ];
-        },
-        body: TabBarView(
-          children: [
-            InfoTab(
-              party: party,
-              scrollController: scrollController,
-            ),
-            SymbolTab(
-              symbol: symbol,
-            ),
-            JourneyTab(
-              journeys: journeys,
-            ),
-            LeadershipTab(
-              leaders: leaders,
-              members: members,
-              membersByRegion: membersByRegion,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
-
-

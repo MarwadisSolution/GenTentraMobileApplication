@@ -40,8 +40,8 @@ class _MemberDirectoryState extends State<MemberDirectory> {
 
       body: Container(
         decoration: BoxDecoration(
-//color: Colors.black.withOpacity(0.08),
-          gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
+      color: Colors.black.withOpacity(0.08),
+          //gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
          ),
         child: CustomScrollView(
           slivers: [
@@ -50,54 +50,68 @@ class _MemberDirectoryState extends State<MemberDirectory> {
               automaticallyImplyLeading: true,
               height: h*0.06,
             ),
-            SliverToBoxAdapter(
-              child: Container(
-                    decoration: BoxDecoration(
-                     color: Colors.black.withOpacity(0.08),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                    ),
-                child:    SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
 
-                          child: Row(
-                            children: regions.map((region) {
-                              final selected = selectedRegion == region;
-                              return Padding(
-                                padding:  EdgeInsets.only(
-                                  //right: 10,
-                                  left: w*0.06,
-                                  top: h*0.02,
-                                  bottom: h*0.02,
-                                ),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      selectedRegion = region;
-                                    });
-                                  },
-                                  child: Text(
-                                    region.toUpperCase(),
-                                    style: TextStyle(
-                                      color: selected
-                                          ? Color(0xFF000000)
-                                          : Color(0xFF666666),
-                                      fontWeight: selected
-                                          ? FontWeight.w600
-                                          : FontWeight.w300,
-                                      fontSize: MediaQuery.textScalerOf(
-                                        context,
-                                      ).scale(14),
-                                      letterSpacing: 0.26,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
+            SliverToBoxAdapter(
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  // Gradient Banner
+                  Container(
+                    height: 200,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
+                    ),
+                  ),
+                  Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            topRight: Radius.circular(20),
                           ),
                         ),
+                    child:    SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+
+                              child: Row(
+                                children: regions.map((region) {
+                                  final selected = selectedRegion == region;
+                                  return Padding(
+                                    padding:  EdgeInsets.only(
+                                      //right: 10,
+                                      left: w*0.06,
+                                      top: h*0.02,
+                                      bottom: h*0.02,
+                                    ),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          selectedRegion = region;
+                                        });
+                                      },
+                                      child: Text(
+                                        region.toUpperCase(),
+                                        style: TextStyle(
+                                          color: selected
+                                              ? Color(0xFF000000)
+                                              : Color(0xFF666666),
+                                          fontWeight: selected
+                                              ? FontWeight.w600
+                                              : FontWeight.w300,
+                                          fontSize: MediaQuery.textScalerOf(
+                                            context,
+                                          ).scale(14),
+                                          letterSpacing: 0.26,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                  ),
+                ],
               ),
             ),
 
@@ -110,7 +124,7 @@ class _MemberDirectoryState extends State<MemberDirectory> {
                                 right: w*0.01,
                                 left: w*0.01,),
                               child: Card(
-                                color: Colors.black.withOpacity(0.08),
+                                color: Colors.white,
                                 elevation: 0,
                                 child: ListTile(
                                             leading:   CircleAvatar(
