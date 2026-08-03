@@ -57,13 +57,14 @@ class _MemberDirectoryState extends State<MemberDirectory> {
                 children: [
                   // Gradient Banner
                   Container(
-                    height: 20,
+                    height: h * 0.08,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
                     ),
                   ),
                   Container(
+                    width: double.infinity,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.only(

@@ -209,7 +209,7 @@ SizedBox(height:h*0.02),
             ),
           ),
           SizedBox(height: h * 0.02),
-          Material(
+          ?widget.members.isNotEmpty? Material(
             color: Theme.of(context).colorScheme.surface,
             child: ListTile(
               onTap: () {
@@ -241,7 +241,7 @@ SizedBox(height:h*0.02),
                 ),
               ),
             ),
-          ),
+          ):null,
           SizedBox(height: h * 0.05),
         ],
       ),

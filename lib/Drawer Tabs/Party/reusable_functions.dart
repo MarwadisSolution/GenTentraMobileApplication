@@ -128,7 +128,7 @@ class _PartyDetailsSectionState extends State<PartyDetailsSection> {
   final apiServiceFav=FavouriteApi();
   bool following=false;
   bool favorite=false;
-  int viewCount=0;
+  String viewCount="0";
   int followCount=0;
   bool isLoading=false;
 
@@ -148,17 +148,6 @@ class _PartyDetailsSectionState extends State<PartyDetailsSection> {
     }
   }
   String formatFollowCount(int count) {
-    if (count > 9999999) {
-      return "${count.toString().substring(0, 1)}C";
-    } else if (count > 99999) {
-      return "${count.toString().substring(0, 1)}L";
-    } else if (count > 1000) {
-      return "${count.toString().substring(0, 1)}K";
-    }
-
-    return count.toString();
-  }
-  String formatViewCount(int count) {
     if (count > 9999999) {
       return "${count.toString().substring(0, 1)}C";
     } else if (count > 99999) {
@@ -232,7 +221,7 @@ else if(view>99999){
     if (!mounted) return;
 
     setState(() {
-      viewCount = count as int;
+      viewCount = count;
     });
   }
   Future<void> _initializeFollow() async {
@@ -363,7 +352,7 @@ else if(view>99999){
                         ),
                       ),
                       Text(
-                        formatViewCount(viewCount),
+                        viewCount,
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 24,
@@ -448,7 +437,10 @@ else if(view>99999){
                       }
                     },
                     child: Container(
-                      constraints: BoxConstraints(minHeight: 45, minWidth: 135),
+                      constraints: BoxConstraints(
+                          minHeight: 40,
+                          maxWidth: 110
+                      ),
                       decoration: BoxDecoration(
                         color: following?null:Color(0xFF666666),
                         gradient:following? GradientColors.primaryGradient:null,

@@ -26,28 +26,44 @@ class ReusableSliverAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-
+      titleSpacing: 0,
       backgroundColor: Colors.transparent,
       elevation: 0,
       forceElevated: false,
 
-      automaticallyImplyActions:automaticallyImplyLeading,
-          leading: automaticallyImplyLeading?null:IconButton(
-              onPressed: onMenuTap,
-              icon: const Icon(Icons.menu,color: Color(0xFFE3E3E3),),
+      // automaticallyImplyActions:automaticallyImplyLeading,
+      leading: automaticallyImplyLeading
+          ? IconButton(
+        onPressed: () => Navigator.pop(context),
+        icon: Transform.rotate(
+          angle: 3.14,
+          child: SvgPicture.asset(
+            "Assets/arrow.svg",
+            width: MediaQuery.of(context).size.width*.018,
+            height: MediaQuery.of(context).size.height*.023,
           ),
-      actions: [
-       IconButton(
-           onPressed: (){},
-           icon: SvgPicture.asset("Assets/appBar&NavBar/plusIcon.svg"),
-       ),
-        IconButton(
-            onPressed: (){},
-            icon: SvgPicture.asset("Assets/appBar&NavBar/bellIcon.svg"),
-        )
-      ],
+        ),
+      )
+          : IconButton(
+        onPressed: onMenuTap,
+        icon: const Icon(
+          Icons.menu,
+          color: Color(0xFFE3E3E3),
+        ),
+      ),
+      // actions: [
+      //  IconButton(
+      //      onPressed: (){},
+      //      icon: SvgPicture.asset("Assets/appBar&NavBar/plusIcon.svg"),
+      //  ),
+      //   IconButton(
+      //       onPressed: (){},
+      //       icon: SvgPicture.asset("Assets/appBar&NavBar/bellIcon.svg"),
+      //   )
+      // ],
       title:titleWidget?? Text(
         title??'',
+        textAlign: TextAlign.left,
         style:  TextStyle(
           color: ColorScheme.of(context).surface,
           fontWeight: FontWeight.bold,
@@ -57,7 +73,7 @@ class ReusableSliverAppBar extends StatelessWidget {
       ),
 
     //  backgroundColor: Colors.black,
-      automaticallyImplyLeading: true,
+      //automaticallyImplyLeading: true,
 
       iconTheme: IconThemeData
         (color: ColorScheme.of(context).secondary),

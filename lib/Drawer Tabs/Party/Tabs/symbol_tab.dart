@@ -41,25 +41,43 @@ class _SymbolTabState extends State<SymbolTab> {
         GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding:  EdgeInsets.all(MediaQuery.sizeOf(context).width *0.012),
+            //padding:  EdgeInsets.all(MediaQuery.sizeOf(context).width *0.012),
+            padding: EdgeInsets.symmetric(
+              horizontal: size * 0.02,
+              vertical: size * 0.03,
+            ),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: gridCount,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 30,
-              childAspectRatio: 1.4,
+              crossAxisSpacing: isMobile ? 12 : 20,
+              mainAxisSpacing: isMobile ? 20 : 30,
+              childAspectRatio: isMobile ? 0.95 : 1.05,
             ),
             itemCount: widget.symbol.partyLogo.length,
             itemBuilder: (context, index){
               final logo = widget.symbol.partyLogo[index];
-              return CircleAvatar(
-                // radius: 50,
-               backgroundColor: Colors.white,
-               child: ClipOval(
-                 child:
-                       logo.isNotEmpty?
-                         buildImageWidget(logo,fit: BoxFit.cover):null
+              final double radius = isDesktop
+                  ? 75
+                  : isTablet
+                  ? 60
+                  : 45;
 
-               ),
+              return Center(
+                child: CircleAvatar(
+                  radius: radius,
+                  backgroundColor: Colors.white,
+                  child: ClipOval(
+                    child: SizedBox(
+                      width: radius * 2,
+                      height: radius * 2,
+                      child: logo.isNotEmpty
+                          ? buildImageWidget(
+                        logo,
+                        fit: BoxFit.cover,
+                      )
+                          : null,
+                    ),
+                  ),
+                ),
               );
               // return  Container(
               //   decoration: BoxDecoration(

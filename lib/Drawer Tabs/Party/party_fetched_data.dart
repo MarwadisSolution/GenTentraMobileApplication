@@ -60,66 +60,72 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
                       PartyDetailsSection(
                         partyData: widget.partyData,
                       ),
-                      Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height*0.01,
-                        color: Color(0xFF000000).withOpacity(0.08),
-                      ),
-                       SizedBox(height: MediaQuery.of(context).size.height*0.006),
-
-                      Container(
-                        width: double.infinity,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
+                      Transform.translate(
+                        offset: const Offset(0, -10), // move 8 pixels upward
+                        child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height * 0.01,
+                          color: const Color(0xFF000000).withOpacity(0.08),
                         ),
-                        child: FutureBuilder<Map<String, dynamic>>(
-                          future: partyFullFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(30),
-                                  child: CircularProgressIndicator(
-                                    color: ColorScheme.of(context).onSurface,
+                      ),
+                       SizedBox(height: 0),
+
+                      Transform.translate(
+                        offset: const Offset(0, -10),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                          ),
+                          child: FutureBuilder<Map<String, dynamic>>(
+                            future: partyFullFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(30),
+                                    child: CircularProgressIndicator(
+                                      color: ColorScheme.of(context).onSurface,
+                                    ),
                                   ),
-                                ),
+                                );
+                              }
+
+                              if (snapshot.hasError) {
+                                return Center(
+                                  child: Text(snapshot.error.toString()),
+                                );
+                              }
+
+                              final fullData = snapshot.data!;
+
+                              final PartyProfileModel party =
+                              fullData['party'] as PartyProfileModel;
+
+                              final SymbolModel symbol =
+                              fullData['symbol'] as SymbolModel;
+
+                              final List<JourneyModel> journey =
+                              fullData['journey'] as List<JourneyModel>;
+
+                              final List<LeaderGroupModel> leaders =
+                              fullData['leaderGroup'] as List<LeaderGroupModel>;
+                              final List<MemberDirectoryModel> members =
+                              fullData['members'] as List<MemberDirectoryModel>;
+
+                              final Map<String, List<MemberDirectoryModel>> membersByRegion =
+                              fullData['membersByRegion'] as Map<String, List<MemberDirectoryModel>>;
+                              return PartyDetailsSectionByFields(
+
+                                party: party,
+                                symbol: symbol,
+                                journeys: journey, leaders: leaders,
+                                members: members,
+                                membersByRegion: membersByRegion,
+                                scrollController: scrollController,
                               );
-                            }
-
-                            if (snapshot.hasError) {
-                              return Center(
-                                child: Text(snapshot.error.toString()),
-                              );
-                            }
-
-                            final fullData = snapshot.data!;
-
-                            final PartyProfileModel party =
-                            fullData['party'] as PartyProfileModel;
-
-                            final SymbolModel symbol =
-                            fullData['symbol'] as SymbolModel;
-
-                            final List<JourneyModel> journey =
-                            fullData['journey'] as List<JourneyModel>;
-
-                            final List<LeaderGroupModel> leaders =
-                            fullData['leaderGroup'] as List<LeaderGroupModel>;
-                            final List<MemberDirectoryModel> members =
-                            fullData['members'] as List<MemberDirectoryModel>;
-
-                            final Map<String, List<MemberDirectoryModel>> membersByRegion =
-                            fullData['membersByRegion'] as Map<String, List<MemberDirectoryModel>>;
-                            return PartyDetailsSectionByFields(
-
-                              party: party,
-                              symbol: symbol,
-                              journeys: journey, leaders: leaders,
-                              members: members,
-                              membersByRegion: membersByRegion,
-                              scrollController: scrollController,
-                            );
-                          },
+                            },
+                          ),
                         ),
                       ),
                     ],
