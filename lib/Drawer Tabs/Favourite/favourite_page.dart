@@ -56,7 +56,7 @@ class _FavouritePageState extends State<FavouritePage> {
           slivers: [
             ReusableSliverAppBar(
               title: "My Favourite",
-              automaticallyImplyLeading: true,
+              automaticallyImplyLeading: false,
               height: h*0.06,
             ),
             SliverSections(
@@ -167,18 +167,20 @@ class _FavouritePageState extends State<FavouritePage> {
                                         child: CircleAvatar(
                                           radius: 30,
                                           backgroundColor: Colors.white,
-                                          child: party.partySymbolUrl.isNotEmpty
-                                              ? buildImageWidget(
-                                            party.partySymbolUrl,
-                                            width: w*0.12,
-                                            height: h*0.06,
-                                            fit: BoxFit.cover,
-                                          )
-                                              : Icon(
-                                            Icons.image,
-                                            color: ColorScheme
-                                                .of(context)
-                                                .onSurface,
+                                          child: ClipOval(
+                                            child: party.partySymbolUrl.isNotEmpty
+                                                ? buildImageWidget(
+                                              party.partySymbolUrl,
+                                              width: w*0.12,
+                                              height: h*0.06,
+                                              fit: BoxFit.cover,
+                                            )
+                                                : Icon(
+                                              Icons.image,
+                                              color: ColorScheme
+                                                  .of(context)
+                                                  .onSurface,
+                                            ),
                                           ),
                                         ),
                                       ),

@@ -47,9 +47,11 @@ class _PartyPageState extends State<PartyPage> {
           gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
         ),
         child: CustomScrollView(
+          physics: NeverScrollableScrollPhysics(),
             slivers: [
               ReusableSliverAppBar(
-                title: "PARTY'S", automaticallyImplyLeading: true, height: h*0.06,),
+
+                title: "PARTY'S", automaticallyImplyLeading: true, height: h*0.07),
               SliverSections(
                 child: Container(
                     constraints: BoxConstraints(
@@ -61,8 +63,8 @@ class _PartyPageState extends State<PartyPage> {
                     decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20))
+                            topLeft: Radius.circular(25),
+                            topRight: Radius.circular(25))
                     ),
                     child: FutureBuilder<List<dynamic>>(
                       future: partiesFuture,
@@ -93,12 +95,7 @@ class _PartyPageState extends State<PartyPage> {
                                 )
                             );
                           });
-                          // Text(
-                          //     state.errorMessage.contains("has a status code of 429")
-                          //         ? "You have made too many requests. Please wait ${state.resendTimer}s."
-                          //         : state.errorMessage.contains("The connection errored")
-                          //         ? "You are offline"
-                          //         : state.errorMessage),
+
                           return Center(
                             child: Text(
                               "Something went wrong", style: TextStyle(
@@ -110,80 +107,88 @@ class _PartyPageState extends State<PartyPage> {
 
                         final parties = snapshot.data ?? [];
 
-                        return GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          padding:  EdgeInsets.all(MediaQuery.of(context).size.height*0.005),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: gridCount,
-                            crossAxisSpacing: 5,
-                            mainAxisSpacing: 5,
-                            childAspectRatio: 0.9,
-                          ),
-                          itemCount: parties.length,
-                          itemBuilder: (context, index) {
-                            final party = parties[index];
-                            return InkWell(
+                        return Padding(
+                          padding:  EdgeInsets.only(
+                              right: MediaQuery.of(context).size.width*0.025,
+                              left: MediaQuery.of(context).size.width*0.025,
+                              top: MediaQuery.of(context).size.height*0.025),
+                          child: GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding:  EdgeInsets.all(MediaQuery.of(context).size.height*0.005),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: gridCount,
+                              crossAxisSpacing: 5,
+                              mainAxisSpacing: 24,
+                              childAspectRatio: 0.9,
+                            ),
+                            itemCount: parties.length,
+                            itemBuilder: (context, index) {
+                              final party = parties[index];
+                              return InkWell(
 
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        PartyFetchedData(
-                                          partyData: party,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          PartyFetchedData(
+                                            partyData: party,
+                                          ),
+                                    ),
+                                  );
+                                },
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Color(0xFFD6D6D6),
+                                          width: 1,
                                         ),
-                                  ),
-                                );
-                              },
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
+                                      ),
+                                      child: CircleAvatar(
+                                        radius:  MediaQuery.of(context).size.width*0.12,
+                                        backgroundColor: Colors.white,
+                                        child: ClipOval(
+                                          child: SizedBox.expand(
+                                            child:  (party["partySymbolUrl"] != null &&
+                                                (party["partySymbolUrl"] as String)
+                                                    .isNotEmpty)
+                                                ? buildImageWidget(
+                                              party["partySymbolUrl"],
+                                              // width: MediaQuery.of(context).size.width*0.02,
+                                              // height: MediaQuery.of(context).size.width*0.02,
+                                              fit: BoxFit.contain,
+                                            )
+                                                : Icon(
+                                              Icons.image,
+                                              color: ColorScheme
+                                                  .of(context)
+                                                  .onSurface,
+                                            ),
+                                          ),
+                                        )
 
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Color(0xFFD6D6D6),
-                                        width: 1,
                                       ),
                                     ),
-                                    child: CircleAvatar(
-                                      radius:  MediaQuery.of(context).size.width*0.07,
-                                      backgroundColor: Colors.white,
-                                      child: ClipOval(
-                                        child: SizedBox.expand(
-                                          child:  (party["partySymbolUrl"] != null &&
-                                              (party["partySymbolUrl"] as String)
-                                                  .isNotEmpty)
-                                              ? buildImageWidget(
-                                            party["partySymbolUrl"],
-                                            // width: MediaQuery.of(context).size.width*0.02,
-                                            // height: MediaQuery.of(context).size.width*0.02,
-                                            fit: BoxFit.contain,
-                                          )
-                                              : Icon(
-                                            Icons.image,
-                                            color: ColorScheme
-                                                .of(context)
-                                                .onSurface,
-                                          ),
-                                        ),
-                                      )
-
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      party["name"] ?? "",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    party["name"] ?? "",
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                         );
                       },
                     )

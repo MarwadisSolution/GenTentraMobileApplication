@@ -31,7 +31,7 @@ class ReusableSliverAppBar extends StatelessWidget {
       elevation: 0,
       forceElevated: false,
 
-      automaticallyImplyActions: automaticallyImplyLeading,
+      automaticallyImplyActions:automaticallyImplyLeading,
           leading: automaticallyImplyLeading?null:IconButton(
               onPressed: onMenuTap,
               icon: const Icon(Icons.menu,color: Color(0xFFE3E3E3),),

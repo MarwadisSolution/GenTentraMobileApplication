@@ -152,7 +152,7 @@ class _JourneyTabState extends State<JourneyTab> {
                         item.title,
                         textAlign: TextAlign.center,
                         style:  TextStyle(
-                          fontSize: MediaQuery.textScalerOf(context).scale(20),
+                          fontSize: MediaQuery.textScalerOf(context).scale(18),
                           letterSpacing: 0.31,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF070707),

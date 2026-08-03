@@ -96,8 +96,7 @@ class _SymbolTabState extends State<SymbolTab> {
               }
             },
             child: Container(
-
-              constraints: const BoxConstraints(minHeight: 37, maxWidth: 150),
+              constraints: const BoxConstraints(minHeight: 37, maxWidth: 200),
               decoration: BoxDecoration(
                 color: (widget.symbol.downloadEnabled == true ||
                     widget.symbol.downloadEnabled== "YES")

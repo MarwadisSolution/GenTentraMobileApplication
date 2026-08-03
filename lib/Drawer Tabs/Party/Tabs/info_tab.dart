@@ -18,11 +18,12 @@ class InfoTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return  SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding:  EdgeInsets.all(MediaQuery.of(context).size.height*0.03),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ExpandableQuillContent(
+
               content: party.info??"-",
             ),
         SizedBox(height: MediaQuery.of(context).size.height*0.05,),
@@ -162,6 +163,7 @@ class _ExpandableQuillContentState
               controller: controller,
               config: const QuillEditorConfig(
                 showCursor: false,
+scrollable: false,
               ),
             ),
           ),

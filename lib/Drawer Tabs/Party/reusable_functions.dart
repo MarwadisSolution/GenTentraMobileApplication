@@ -128,7 +128,7 @@ class _PartyDetailsSectionState extends State<PartyDetailsSection> {
   final apiServiceFav=FavouriteApi();
   bool following=false;
   bool favorite=false;
-  String viewCount="0";
+  int viewCount=0;
   int followCount=0;
   bool isLoading=false;
 
@@ -148,6 +148,17 @@ class _PartyDetailsSectionState extends State<PartyDetailsSection> {
     }
   }
   String formatFollowCount(int count) {
+    if (count > 9999999) {
+      return "${count.toString().substring(0, 1)}C";
+    } else if (count > 99999) {
+      return "${count.toString().substring(0, 1)}L";
+    } else if (count > 1000) {
+      return "${count.toString().substring(0, 1)}K";
+    }
+
+    return count.toString();
+  }
+  String formatViewCount(int count) {
     if (count > 9999999) {
       return "${count.toString().substring(0, 1)}C";
     } else if (count > 99999) {
@@ -221,7 +232,7 @@ else if(view>99999){
     if (!mounted) return;
 
     setState(() {
-      viewCount = count;
+      viewCount = count as int;
     });
   }
   Future<void> _initializeFollow() async {
@@ -239,7 +250,7 @@ else if(view>99999){
 
     return Container(
       padding: const EdgeInsets.only(
-        top: 20, // Space for floating symbol
+        top: 20,
         left: 20,
         right: 20,
         bottom: 20,
@@ -248,290 +259,274 @@ else if(view>99999){
         // color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFD6D6D6),
-                    width: 1,
-                  ),
-                ),
-                child: CircleAvatar(
-                  radius:  MediaQuery.of(context).size.width*0.085,
-                  backgroundColor: Colors.white,
-                  child: ClipOval(
-                    child: SizedBox.expand(
-                      child:       (widget.partyData["partySymbolUrl"] != null &&
-                              (widget.partyData["partySymbolUrl"] as String).isNotEmpty)
-                              ? buildImageWidget(
-                            widget.partyData["partySymbolUrl"],
-                            // width: 50,
-                            // height: 50,
-                            fit: BoxFit.contain,
-                          )
-                              : const Icon(
-                            Icons.image,
-                            color: Colors.grey,
-                            size: 35,
-                          ),
+      child: Padding(
+        padding:  EdgeInsets.only(left: MediaQuery.of(context).size.width*0.005, top: MediaQuery.of(context).size.height*0.003),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFFD6D6D6),
+                      width: 1,
                     ),
                   ),
-                )
-                // CircleAvatar(
-                //   radius: 40, // 80x80 container = radius 40
-                //   backgroundColor: Colors.white,
-                //   child: Padding(
-                //     padding: const EdgeInsets.all(10), // Space between border and image
-                //     child:
-                //     (widget.partyData["partySymbolUrl"] != null &&
-                //         (widget.partyData["partySymbolUrl"] as String).isNotEmpty)
-                //         ? buildImageWidget(
-                //       widget.partyData["partySymbolUrl"],
-                //       width: 50,
-                //       height: 50,
-                //       fit: BoxFit.contain,
-                //     )
-                //         : const Icon(
-                //       Icons.image,
-                //       color: Colors.grey,
-                //       size: 35,
-                //     ),
-                //   ),
-                // ),
-              ),
-
-              SizedBox(width: MediaQuery.of(context).size.width * 0.06),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.partyData["name"] ?? "",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.25,
+                  child: CircleAvatar(
+                    radius:  MediaQuery.of(context).size.width*0.085,
+                    backgroundColor: Colors.white,
+                    child: ClipOval(
+                      child: SizedBox.expand(
+                        child:       (widget.partyData["partySymbolUrl"] != null &&
+                                (widget.partyData["partySymbolUrl"] as String).isNotEmpty)
+                                ? buildImageWidget(
+                              widget.partyData["partySymbolUrl"],
+                              fit: BoxFit.contain,
+                            )
+                                : const Icon(
+                              Icons.image,
+                              color: Colors.grey,
+                              size: 35,
+                            ),
                       ),
                     ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Headquarters - ",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.25,
-                            color: Color(0xFF666666),
-                          ),
+                  ),
+                ),
+
+                SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.partyData["name"] ?? "",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.25,
+                          height: 1.2,
                         ),
-                        Expanded(
-                          child: Text(
-                            widget.partyData["state"] ?? "",
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                      ),
+                      SizedBox(height: MediaQuery.of(context).size.height*0.004),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                           Text(
+                            "Headquarters - ",
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w400,
                               letterSpacing: 0.25,
                               color: Color(0xFF666666),
                             ),
                           ),
+                          Expanded(
+                            child: Text(
+                              widget.partyData["state"] ?? "",
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                letterSpacing: 0.25,
+                                color: Color(0xFF666666),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height*0.015),
+
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        PartyPageData.view,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 11,
+                          letterSpacing: 0.22,
+                          color: Color(0xFF666666),
                         ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 20),
-
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      PartyPageData.view,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 11,
-                        letterSpacing: 0.22,
-                        color: Color(0xFF666666),
                       ),
-                    ),
-                    Text(
-                      viewCount,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18,
-                        letterSpacing: 0.3,
-                        color: Color(0xFF333333),
+                      Text(
+                        formatViewCount(viewCount),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 24,
+                          letterSpacing: 0.3,
+                          color: Color(0xFF333333),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.06),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      PartyPageData.followers,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 11,
-                        letterSpacing: 0.22,
-                        color: Color(0xFF666666),
+                    ],
+                  ),
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.06),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        PartyPageData.followers,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 11,
+                          letterSpacing: 0.22,
+                          color: Color(0xFF666666),
+                        ),
                       ),
-                    ),
-                    Text(
-                      formatFollowCount(followCount),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18,
-                        letterSpacing: 0.3,
-                        color: Color(0xFF333333),
+                      Text(
+                        formatFollowCount(followCount),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 24,
+                          letterSpacing: 0.3,
+                          color: Color(0xFF333333),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.06),
-                InkWell(
-                  onTap: () async {
-                    if (isLoading) return;
+                    ],
+                  ),
+                   SizedBox(width: MediaQuery.of(context).size.width * 0.1),
+                  InkWell(
+                    onTap: () async {
+                      if (isLoading) return;
 
-                    setState(() {
-                      isLoading = true;
-                    });
+                      setState(() {
+                        isLoading = true;
+                      });
 
-                    try {
-                      if (!following) {
-                        await apiService.followParty(
-                          "PARTY",
-                          widget.partyData["id"],
-                        );
+                      try {
+                        if (!following) {
+                          await apiService.followParty(
+                            "PARTY",
+                            widget.partyData["id"],
+                          );
 
-                        await followingPartyCaching.addFollowing(
-                          widget.partyData["id"],
-                        );
+                          await followingPartyCaching.addFollowing(
+                            widget.partyData["id"],
+                          );
 
-                        following = true;
-                        followCount++;
-                        setState(() {
-
-                        });
-                      } else {
-                        await apiService.deleteFollowing(
-                          "PARTY",
-                          widget.partyData["id"],
-                        );
-
-                        await followingPartyCaching.removeFollowing(
-                          widget.partyData["id"],
-                        );
-
-                        following = false;
-                        if (followCount > 0) {
-                          followCount--;
+                          following = true;
+                          followCount++;
                           setState(() {
+
+                          });
+                        } else {
+                          await apiService.deleteFollowing(
+                            "PARTY",
+                            widget.partyData["id"],
+                          );
+
+                          await followingPartyCaching.removeFollowing(
+                            widget.partyData["id"],
+                          );
+
+                          following = false;
+                          if (followCount > 0) {
+                            followCount--;
+                            setState(() {
+                            });
+                          }
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            isLoading = false;
                           });
                         }
                       }
-                    } finally {
-                      if (mounted) {
-                        setState(() {
-                          isLoading = false;
-                        });
-                      }
-                    }
-                  },
-                  child: Container(
-                    constraints: BoxConstraints(minHeight: 37, minWidth: 127),
-                    decoration: BoxDecoration(
-                      color: following?null:Color(0xFF666666),
-                      gradient:following? GradientColors.primaryGradient:null,
-                      borderRadius: BorderRadius.all(Radius.circular(20))
-                    ),
-                    child: Center(
-                      child: isLoading
-                          ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                          : Text(
-                        following
-                            ? PartyPageData.following
-                            : "Follow",
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                          letterSpacing: 0.37,
-                          color: Colors.white,
+                    },
+                    child: Container(
+                      constraints: BoxConstraints(minHeight: 45, minWidth: 135),
+                      decoration: BoxDecoration(
+                        color: following?null:Color(0xFF666666),
+                        gradient:following? GradientColors.primaryGradient:null,
+                        borderRadius: BorderRadius.all(Radius.circular(30))
+                      ),
+                      child: Center(
+                        child: isLoading
+                            ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                            : Text(
+                          following
+                              ? PartyPageData.following
+                              : "Follow",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            letterSpacing: 0.37,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.04),
-              Padding(
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                Padding(
 
-                padding: EdgeInsetsGeometry.only(top: 10),
-                child: InkWell(
-                  onTap: () async {
-                    final id = widget.partyData["id"];
-                    if (id == null) return;
+                  padding: EdgeInsetsGeometry.only(top: 10),
+                  child: InkWell(
+                    onTap: () async {
+                      final id = widget.partyData["id"];
+                      if (id == null) return;
 
-                    // setState(() {
-                    //   isLoading = true;
-                    // });
+                      // setState(() {
+                      //   isLoading = true;
+                      // });
 
-                    try {
-                      if (favorite) {
-                        await apiServiceFav.deleteFavourite(id);
-                      } else {
-                        await apiServiceFav.postFavourite(id);
+                      try {
+                        if (favorite) {
+                          await apiServiceFav.deleteFavourite(id);
+                        } else {
+                          await apiServiceFav.postFavourite(id);
+                        }
+
+                        if (mounted) {
+                          setState(() {
+                            favorite = !favorite;
+                          });
+                        }
+                      } catch (e) {
+                        print(e);
+                      } finally {
+                        if (mounted) {
+                          // setState(() {
+                          //   isLoading = false;
+                          // });
+                        }
                       }
-
-                      if (mounted) {
-                        setState(() {
-                          favorite = !favorite;
-                        });
-                      }
-                    } catch (e) {
-                      print(e);
-                    } finally {
-                      if (mounted) {
-                        // setState(() {
-                        //   isLoading = false;
-                        // });
-                      }
-                    }
-                  },
-                  child: SvgPicture.asset(
-                    PartyPageData.favoriteIcon,
-                    color: favorite ? null : const Color(0xFF666666),
+                    },
+                    child: SvgPicture.asset(
+                      PartyPageData.favoriteIcon,
+                      height: MediaQuery.of(context).size.height*0.027,
+                      color: favorite ? null : const Color(0xFF666666),
+                    ),
                   ),
-                ),
-              )
-              ],
+                )
+                ],
+              ),
             ),
-          ),
 
-        ],
+          ],
+        ),
       ),
     );
   }
