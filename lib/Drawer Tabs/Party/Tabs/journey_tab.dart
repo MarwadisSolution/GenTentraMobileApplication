@@ -65,7 +65,7 @@ class _JourneyTabState extends State<JourneyTab> {
       if (controller.hasClients && controller.page?.round() != newIndex) {
         controller.animateToPage(
           newIndex,
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 500),
           curve: Curves.easeInOut,
         );
       }
@@ -133,7 +133,7 @@ class _JourneyTabState extends State<JourneyTab> {
 
           /// 2. TEXT CONTENT PAGEVIEW (Title, Red Line, Description)
           SizedBox(
-            height: MediaQuery.of(context).size.height*0.27,
+            height: MediaQuery.of(context).size.height*0.22,
             child: PageView.builder(
               controller: _textController,
               itemCount: journeys.length,
@@ -142,8 +142,10 @@ class _JourneyTabState extends State<JourneyTab> {
                 final item = journeys[index];
 
                 return Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: MediaQuery.of(context).size.width * 0.05,
+                  padding: EdgeInsets.only(
+                    //top: MediaQuery.of(context).size.height * 0.02,
+                    left: MediaQuery.of(context).size.width * 0.05,
+                    right: MediaQuery.of(context).size.width * 0.05,
                   ),
                   child: Column(
                     children: [
@@ -187,65 +189,73 @@ class _JourneyTabState extends State<JourneyTab> {
             ),
           ),
 
-          // SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+           //SizedBox(height: MediaQuery.of(context).size.height * 0.01),
 
           /// 3. CIRCULAR TIMELINE PICKER
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.09,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Center Spotlight Circle with Red Indicator Dot
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.25,
-                  height: MediaQuery.of(context).size.width * 0.25,
-                  decoration: const BoxDecoration(
-                    color: Colors.black,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Align(
-                    alignment: const Alignment(0, 0.65),
-                    child: Container(
-                      width:6 ,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFE3A31),
-                        shape: BoxShape.circle,
+          Padding(
+            padding:  EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.038),
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.1,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Center Spotlight Circle with Red Indicator Dot
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.25,
+                    height: MediaQuery.of(context).size.width * 0.25,
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Align(
+                      alignment: const Alignment(0, 0.65),
+                      child: Container(
+                        width:6 ,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFE3A31),
+                          shape: BoxShape.circle,
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                // Horizontal Timeline PageView
-                PageView.builder(
-                  controller: _timelineController,
-                  itemCount: journeys.length,
-                  onPageChanged: _onYearChanged,
-                  itemBuilder: (context, index) {
-                    final isSelected = index == selectedIndex;
+                  // Horizontal Timeline PageView
+                  PageView.builder(
+                    controller: _timelineController,
+                    itemCount: journeys.length,
+                    onPageChanged: _onYearChanged,
+                    itemBuilder: (context, index) {
+                      final isSelected = index == selectedIndex;
 
-                    return Center(
-                      child: AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 200),
-                        style: TextStyle(
-                          fontSize: isSelected ? MediaQuery.textScalerOf(context).scale(20) : MediaQuery.textScalerOf(context).scale(16),
-                          fontWeight: isSelected
-                              ? FontWeight.w500
-                              : FontWeight.w300,
-                          color: isSelected
-                              ? Colors.white
-                              : const Color(0xFF000000).withOpacity(0.4),
+                      return Center(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: ()=>_onYearChanged(index),
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 200),
+                            style: TextStyle(
+                              fontSize: isSelected ? MediaQuery.textScalerOf(context).scale(20) : MediaQuery.textScalerOf(context).scale(16),
+                              fontWeight: isSelected
+                                  ? FontWeight.w500
+                                  : FontWeight.w300,
+                              color: isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF000000).withOpacity(0.4),
+                            ),
+                            child: Text(journeys[index].year),
+                          ),
                         ),
-                        child: Text(journeys[index].year),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
 
-          SizedBox(height: MediaQuery.of(context).size.height * 0.06),
+          // SizedBox(
+          //   height: MediaQuery.of(context).size.height * 0.1,),
         ],
       ),
     );

@@ -85,7 +85,7 @@ Widget infoData(BuildContext context, String icon, String title, String data) {
         padding: EdgeInsets.only(
           top: MediaQuery.of(context).size.height * 0.023,
         ),
-        child: SvgPicture.asset(icon, height: 19,width: 18,),
+        child: SvgPicture.asset(icon, height: 21,width: 20,),
       ),
       SizedBox(width: MediaQuery.of(context).size.width * 0.05),
       Column(
