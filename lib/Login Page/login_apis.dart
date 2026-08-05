@@ -9,7 +9,7 @@ import 'Refresh Token/refresh_token.dart';
 class LoginApi{
   final Dio _dio = apiClient;
 
-  Future<String>otpRequest(String number)async{
+  Future<void>otpRequest(String number)async{
     print("abcd");
     print("Number:- $number");
     final response=await _dio.post("$api/api/v1/auth/phone/start",
@@ -17,17 +17,6 @@ class LoginApi{
         data: jsonEncode({
           "phone": number,
         })
-      // {
-      // "success": true,
-      // "data": {
-      // "phone": "+919876543210",
-      // "expiresInSeconds": 300,
-      // "resendInSeconds": 30,
-      // "devCode": "466230"
-      // },
-      // "traceId": "40857c19-8f5f-40e4-9e8f-a31765365518",
-      // "ts": "2026-05-24T17:31:43.006365552Z"
-      // }
     );
     print("Yes");
     print(response.data);
@@ -37,9 +26,10 @@ class LoginApi{
       print(response.data["error"]["message"]);
       throw Exception(response.data["error"]["message"]);
     }
+    print("Full log data");
+    print(jsonEncode(response.data));
     print(response.data);
     print(response.statusCode);
-    return response.data["data"]["devCode"];
   }
   Future<Map<String, dynamic>> otpVerify(
       String number,

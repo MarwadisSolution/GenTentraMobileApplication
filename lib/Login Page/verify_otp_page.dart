@@ -37,22 +37,22 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      if (temporarySavingOtp.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 6),
-            backgroundColor: Colors.white,
-            content: Text(
-              "OTP: $temporarySavingOtp",
-              style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        );
-      }
+      // if (temporarySavingOtp.isNotEmpty) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     SnackBar(
+      //       duration: const Duration(seconds: 6),
+      //       backgroundColor: Colors.white,
+      //       content: Text(
+      //         "OTP: $temporarySavingOtp",
+      //         style: const TextStyle(
+      //           color: Colors.black,
+      //           fontWeight: FontWeight.bold,
+      //         ),
+      //         textAlign: TextAlign.center,
+      //       ),
+      //     ),
+      //   );
+      // }
     });
   }
 
@@ -92,22 +92,22 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
           "require password=${state.requirePassword}",
         );
         if (state.otpResent) {
-          if (temporarySavingOtp.isNotEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                duration: const Duration(seconds: 6),
-                backgroundColor: Colors.white,
-                content: Text(
-                  "OTP:- $temporarySavingOtp",
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            );
-          }
+          // if (temporarySavingOtp.isNotEmpty) {
+          //   ScaffoldMessenger.of(context).showSnackBar(
+          //     SnackBar(
+          //       duration: const Duration(seconds: 6),
+          //       backgroundColor: Colors.white,
+          //       content: Text(
+          //         "OTP:- $temporarySavingOtp",
+          //         style: const TextStyle(
+          //           color: Colors.black,
+          //           fontWeight: FontWeight.bold,
+          //         ),
+          //         textAlign: TextAlign.center,
+          //       ),
+          //     ),
+          //   );
+          // }
 
           context.read<LoginBloc>().add(ClearOtpResentEvent());
         }

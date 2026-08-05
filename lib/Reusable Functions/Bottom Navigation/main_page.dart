@@ -26,7 +26,7 @@ class MainPage extends StatelessWidget {
             index: state.selectedIndex,
             children:  [
               HomePage(  scaffoldKey: scaffoldKey,),
-              FavouritePage(),
+              FavouritePage(scaffoldKey: scaffoldKey,),
               // ChatPage(),
               // CalendarPage(),
               // InboxPage(),

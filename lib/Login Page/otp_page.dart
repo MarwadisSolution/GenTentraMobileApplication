@@ -244,9 +244,9 @@ class _OtpPageState extends State<OtpPage> {
                           showCountryOnly: false,
                           showOnlyCountryWhenClosed: false,
                           alignLeft: false,
-                          textStyle: const TextStyle(
+                          textStyle:  TextStyle(
                               fontWeight: FontWeight.w500,
-                              fontSize: 16,
+                              fontSize: (MediaQuery.of(context).size.width * 0.06).clamp(14.0, 18.0),
                               color: Colors.black
                           ),
                         ),
@@ -298,6 +298,7 @@ class _OtpPageState extends State<OtpPage> {
                       onTap: () {
                         //api = urlController.text.trim();
                         otpButtonPressed = true;
+
                         context.read<LoginBloc>().add(SignInButtonEvent());
                       },
                       child: SizedBox(

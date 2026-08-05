@@ -233,11 +233,16 @@ SizedBox(height:h*0.02),
                   fontSize: MediaQuery.textScalerOf(context).scale(16),
                 ),
               ),
-              trailing: Transform.rotate(
-                angle: 0,
-                child: SvgPicture.asset(
-                  "Assets/arrow.svg",
-                  color: Color(0xFFFE3A31),
+              trailing: SizedBox(
+                width: MediaQuery.of(context).size.width*0.06,   // Hit area
+                height: MediaQuery.of(context).size.height*0.048,  // Hit area
+                child: Center(
+                  child: SvgPicture.asset(
+                    "Assets/arrow.svg",
+                    color: const Color(0xFFFE3A31),
+                    width: 18,
+                    height: 18,
+                  ),
                 ),
               ),
             ),

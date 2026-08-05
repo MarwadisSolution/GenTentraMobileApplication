@@ -7,7 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:gal/gal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-String temporarySavingOtp="";
+// String temporarySavingOtp="";
 String api = ApiConfig.baseUrl;
 
 class ApiConfig {
@@ -88,7 +88,7 @@ class AppbarPage extends StatelessWidget implements PreferredSizeWidget {
           style: TextStyle(
             color: ColorScheme.of(context).surface,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontSize: (MediaQuery.of(context).size.width * 0.06).clamp(16.0, 20.0),
           ),
         ),
       ),
@@ -141,8 +141,8 @@ class CustomTextField extends StatelessWidget {
       keyboardType: keyboardType,
       cursorColor: ColorScheme.of(context).onSurface,
       style: textStyle ??
-          const TextStyle(
-            fontSize: 16,
+           TextStyle(
+            fontSize: (MediaQuery.of(context).size.width * 0.06).clamp(14.0, 18.0),
             fontWeight: FontWeight.w500,
           ),
       maxLength: maxLength,

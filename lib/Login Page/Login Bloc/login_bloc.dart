@@ -176,7 +176,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       await repository.sendOtp(state.phoneNumber);
 
       print("Resend completed");
-      print("temporarySavingOtp = $temporarySavingOtp");
+    //  print("temporarySavingOtp = $temporarySavingOtp");
 
       emit(state.copyWith(otpResent: true));
 

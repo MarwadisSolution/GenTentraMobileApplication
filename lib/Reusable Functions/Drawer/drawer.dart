@@ -73,7 +73,7 @@ class _DrawerPageState extends State<DrawerPage> {
                           title:Text(profile==null?"-":profile!["firstName"] ?? "",
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              fontSize: 16,
+                              fontSize: (MediaQuery.of(context).size.width * 0.06).clamp(14.0, 18.0),
                               letterSpacing: 0.31,
                               color: ColorScheme.of(context).surface,
                             ),

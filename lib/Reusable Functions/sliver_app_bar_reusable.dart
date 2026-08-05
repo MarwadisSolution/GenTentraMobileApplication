@@ -35,12 +35,17 @@ class ReusableSliverAppBar extends StatelessWidget {
       leading: automaticallyImplyLeading
           ? IconButton(
         onPressed: () => Navigator.pop(context),
+        padding: const EdgeInsets.all(12), // Increase hit area
+        constraints: const BoxConstraints(
+          minWidth: 56,
+          minHeight: 56,
+        ),
         icon: Transform.rotate(
           angle: 3.14,
           child: SvgPicture.asset(
             "Assets/arrow.svg",
-            width: MediaQuery.of(context).size.width*.018,
-            height: MediaQuery.of(context).size.height*.023,
+            width: MediaQuery.of(context).size.width * .018,
+            height: MediaQuery.of(context).size.height * .023,
           ),
         ),
       )
@@ -66,8 +71,8 @@ class ReusableSliverAppBar extends StatelessWidget {
         textAlign: TextAlign.left,
         style:  TextStyle(
           color: ColorScheme.of(context).surface,
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          fontSize: (MediaQuery.of(context).size.width * 0.06).clamp(14.0, 18.0),
           letterSpacing: 0.5,
         ),
       ),

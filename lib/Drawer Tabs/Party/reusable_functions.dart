@@ -68,18 +68,33 @@ class _BannerSectionState extends State<BannerSection> {
                 ),
         ),
         Positioned(
-            top: 45,
-            left: 30,
+          top: 45,
+          left: 30,
+          child: Material(
+            color: Colors.transparent,
             child: InkWell(
-                onTap: (){
-                  Navigator.pop(context);
-                },
-                child: Transform.rotate(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              borderRadius: BorderRadius.circular(30),
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width*0.06,   // Hit area
+                height: MediaQuery.of(context).size.height*0.048,  // Hit area
+                child: Center(
+                  child: Transform.rotate(
                     angle: 3.14,
-                    child: SvgPicture.asset("Assets/arrow.svg",color: Colors.black,
-                    height: MediaQuery.of(context).size.height*0.02,
-                      width:MediaQuery.of(context).size.width*0.01 ,
-                    )))),
+                    child: SvgPicture.asset(
+                      "Assets/arrow.svg",
+                      color: Colors.black,
+                      height: MediaQuery.of(context).size.height * 0.02,
+                      width: MediaQuery.of(context).size.width * 0.01,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
 
         if (banners.length > 1)
           Positioned(

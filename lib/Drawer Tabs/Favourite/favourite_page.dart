@@ -8,7 +8,8 @@ import 'favourite_api.dart';
 import 'favourite_page_modal.dart';
 
 class FavouritePage extends StatefulWidget {
-  const FavouritePage({super.key});
+  final GlobalKey<ScaffoldState> scaffoldKey;
+  const FavouritePage({super.key, required this.scaffoldKey,});
 
   @override
   State<FavouritePage> createState() => _FavouritePageState();
@@ -50,9 +51,12 @@ class _FavouritePageState extends State<FavouritePage> {
       body: CustomScrollView(
         slivers: [
           ReusableSliverAppBar(
-            title: "My Favourite",
-            automaticallyImplyLeading: false,
+            title: "MY FAVOURITE",
+           // automaticallyImplyLeading: false,
             height: h*0.06,
+            onMenuTap: () {
+              widget.scaffoldKey.currentState?.openDrawer();
+            },
           ),
           SliverSections(
             child: Stack(

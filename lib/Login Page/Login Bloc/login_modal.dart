@@ -31,7 +31,8 @@ class LoginRepository {
 ///------Remove temporary Saving otp as till now we have not taken message system so using it
   Future<void> sendOtp(String number) async {
 
-     temporarySavingOtp= await loginApi.otpRequest(number);
+    await loginApi.otpRequest(number);
+
 
   }
 
