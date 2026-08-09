@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/member_directory.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_modal.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
@@ -51,6 +52,10 @@ class _LeadershipTabState extends State<LeadershipTab> {
     }
     // final firstGroup=widget.leaders[0];
     final firstGroupLeaders = widget.leaders.first;
+    final firstVisibleCount =
+    firstGroupLeaders.leaders.length > 3
+        ? 3
+        : firstGroupLeaders.leaders.length;
     // print(firstGroupLeaders.imagePath);
     return GestureDetector(
       onTap: () {
@@ -59,76 +64,110 @@ class _LeadershipTabState extends State<LeadershipTab> {
       child: ListView(
         padding: EdgeInsets.all(w * 0.05),
         children: [
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.all(w * 0.012),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: gridCount,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 0,
-              childAspectRatio: w < 600 ? 0.7 : 0.8,
-            ),
-            itemCount: firstGroupLeaders.leaders.length,
-            itemBuilder: (context, index) {
-              final leader = firstGroupLeaders.leaders[index];
-              return widget.leaders.length == 0
-                  ? Center(
-                child: Text(
-                  "No Groups Present",
-                  style: TextStyle(color: Colors.black),
-                ),
-              )
-                  : Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  //SizedBox(height: 20,),
-                  SizedBox(
-                    height: isDesktop
-                        ? h * 0.60   // 50% of screen height
-                        : isTablet
-                        ? h * 0.52   // 45% of screen height
-                        : h * 0.45,
-                    width: double.infinity,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: buildImageWidget(
-                        leader.imagePath!,
-                        fit: BoxFit.cover,
+          SizedBox(
+            height: h * 0.62,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: w * 0.012),
+              separatorBuilder: (_, __) => SizedBox(width: w * 0.025),
+              itemCount: firstVisibleCount,
+              itemBuilder: (context, index) {
+                final leader = firstGroupLeaders.leaders[index];
+                final isViewMore =
+                    firstGroupLeaders.leaders.length > 4 && index == 3;
+                return SizedBox(
+                  width: w * 0.8, // adjust as needed
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: isViewMore
+                            ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => MemberDirectory(
+                                leaders: [firstGroupLeaders],
+                                members: widget.members,
+                                membersByRegion: widget.membersByRegion,
+                              ),
+                            ),
+                          );
+                        }
+                            : null,
+                        child: Stack(
+                          children: [
+                            Container(
+                              height: h * 0.42,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: buildImageWidget(
+                                  leader.imagePath!,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+
+                            if (isViewMore)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+
+                            if (isViewMore)
+                              Positioned.fill(
+                                child: Center(
+                                  child: SvgPicture.asset(PartyPageData.arrow, height: h*0.02,),
+
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
+                      SizedBox(height: h * 0.012),
+
+                      Center(
+                        child: Text(
+                          leader.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: MediaQuery.textScalerOf(context).scale(16),
+                            letterSpacing: 0.35,
+                            color: const Color(0xFF0E0E0E),
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: h * 0.003),
+
+                      Center(
+                        child: Text(
+                          leader.designation,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w300,
+                            fontSize: MediaQuery.textScalerOf(context).scale(14),
+                            letterSpacing: 0.29,
+                            color: ColorScheme.of(context).onSurface,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-SizedBox(height:h*0.02),
-                  Text(
-                    leader.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: MediaQuery.textScalerOf(
-                        context,
-                      ).scale(16),
-                      letterSpacing: 0.35,
-                      color: Color(0xFF0E0E0E),
-                    ),
-                  ),
-                  SizedBox(height:h*0.006),
-                  Text(
-                    leader.designation,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w300,
-                      fontSize: MediaQuery.textScalerOf(
-                        context,
-                      ).scale(14),
-                      letterSpacing: 0.29,
-                      color: ColorScheme
-                          .of(context)
-                          .onSurface,
-                    ),
-                  ),
-                ],
-              );
-            },
+                );
+              },
+            ),
           ),
 
           ///------Different Groups-----
@@ -137,6 +176,7 @@ SizedBox(height:h*0.02),
             if (group.leaders.isEmpty) {
               return SizedBox.shrink();
             }
+            final visibleCount=group.leaders.length>3?3:group.leaders.length;
             return Padding(
               padding: EdgeInsets.only(top: h * 0.01),
               child: SizedBox(
@@ -145,33 +185,69 @@ SizedBox(height:h*0.02),
                   scrollDirection: Axis.horizontal,
 
                   separatorBuilder: (_, _) => SizedBox(width: w * 0.025),
-                  itemCount: group.leaders.length,
+                  itemCount: visibleCount,
                   itemBuilder: (context, leaderIndex) {
                     final leader = group.leaders[leaderIndex];
+                    final isViewMore =
+                        group.leaders.length > 3 && leaderIndex == 2;
                     return SizedBox(
                       width: w * 0.28,
                       height: h * 0.2,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            height: h * 0.16,
-                            width: w * 0.28,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.grey.shade300,
-                                width: 1,
-                              ),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: buildImageWidget(
-                                leader.imagePath!,
-                                height: h * 0.16,
-                                width: w * 0.28,
-                                fit: BoxFit.cover,
-                              ),
+                          GestureDetector(
+                            onTap: isViewMore
+                                ? () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => MemberDirectory(
+                                    leaders: [group], // Only this group
+                                    members: widget.members,
+                                    membersByRegion: widget.membersByRegion,
+                                  ),
+                                ),
+                              );
+                            }
+                                : null,
+                            child: Stack(
+                              children: [
+                                Container(
+                                  height: h * 0.16,
+                                  width: w * 0.28,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: buildImageWidget(
+                                      leader.imagePath!,
+                                      height: h * 0.16,
+                                      width: w * 0.28,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                if (isViewMore)
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.7),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                if (isViewMore)
+                                  Positioned.fill(
+                                    child: Center(
+                                      child: SvgPicture.asset(PartyPageData.arrow, height: h*0.02,),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                           SizedBox(height: h * 0.008),

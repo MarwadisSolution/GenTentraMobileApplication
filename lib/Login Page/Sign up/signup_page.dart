@@ -123,7 +123,7 @@ class _SignupPageState extends State<SignupPage> {
                     child: Column(
                       children: [
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.07,
+                          height: MediaQuery.of(context).size.height * 0.08,
                         ),
                         Text(
                           LoginPageData.youAreUnique,
@@ -145,7 +145,7 @@ class _SignupPageState extends State<SignupPage> {
                             right: MediaQuery.of(context).size.width * 0.05,
                           ),
                           child: Text(
-                            LoginPageData.thereOnly,
+                            "There’s only one you on this planet, so be real ;)",
                             softWrap: true,
                             textAlign: TextAlign.center,
                             maxLines: 2,
@@ -160,7 +160,7 @@ class _SignupPageState extends State<SignupPage> {
                           ),
                         ),
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.06,
+                          height: MediaQuery.of(context).size.height * 0.03
                         ),
                         CustomTextField(
                           controller: firstNameController,
@@ -210,7 +210,7 @@ class _SignupPageState extends State<SignupPage> {
                                     ).onSurface.withOpacity(0.3),
                                   ),
                                 ),
-                                SizedBox(width: 30),
+                                SizedBox(width: MediaQuery.of(context).size.width*0.03),
                                 //------Male
                                 InkWell(
                                   onTap: () {
@@ -362,38 +362,6 @@ class _SignupPageState extends State<SignupPage> {
                           ),
                         ),
 
-                        ///---URL Temp
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.02,
-                        ),
-                        // TextField(
-                        //   controller: urlController,
-                        //   keyboardType: TextInputType.url,
-                        //   decoration: InputDecoration(
-                        //     labelText: "Server URL",
-                        //     // hintText: "https://example.trycloudflare.com",
-                        //     enabledBorder: OutlineInputBorder(
-                        //       borderRadius: BorderRadius.circular(10),
-                        //       borderSide: BorderSide(
-                        //         color: ColorScheme.of(
-                        //           context,
-                        //         ).onSurface.withOpacity(0.3),
-                        //       ),
-                        //     ),
-                        //     focusedBorder: OutlineInputBorder(
-                        //       borderRadius: BorderRadius.circular(10),
-                        //       borderSide: BorderSide(
-                        //         color: ColorScheme.of(
-                        //           context,
-                        //         ).onSurface.withOpacity(0.3),
-                        //       ),
-                        //     ),
-                        //   ),
-                        // ),
-
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.01,
-                        ),
 
                         ///-----Number
                         SizedBox(
@@ -494,7 +462,7 @@ class _SignupPageState extends State<SignupPage> {
 
                         ///----------------Generate OTP----------
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.06,
+                          height: MediaQuery.of(context).size.height * 0.05,
                         ),
                         InkWell(
                           onTap: () {
@@ -515,7 +483,7 @@ class _SignupPageState extends State<SignupPage> {
                                         : null,
                                     color: numberController.text.length==phoneMaxLength
                                         ? null
-                                        : Colors.grey,
+                                        : Colors.black.withOpacity(0.3),
                                     borderRadius: BorderRadius.circular(30),
                                   ),
                                   child: Row(
@@ -579,18 +547,12 @@ class _SignupPageState extends State<SignupPage> {
                           ),
                         );
                       },
-                      child: ShaderMask(
-                        blendMode: BlendMode.srcIn,
-                        shaderCallback: (bounds) =>
-                            GradientColors.primaryGradient.createShader(
-                              Rect.fromLTRB(0, 0, bounds.width, bounds.height),
-                            ),
-                        child: Text(
-                          LoginPageData.signIn,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
+                      child: Text(
+                        LoginPageData.signIn,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: Color(0xFFFE3A31),
                         ),
                       ),
                     ),

@@ -182,13 +182,6 @@ print(state.requirePassword);
           loginBloc.add(ResetNavigationEvent());
 
           if (!mounted) return;
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //
-          //     SnackBar(
-          //         duration: Duration(seconds: 2),
-          //         backgroundColor: Colors.green,
-          //         content: Text("You already have account. Now add password.",
-          //           style: TextStyle(color: Colors.white),)));
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
@@ -213,6 +206,9 @@ print(state.requirePassword);
             await prefs.setString("accessToken", auth["accessToken"]);
             await prefs.setString("refreshToken", auth["refreshToken"]);
             await prefs.setString("userUuid", auth["userUuid"]);
+            await prefs.setString("role", auth['roles'][0]);
+            print("Roles5");
+            print(prefs.getString("role"));
             await prefs.setInt(
               "loginTime",
               DateTime.now().millisecondsSinceEpoch,
@@ -291,7 +287,7 @@ print(state.requirePassword);
                                 },
                                 child: SvgPicture.asset(
                                   LoginPageData.arrowIcon,
-                                  color: Colors.black,
+                                  color: Color(0xFFFE3A31),
                                   width:
                                       MediaQuery.of(context).size.width * 0.05,
                                 ),
@@ -324,7 +320,7 @@ print(state.requirePassword);
                             ),
                           ),
                           SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.08,
+                            height: MediaQuery.of(context).size.height * 0.04,
                           ),
                           OtpInputFields(
                             key: const ValueKey("otp_fields"),
@@ -504,6 +500,10 @@ class _OtpInputFieldsState extends State<OtpInputFields>
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
             maxLength: 1,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: MediaQuery.of(context).size.width*0.06
+            ),
             decoration: const InputDecoration(counterText: ""),
             onChanged: (value) {
               if (value.length == 1 && index < 5) {

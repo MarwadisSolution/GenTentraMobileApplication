@@ -8,12 +8,12 @@ import 'package:gal/gal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 // String temporarySavingOtp="";
-String api = ApiConfig.baseUrl;
+String api = "https://gentantrabackend-production.up.railway.app";
 
-class ApiConfig {
-  static String baseUrl =
-      "";
-}
+// class ApiConfig {
+//   static String baseUrl =
+//
+// }
 Future<String?> getAccessToken() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getString("accessToken");
@@ -21,7 +21,7 @@ Future<String?> getAccessToken() async {
 ///--------------For background color----------------
 class GradientColors {
   static const LinearGradient primaryGradient = LinearGradient(
-    begin: Alignment.bottomLeft,
+    begin: Alignment.topLeft,
     end: Alignment.topRight,
     colors: [ Color(0xFFFE3A31),Color(0xFFFD8454),],
   );
@@ -46,6 +46,7 @@ Future<void> logoutUser() async {
   await prefs.remove("accessToken");
   await prefs.remove("refreshToken");
   await prefs.remove("userUuid");
+  await prefs.remove("role");
   await prefs.remove("loginTime");
   await prefs.setBool("isLogged", false);
 }
@@ -154,6 +155,7 @@ class CustomTextField extends StatelessWidget {
               TextSpan(
                 text: labelText,
                 style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.width*0.044,
                   color: ColorScheme.of(context).onSurface.withOpacity(0.3),
                 ),
               ),

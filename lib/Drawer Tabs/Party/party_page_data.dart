@@ -22,4 +22,8 @@ class PartyPageData {
   static final headquarterIcon="Assets/PartyPage/headquarterIcon.svg";
   static final personIcon="Assets/PartyPage/personIcon.svg";
   static final arrow="Assets/arrow.svg";
+  static final threeDots="Assets/PartyPage/threeDots.svg";
+  static final deleteIcon="Assets/PartyPage/delete.svg";
+  static final edit="Assets/PartyPage/edit.svg";
+  static final share="Assets/PartyPage/share.svg";
 }

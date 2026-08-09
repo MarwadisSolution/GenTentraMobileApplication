@@ -42,6 +42,9 @@ class AuthService{
           "userUuid",
           auth["userUuid"],
         );
+        await prefs.setString("role", auth['roles'][0]);
+        print("Roles2");
+        print(prefs.getString("role"));
         await prefs.setInt("loginTime", DateTime.now().millisecondsSinceEpoch,);
         await prefs.setBool("isLogged", true);
         return true;

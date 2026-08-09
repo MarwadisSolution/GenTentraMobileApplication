@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
           onSurface: Color(0xFF000000),
         ),
       ),
-       home: TempScreenForUrl()
+       home: SplashScreen()
 
     );
   }

@@ -9,7 +9,7 @@ class LoginPageData{
   static final requestNewCodeIn="Request new code in";
   static final next="Next";
   static final youAreUnique="You are unique!";
-  static final thereOnly="There’s only one you on this \n planet, so be real ;)";
+  static final thereOnly="There’s only one you on this planet, so be real ;)";
   static final firstName="First Name";
   static final surname="Surname";
   static final gender="Gender";
@@ -17,14 +17,14 @@ class LoginPageData{
   static final female="Female";
   static final other="Other";
   static final alreadyHaveAnAccount="Already have an Account?";
-  static final alreadyNoAccount="New Account?";
+  static final alreadyNoAccount="Don't have an account?";
   static final signIn= "SIGN IN";
   static final generateOtp="Generate OTP";
   static final login ="Login";
   static final everyPlaceMatter="Every place matters!";
   static final everyPlaceHasA ="Every place has a story, tell us where yours begins ;)";
   static final password="Password";
-  static final signUp="Sign Up";
+  static final signUp="SIGN UP";
   static final area="Area";
   static final city="City";
   static final state="State";

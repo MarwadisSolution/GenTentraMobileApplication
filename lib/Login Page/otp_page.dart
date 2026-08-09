@@ -102,10 +102,7 @@ class _OtpPageState extends State<OtpPage> {
                 child: Column(
                   children: [
                     SizedBox(
-                      height: MediaQuery
-                          .of(context)
-                          .size
-                          .height * 0.07,
+                      height: MediaQuery.of(context).size.height * 0.08,
                     ),
                     Text(
                       LoginPageData.welcomeBack,
@@ -135,49 +132,17 @@ class _OtpPageState extends State<OtpPage> {
                             .withOpacity(0.6),
                       ),
                     ),
-                    SizedBox(
-                      height: MediaQuery
-                          .of(context)
-                          .size
-                          .height * 0.08,
-                    ),
-                    // TextField(
-                    //   controller: urlController,
-                    //   keyboardType: TextInputType.url,
-                    //   decoration: InputDecoration(
-                    //     labelText: "Server URL",
-                    //     //hintText: "https://example.trycloudflare.com",
-                    //     enabledBorder: OutlineInputBorder(
-                    //       borderRadius: BorderRadius.circular(10),
-                    //       borderSide: BorderSide(
-                    //         color: ColorScheme
-                    //             .of(
-                    //           context,
-                    //         )
-                    //             .onSurface
-                    //             .withOpacity(0.3),
-                    //         width: 1,
-                    //       ),
-                    //     ),
-                    //     focusedBorder: OutlineInputBorder(
-                    //       borderRadius: BorderRadius.circular(10),
-                    //       borderSide: BorderSide(
-                    //         color: ColorScheme
-                    //             .of(
-                    //           context,
-                    //         )
-                    //             .onSurface
-                    //             .withOpacity(0.3),
-                    //
-                    //         width: 1,
-                    //       ),
-                    //     ),
-                    //   ),
+                    // SizedBox(
+                    //   height: MediaQuery
+                    //       .of(context)
+                    //       .size
+                    //       .height * 0.08,
                     // ),
+
                     SizedBox(height: MediaQuery
                         .of(context)
                         .size
-                        .height * 0.03,),
+                        .height * 0.04,),
                     TextField(
                       controller: phoneController,
                       maxLength: phoneMaxLength,
@@ -189,6 +154,7 @@ class _OtpPageState extends State<OtpPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
+                        letterSpacing: 0.8
                       ),
                       onChanged: (value) {
                         context.read<LoginBloc>().add(
@@ -289,10 +255,7 @@ class _OtpPageState extends State<OtpPage> {
 
                     ///----------------Generate OTP----------
                     SizedBox(
-                      height: MediaQuery
-                          .of(context)
-                          .size
-                          .height * 0.06,
+                      height: MediaQuery.of(context).size.height * 0.05,
                     ),
                     InkWell(
                       onTap: () {
@@ -320,7 +283,7 @@ class _OtpPageState extends State<OtpPage> {
                                     : null,
                                 color: phoneController.text.length==phoneMaxLength
                                     ? null
-                                    : Colors.grey,
+                                    : Colors.black.withOpacity(0.3),
                                 borderRadius: BorderRadius.circular(30),
                               ),
                               child: Row(
@@ -379,7 +342,7 @@ class _OtpPageState extends State<OtpPage> {
                     )
                         .onSurface
                         .withOpacity(0.6),
-                    fontSize: 12,
+                    fontSize: 14,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -394,18 +357,12 @@ class _OtpPageState extends State<OtpPage> {
                         )
                     ));
                   },
-                  child: ShaderMask(
-                    blendMode: BlendMode.srcIn,
-                    shaderCallback: (bounds) =>
-                        GradientColors.primaryGradient.createShader(
-                          Rect.fromLTRB(0, 0, bounds.width, bounds.height),
-                        ),
-                    child: Text(
-                      LoginPageData.signUp,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
+                  child: Text(
+                    LoginPageData.signUp,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: Color(0xFFFE3A31),
                     ),
                   ),
                 ),

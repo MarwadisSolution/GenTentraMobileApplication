@@ -27,7 +27,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
 
   @override
   Widget build(BuildContext context) {
-
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double defaultSheetRatio = (207.0 / screenHeight).clamp(0.0, 0.9);
     return GestureDetector(
       onTap: (){
         FocusScope.of(context).unfocus();
@@ -42,8 +43,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData> {
 
 
             DraggableScrollableSheet(
-              initialChildSize: 0.25,
-              minChildSize: 0.25,
+              initialChildSize: defaultSheetRatio,
+              minChildSize: defaultSheetRatio,
               maxChildSize: 0.9,
               builder: (context, scrollController) {
                 return Container(

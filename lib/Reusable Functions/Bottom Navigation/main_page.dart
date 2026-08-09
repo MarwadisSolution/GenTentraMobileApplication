@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Favourite/favourite_page.dart';
-
+import '../../Favourite/favourite_page.dart';
 import '../../Home Page/home_page.dart';
 import '../Drawer/drawer.dart';
 import 'bloc_conde_in_one_navigation.dart';

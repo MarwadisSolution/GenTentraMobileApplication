@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Favourite/favourite_api.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Favourite/favourite_page_modal.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_tab.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/journey_tab.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/leadership_tab.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page.dart';
@@ -10,6 +10,9 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_dat
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_modal.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
+import '../../Favourite/favourite_api.dart';
+import 'Tabs/Feed Tab/apis.dart';
+import 'Tabs/Feed Tab/feed_bloc.dart';
 import 'Tabs/info_tab.dart';
 import 'Tabs/symbol_tab.dart';
 import 'following_party_caching.dart';
@@ -254,7 +257,7 @@ else if(view>99999){
 
     return Container(
       padding: const EdgeInsets.only(
-        top: 20,
+        top: 10,
         left: 20,
         right: 20,
         bottom: 20,
@@ -263,277 +266,294 @@ else if(view>99999){
         // color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: Padding(
-        padding:  EdgeInsets.only(left: MediaQuery.of(context).size.width*0.005, top: MediaQuery.of(context).size.height*0.003),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: const Color(0xFFD6D6D6),
-                      width: 1,
-                    ),
-                  ),
-                  child: CircleAvatar(
-                    radius:  MediaQuery.of(context).size.width*0.085,
-                    backgroundColor: Colors.white,
-                    child: ClipOval(
-                      child: SizedBox.expand(
-                        child:       (widget.partyData["partySymbolUrl"] != null &&
-                                (widget.partyData["partySymbolUrl"] as String).isNotEmpty)
-                                ? buildImageWidget(
-                              widget.partyData["partySymbolUrl"],
-                              fit: BoxFit.contain,
-                            )
-                                : const Icon(
-                              Icons.image,
-                              color: Colors.grey,
-                              size: 35,
-                            ),
-                      ),
-                    ),
-                  ),
-                ),
+      child: Column(
 
-                SizedBox(width: MediaQuery.of(context).size.width * 0.04),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        widget.partyData["name"] ?? "",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.25,
-                          height: 1.2,
+        children: [
+          Align(
+            alignment: Alignment.center,
+            child: Container(
+              height:MediaQuery.of(context).size.height*0.008,
+              width: MediaQuery.of(context).size.width*0.07,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: ColorScheme.of(context).onSurface.withOpacity(0.16),
+              ),
+            ),
+          ),
+          Padding(
+            padding:  EdgeInsets.only(left: MediaQuery.of(context).size.width*0.005, top: MediaQuery.of(context).size.height*0.003),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFFD6D6D6),
+                          width: 1,
                         ),
                       ),
-                      SizedBox(height: MediaQuery.of(context).size.height*0.004),
-                      Row(
+                      child: CircleAvatar(
+                        radius:  MediaQuery.of(context).size.width*0.085,
+                        backgroundColor: Colors.white,
+                        child: ClipOval(
+                          child: SizedBox.expand(
+                            child:       (widget.partyData["partySymbolUrl"] != null &&
+                                    (widget.partyData["partySymbolUrl"] as String).isNotEmpty)
+                                    ? buildImageWidget(
+                                  widget.partyData["partySymbolUrl"],
+                                  fit: BoxFit.contain,
+                                )
+                                    : const Icon(
+                                  Icons.image,
+                                  color: Colors.grey,
+                                  size: 35,
+                                ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            widget.partyData["name"] ?? "",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.25,
+                              height: 1.2,
+                            ),
+                          ),
+                          SizedBox(height: MediaQuery.of(context).size.height*0.004),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                               Text(
+                                "Headquarters - ",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  letterSpacing: 0.25,
+                                  color: Color(0xFF666666),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  widget.partyData["state"] ?? "",
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                    letterSpacing: 0.25,
+                                    color: Color(0xFF666666),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: MediaQuery.of(context).size.height*0.015),
+
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                           Text(
-                            "Headquarters - ",
+                          Text(
+                            PartyPageData.view,
                             style: TextStyle(
-                              fontSize: 14,
                               fontWeight: FontWeight.w400,
-                              letterSpacing: 0.25,
+                              fontSize: 11,
+                              letterSpacing: 0.22,
                               color: Color(0xFF666666),
                             ),
                           ),
-                          Expanded(
-                            child: Text(
-                              widget.partyData["state"] ?? "",
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                                letterSpacing: 0.25,
-                                color: Color(0xFF666666),
-                              ),
+                          Text(
+                            viewCount,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 24,
+                              letterSpacing: 0.3,
+                              color: Color(0xFF333333),
                             ),
                           ),
                         ],
-                      )
+                      ),
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.06),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            PartyPageData.followers,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 11,
+                              letterSpacing: 0.22,
+                              color: Color(0xFF666666),
+                            ),
+                          ),
+                          Text(
+                            formatFollowCount(followCount),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 24,
+                              letterSpacing: 0.3,
+                              color: Color(0xFF333333),
+                            ),
+                          ),
+                        ],
+                      ),
+                       SizedBox(width: MediaQuery.of(context).size.width * 0.1),
+                      InkWell(
+                        onTap: () async {
+                          if (isLoading) return;
+
+                          setState(() {
+                            isLoading = true;
+                          });
+
+                          try {
+                            if (!following) {
+                              await apiService.followParty(
+                                "PARTY",
+                                widget.partyData["id"],
+                              );
+
+                              await followingPartyCaching.addFollowing(
+                                widget.partyData["id"],
+                              );
+
+                              following = true;
+                              followCount++;
+                              setState(() {
+
+                              });
+                            } else {
+                              await apiService.deleteFollowing(
+                                "PARTY",
+                                widget.partyData["id"],
+                              );
+
+                              await followingPartyCaching.removeFollowing(
+                                widget.partyData["id"],
+                              );
+
+                              following = false;
+                              if (followCount > 0) {
+                                followCount--;
+                                setState(() {
+                                });
+                              }
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() {
+                                isLoading = false;
+                              });
+                            }
+                          }
+                        },
+                        child: Container(
+                          constraints: BoxConstraints(
+                              minHeight: 40,
+                              maxWidth: 110
+                          ),
+                          decoration: BoxDecoration(
+                            color: following?null:Color(0xFF666666),
+                            gradient:following? GradientColors.primaryGradient:null,
+                            borderRadius: BorderRadius.all(Radius.circular(30))
+                          ),
+                          child: Center(
+                            child: isLoading
+                                ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                                : Text(
+                              following
+                                  ? PartyPageData.following
+                                  : "Follow",
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                                letterSpacing: 0.37,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                    Padding(
+
+                      padding: EdgeInsetsGeometry.only(top: 10),
+                      child: InkWell(
+                        onTap: () async {
+                          final id = widget.partyData["id"];
+                          if (id == null) return;
+
+                          // setState(() {
+                          //   isLoading = true;
+                          // });
+
+                          try {
+                            if (favorite) {
+                              await apiServiceFav.deleteFavourite(id);
+                            } else {
+                              await apiServiceFav.postFavourite(id);
+                            }
+
+                            if (mounted) {
+                              setState(() {
+                                favorite = !favorite;
+                              });
+                            }
+                          } catch (e) {
+                            print(e);
+                          } finally {
+                            if (mounted) {
+                              // setState(() {
+                              //   isLoading = false;
+                              // });
+                            }
+                          }
+                        },
+                        child: SvgPicture.asset(
+                          PartyPageData.favoriteIcon,
+                          height: MediaQuery.of(context).size.height*0.027,
+                          color: favorite ? null : const Color(0xFF666666),
+                        ),
+                      ),
+                    )
                     ],
                   ),
                 ),
+
               ],
             ),
-            SizedBox(height: MediaQuery.of(context).size.height*0.015),
-
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        PartyPageData.view,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 11,
-                          letterSpacing: 0.22,
-                          color: Color(0xFF666666),
-                        ),
-                      ),
-                      Text(
-                        viewCount,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 24,
-                          letterSpacing: 0.3,
-                          color: Color(0xFF333333),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.06),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        PartyPageData.followers,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 11,
-                          letterSpacing: 0.22,
-                          color: Color(0xFF666666),
-                        ),
-                      ),
-                      Text(
-                        formatFollowCount(followCount),
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 24,
-                          letterSpacing: 0.3,
-                          color: Color(0xFF333333),
-                        ),
-                      ),
-                    ],
-                  ),
-                   SizedBox(width: MediaQuery.of(context).size.width * 0.1),
-                  InkWell(
-                    onTap: () async {
-                      if (isLoading) return;
-
-                      setState(() {
-                        isLoading = true;
-                      });
-
-                      try {
-                        if (!following) {
-                          await apiService.followParty(
-                            "PARTY",
-                            widget.partyData["id"],
-                          );
-
-                          await followingPartyCaching.addFollowing(
-                            widget.partyData["id"],
-                          );
-
-                          following = true;
-                          followCount++;
-                          setState(() {
-
-                          });
-                        } else {
-                          await apiService.deleteFollowing(
-                            "PARTY",
-                            widget.partyData["id"],
-                          );
-
-                          await followingPartyCaching.removeFollowing(
-                            widget.partyData["id"],
-                          );
-
-                          following = false;
-                          if (followCount > 0) {
-                            followCount--;
-                            setState(() {
-                            });
-                          }
-                        }
-                      } finally {
-                        if (mounted) {
-                          setState(() {
-                            isLoading = false;
-                          });
-                        }
-                      }
-                    },
-                    child: Container(
-                      constraints: BoxConstraints(
-                          minHeight: 40,
-                          maxWidth: 110
-                      ),
-                      decoration: BoxDecoration(
-                        color: following?null:Color(0xFF666666),
-                        gradient:following? GradientColors.primaryGradient:null,
-                        borderRadius: BorderRadius.all(Radius.circular(30))
-                      ),
-                      child: Center(
-                        child: isLoading
-                            ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                            : Text(
-                          following
-                              ? PartyPageData.following
-                              : "Follow",
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                            letterSpacing: 0.37,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.04),
-                Padding(
-
-                  padding: EdgeInsetsGeometry.only(top: 10),
-                  child: InkWell(
-                    onTap: () async {
-                      final id = widget.partyData["id"];
-                      if (id == null) return;
-
-                      // setState(() {
-                      //   isLoading = true;
-                      // });
-
-                      try {
-                        if (favorite) {
-                          await apiServiceFav.deleteFavourite(id);
-                        } else {
-                          await apiServiceFav.postFavourite(id);
-                        }
-
-                        if (mounted) {
-                          setState(() {
-                            favorite = !favorite;
-                          });
-                        }
-                      } catch (e) {
-                        print(e);
-                      } finally {
-                        if (mounted) {
-                          // setState(() {
-                          //   isLoading = false;
-                          // });
-                        }
-                      }
-                    },
-                    child: SvgPicture.asset(
-                      PartyPageData.favoriteIcon,
-                      height: MediaQuery.of(context).size.height*0.027,
-                      color: favorite ? null : const Color(0xFF666666),
-                    ),
-                  ),
-                )
-                ],
-              ),
-            ),
-
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -584,7 +604,7 @@ class PartyDetailsSectionByFields extends StatelessWidget {
   Widget build(BuildContext context) {
     print("Second");
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Column(
         children: [
           TabBar(
@@ -611,7 +631,7 @@ class PartyDetailsSectionByFields extends StatelessWidget {
               Tab(text:PartyPageData.symbol),
               Tab(text: PartyPageData.journey),
               Tab(text: PartyPageData.leadership),
-              // Tab(text: PartyPageData.feed),
+               Tab(text: PartyPageData.feed),
               // Tab(text: PartyPageData.event),
               // Tab(text: PartyPageData.manifesto),
             ],
@@ -635,6 +655,10 @@ class PartyDetailsSectionByFields extends StatelessWidget {
                   leaders: leaders,
                   members: members,
                   membersByRegion: membersByRegion,
+                ),
+                BlocProvider(
+                  create: (_) => FeedBloc(FeedApis()),
+                  child: const FeedTab(),
                 ),
               ],
             ),

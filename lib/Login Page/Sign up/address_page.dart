@@ -140,7 +140,9 @@ class _AddressPageState extends State<AddressPage> {
                           ),
                         ),
                       ),
-                      SizedBox(height: MediaQuery.of(context).size.height*0.06,),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.03
+                      ),
 
                      CustomTextField(
                        textStyle: TextStyle(
@@ -190,58 +192,56 @@ class _AddressPageState extends State<AddressPage> {
                         isRequired: true,
                           suffixIcon: Icon(Icons.arrow_drop_down,size: 25,)
                       ),
-                      SizedBox(height: MediaQuery.of(context).size.height*0.02,),
-                      Padding(
-                        padding:  EdgeInsets.only(top: MediaQuery.of(context).size.height*0.017),
-                        child: Center(
-                          child: InkWell(
-                            onTap: () async {
-                              final bloc = context.read<LoginBloc>();
+                      SizedBox(height: MediaQuery.of(context).size.height*0.05,),
 
-                              final updatedData = bloc.state.signUpData.copyWith(
-                                area: areaController.text,
-                                city: cityController.text,
-                                state: stateController.text,
-                                country: countryController.text,
-                              );
+                      Center(
+                        child: InkWell(
+                          onTap: () async {
+                            final bloc = context.read<LoginBloc>();
 
-                              bloc.add(UpdateSignupDataEvent(updatedData));
-                               bloc.add(AddressSignUpEvent(widget.verificationToken,updatedData));
+                            final updatedData = bloc.state.signUpData.copyWith(
+                              area: areaController.text,
+                              city: cityController.text,
+                              state: stateController.text,
+                              country: countryController.text,
+                            );
+
+                            bloc.add(UpdateSignupDataEvent(updatedData));
+                             bloc.add(AddressSignUpEvent(widget.verificationToken,updatedData));
 
 
-                            },
-                            child: Container(
-                              height: MediaQuery.of(context).size.height * 0.05,
-                              width: MediaQuery.of(context).size.width * 0.33,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.rectangle,
-                                borderRadius: BorderRadius.circular(
-                                  30,
-                                ),
-                                gradient:
-                                GradientColors.primaryGradient,
+                          },
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.05,
+                            width: MediaQuery.of(context).size.width * 0.33,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.rectangle,
+                              borderRadius: BorderRadius.circular(
+                                30,
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
+                              gradient:
+                              GradientColors.primaryGradient,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
 
-                                  Text(
-                                    LoginPageData.signUp,
-                                    style: TextStyle(
-                                      fontSize:MediaQuery.textScalerOf(context).scale(14),
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: 0.5,
-                                      color: ColorScheme.of(context).surface,
-                                    ),
+                                Text(
+                                  LoginPageData.signUp,
+                                  style: TextStyle(
+                                    fontSize:MediaQuery.textScalerOf(context).scale(14),
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                    color: ColorScheme.of(context).surface,
                                   ),
-                                  SizedBox(width: MediaQuery.of(context).size.width*0.02,),
-                                  Transform.rotate(
-                                      angle: math.pi/180,
-                                      child: SvgPicture.asset(
-                                        LoginPageData.arrowIcon,
-                                        color: Colors.white,)),
-                                ],
-                              ),
+                                ),
+                                SizedBox(width: MediaQuery.of(context).size.width*0.02,),
+                                Transform.rotate(
+                                    angle: math.pi/180,
+                                    child: SvgPicture.asset(
+                                      LoginPageData.arrowIcon,
+                                      color: Colors.white,)),
+                              ],
                             ),
                           ),
                         ),

@@ -302,7 +302,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       await prefs.setString("refreshToken", auth["refreshToken"]);
 
       await prefs.setString("userUuid", auth["userUuid"]);
-
+     await prefs.setString("role", auth['roles'][0]);
+     print("Roles");
+     print(prefs.getString("role"));
       await prefs.setBool("isLogged", true);
 
       await prefs.setInt("loginTime", DateTime.now().millisecondsSinceEpoch);
@@ -310,6 +312,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       print("Saved accessToken = ${prefs.getString("accessToken")}");
       print("Saved refreshToken = ${prefs.getString("refreshToken")}");
       print("Saved userUuid = ${prefs.getString("userUuid")}");
+      print("Roles: = ${prefs.getString("role")}");
       print("Saved isLogged = ${prefs.getBool("isLogged")}");
       emit(
         state.copyWith(

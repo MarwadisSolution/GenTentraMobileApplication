@@ -154,7 +154,7 @@ class _JourneyTabState extends State<JourneyTab> {
                         item.title,
                         textAlign: TextAlign.center,
                         style:  TextStyle(
-                          fontSize: MediaQuery.textScalerOf(context).scale(18),
+                          fontSize: MediaQuery.textScalerOf(context).scale(18).clamp(18, 20),
                           letterSpacing: 0.31,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF070707),
@@ -178,7 +178,7 @@ class _JourneyTabState extends State<JourneyTab> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
-                          fontSize: MediaQuery.textScalerOf(context).scale(14),
+                          fontSize: MediaQuery.textScalerOf(context).scale(14).clamp(15, 18),
                           color: const Color(0xFF000000).withOpacity(0.6),
                         ),
                       ),
@@ -193,7 +193,7 @@ class _JourneyTabState extends State<JourneyTab> {
 
           /// 3. CIRCULAR TIMELINE PICKER
           Padding(
-            padding:  EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.038),
+            padding:  EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.03 ),
             child: SizedBox(
               height: MediaQuery.of(context).size.height * 0.1,
               child: Stack(

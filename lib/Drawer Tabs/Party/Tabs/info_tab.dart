@@ -27,7 +27,9 @@ class InfoTab extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ExpandableQuillContent(content: party.info?.isNotEmpty == true ? party.info! : "-"),
+            ExpandableQuillContent(
+                content: party.info?.isNotEmpty == true ? party.info! : "-"
+            ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.03),
 
             infoData(
@@ -189,6 +191,7 @@ class _ExpandableQuillContentState extends State<ExpandableQuillContent> {
                 ? const BoxConstraints()
                 : const BoxConstraints(maxHeight: 120),
             child: QuillEditor.basic(
+
               controller: controller,
               config: const QuillEditorConfig(
                 showCursor: false,

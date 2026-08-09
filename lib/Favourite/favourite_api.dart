@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Favourite/favourite_page_modal.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/Refresh%20Token/refresh_token.dart';
 
 import '../../Reusable Functions/reusable_functions.dart';
+import 'favourite_page_modal.dart';
 class FavouriteApi {
   final Dio _dio = apiClient;
 
