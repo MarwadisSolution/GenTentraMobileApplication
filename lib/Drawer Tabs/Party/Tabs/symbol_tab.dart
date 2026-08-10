@@ -31,8 +31,9 @@ class _SymbolTabState extends State<SymbolTab> {
         : 1;
     final size=MediaQuery.of(context).size.width;
     final String label = widget.symbol.logoDescription ?? "";
-    return ListView(
+    return Padding(
       padding:  EdgeInsets.all(MediaQuery.sizeOf(context).width * 0.05),
+     child: Column(
       children: [
 
         ExpandableQuillContent(
@@ -147,6 +148,7 @@ class _SymbolTabState extends State<SymbolTab> {
         ):null,
         SizedBox(height: MediaQuery.of(context).size.width * 0.06),
       ],
+     )
     );
   }
 }

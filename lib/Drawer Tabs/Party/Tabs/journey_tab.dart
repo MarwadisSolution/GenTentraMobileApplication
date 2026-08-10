@@ -93,7 +93,7 @@ class _JourneyTabState extends State<JourneyTab> {
       onTap: () {
         FocusScope.of(context).unfocus();
       },
-      child: ListView(
+      child: Column(
         children: [
           /// 1. IMAGE CAROUSEL
           SizedBox(
@@ -193,9 +193,11 @@ class _JourneyTabState extends State<JourneyTab> {
 
           /// 3. CIRCULAR TIMELINE PICKER
           Padding(
-            padding:  EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.03 ),
+            padding: EdgeInsets.symmetric(
+              vertical: MediaQuery.of(context).size.height * 0.03,
+            ),
             child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.1,
+              height: MediaQuery.of(context).size.height * 0.155,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -254,8 +256,7 @@ class _JourneyTabState extends State<JourneyTab> {
             ),
           ),
 
-          // SizedBox(
-          //   height: MediaQuery.of(context).size.height * 0.1,),
+
         ],
       ),
     );

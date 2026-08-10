@@ -70,14 +70,16 @@ class _FeedTabState extends State<FeedTab> {
         return Stack(
           children: [
             GestureDetector(
-                   onTap: () {
-             setState(() {
-               threeDotsSelected=false;
-               selectedIndex=null;
-             });
-              FocusScope.of(context).unfocus();
-            },
+              onTap: () {
+                setState(() {
+                  threeDotsSelected = false;
+                  selectedIndex = null;
+                });
+                FocusScope.of(context).unfocus();
+              },
               child: ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 padding: EdgeInsets.all(h * 0.012),
                 itemCount: state.feeds.length,
                 itemBuilder: (context, index) {
@@ -85,7 +87,7 @@ class _FeedTabState extends State<FeedTab> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
+              
                       ListTile(
                         leading: CircleAvatar(
                               radius: w*0.07,
@@ -162,15 +164,15 @@ class _FeedTabState extends State<FeedTab> {
                               ),
                             ),
                             ///---------Images will come
-
+              
                             if (feed.media != null && feed.media!.isNotEmpty) ...[
                               SizedBox(height: h * 0.012),
-
+              
                               FeedMediaWidget(
                                 media: feed.media!,
                               ),
                             ],
-
+              
                             ///-----Views
                             Row(
                               children: [
@@ -192,12 +194,12 @@ class _FeedTabState extends State<FeedTab> {
                       ),
                     SizedBox(height: h*0.01,),
                     Container(
-
+              
                     color: Color(0xFF000000).withOpacity(0.08),
                       width: w,
                       height: h*0.009,)
                     ],
-
+              
                   );
                 },
               ),

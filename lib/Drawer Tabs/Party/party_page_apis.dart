@@ -29,12 +29,12 @@ class PartyPageApis{
 
   Future<Map<String,dynamic>> fetchPartySingleWithIdFull(int id) async {
     try {
-      print(id);
+
       final response = await _dio.get(
         "$api/api/v1/profile/parties/$id/full",
       );
 
-      print(response);
+
 
       if (response.statusCode == 200|| response.statusCode==201) {
 
@@ -78,31 +78,8 @@ class PartyPageApis{
           membersByRegion.putIfAbsent(member.region, ()=><MemberDirectoryModel>[]);
           membersByRegion[member.region]!.add(member);
         }
-        for (final entry in membersByRegion.entries) {
-          print("========== ${entry.key} ==========");
 
-          for (final member in entry.value) {
-            print(
-              "ID: ${member.politicianId}, "
-                  "Name: ${member.personName}, "
-                  "Designation: ${member.designation}",
-            );
-          }
 
-          print("--------------------------------");
-        }
-        // for (final member in memberDirectory) {
-        //   print("ID: ${member.politicianId}");
-        //   print("Name: ${member.personName}");
-        //   print("Designation: ${member.designation}");
-        //   print("Image: ${member.imagePath}");
-        //   print("Region: ${member.region}");
-        //   print("PartyId: ${member.partyId}");
-        //   print("Status: ${member.status}");
-        //   print("Last Updated: ${member.lastUpdated}");
-        //   print("-----------------------");
-        // }
-        // print('Leadership:- ${fullParty['leadershipGroups']}');
         return {
           'party':partyDetails,
           'symbol':symbol,

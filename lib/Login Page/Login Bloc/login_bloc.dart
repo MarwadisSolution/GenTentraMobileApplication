@@ -15,7 +15,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final LoginRepository repository;
 
   LoginBloc(this.repository) : super(const LoginState()) {
-    //print("LOGIN BLOC CREATED ${identityHashCode(this)}");
+
     on<NumberFillingForOtpEvent>(_phoneChanged);
     on<SignInButtonEvent>(_sendOtp);
     on<OtpFillingEvent>(_otpChanged);
@@ -80,7 +80,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     Emitter<LoginState> emit,
   ) async {
     final mobileNumber = state.phoneNumber;
-    print("Mobile Number: ${mobileNumber.toString()}");
     if (mobileNumber.isEmpty) {
       emit(state.copyWith(isError: false, errorMessage: ''));
       emit(
@@ -180,7 +179,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
       emit(state.copyWith(otpResent: true));
 
-      print("otpResent emitted");
 
       add(StartOtpTimerEvent());
     } catch (e) {

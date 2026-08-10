@@ -61,8 +61,9 @@ class _LeadershipTabState extends State<LeadershipTab> {
       onTap: () {
         FocusScope.of(context).unfocus();
       },
-      child: ListView(
+      child: Padding(
         padding: EdgeInsets.all(w * 0.05),
+        child: Column(
         children: [
           SizedBox(
             height: h * 0.62,
@@ -325,7 +326,8 @@ class _LeadershipTabState extends State<LeadershipTab> {
           ):null,
           SizedBox(height: h * 0.05),
         ],
-      ),
+      )
+      )
     );
   }
 }

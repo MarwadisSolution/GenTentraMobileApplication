@@ -504,10 +504,12 @@ else if(view>99999){
                           ),
                         ),
                       ),
-                      SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                      //SizedBox(width: MediaQuery.of(context).size.width * 0.04),
                     Padding(
 
-                      padding: EdgeInsetsGeometry.only(top: 10),
+                      padding: EdgeInsetsGeometry.only(top: MediaQuery.of(context).size.height*0.01, left:MediaQuery.of(context).size.width * 0.06,
+
+                      ),
                       child: InkWell(
                         onTap: () async {
                           final id = widget.partyData["id"];
@@ -638,12 +640,11 @@ class PartyDetailsSectionByFields extends StatelessWidget {
           ),
 
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.65,
+            height: MediaQuery.of(context).size.height * 0.85,
             child: TabBarView(
               children: [
                 InfoTab(
                   party: party,
-                  scrollController: scrollController,
                 ),
                 SymbolTab(
                   symbol: symbol,

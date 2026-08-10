@@ -10,70 +10,67 @@ import '../party_page_modal.dart';
 
 class InfoTab extends StatelessWidget {
   final PartyProfileModel party;
-  final ScrollController scrollController;
+
 
   const InfoTab({
     super.key,
     required this.party,
-    required this.scrollController,
   });
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(party.founded);
-    return SingleChildScrollView(
-      child: Padding(
-        padding: EdgeInsets.all(MediaQuery.of(context).size.height * 0.03),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ExpandableQuillContent(
-                content: party.info?.isNotEmpty == true ? party.info! : "-"
-            ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.03),
 
-            infoData(
-              context,
-              PartyPageData.foundedIcon,
-              PartyPageData.founded,
-              (party.founded == null || party.founded!.isEmpty)
-                  ? "-"
-                  : party.founded!,
-            ),
-            infoData(
-              context,
-              PartyPageData.flagIcon,
-              PartyPageData.founder,
-                party.founder?.isNotEmpty == true ? party.founder! : "-"
-            ),
-            infoData(
-              context,
-              PartyPageData.personIcon,
-              PartyPageData.president,
-                party.president?.isNotEmpty == true ? party.president! : "-"
-            ),
-            infoData(
-              context,
-              PartyPageData.personIcon,
-              PartyPageData.generalSecretary,
-                party.generalSecretary?.isNotEmpty == true ? party.generalSecretary! : "-"
-            ),
-            infoData(
-              context,
-              PartyPageData.headquarterIcon,
-              PartyPageData.headquarters,
-                party.headquarters?.isNotEmpty == true ? party.headquarters! : "-"
-            ),
-            infoData(
-              context,
-              PartyPageData.globalIcon,
-              PartyPageData.website,
-                 party.officialWebsite?? "-"
-            ),
-            //infoData(context, PartyPageData.foundedIcon,PartyPageData.founded,partyData["foundedOn"] ?? ""  ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-          ],
-        ),
+    return Padding(
+      padding: EdgeInsets.all(MediaQuery.of(context).size.height * 0.03),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ExpandableQuillContent(
+              content: party.info?.isNotEmpty == true ? party.info! : "-"
+          ),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+
+          infoData(
+            context,
+            PartyPageData.foundedIcon,
+            PartyPageData.founded,
+            (party.founded == null || party.founded!.isEmpty)
+                ? "-"
+                : party.founded!,
+          ),
+          infoData(
+            context,
+            PartyPageData.flagIcon,
+            PartyPageData.founder,
+              party.founder?.isNotEmpty == true ? party.founder! : "-"
+          ),
+          infoData(
+            context,
+            PartyPageData.personIcon,
+            PartyPageData.president,
+              party.president?.isNotEmpty == true ? party.president! : "-"
+          ),
+          infoData(
+            context,
+            PartyPageData.personIcon,
+            PartyPageData.generalSecretary,
+              party.generalSecretary?.isNotEmpty == true ? party.generalSecretary! : "-"
+          ),
+          infoData(
+            context,
+            PartyPageData.headquarterIcon,
+            PartyPageData.headquarters,
+              party.headquarters?.isNotEmpty == true ? party.headquarters! : "-"
+          ),
+          infoData(
+            context,
+            PartyPageData.globalIcon,
+            PartyPageData.website,
+               party.officialWebsite?? "-"
+          ),
+          //infoData(context, PartyPageData.foundedIcon,PartyPageData.founded,partyData["foundedOn"] ?? ""  ),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+        ],
       ),
     );
   }
@@ -132,7 +129,7 @@ Widget infoData(BuildContext context, String icon, String title, String data) {
                     ),
                   ),
           ),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+          //SizedBox(height: MediaQuery.of(context).size.height * 0.03),
         ],
       ),
     ],
@@ -204,8 +201,7 @@ class _ExpandableQuillContentState extends State<ExpandableQuillContent> {
         if (widget.content.isNotEmpty && widget.content.length>500 )
           GestureDetector(
             onTap: () {
-              print("Lenght");
-              print(widget.content.length);
+
               setState(() {
                 isExpanded = !isExpanded;
               });
