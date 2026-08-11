@@ -38,30 +38,35 @@ class InfoTab extends StatelessWidget {
                 ? "-"
                 : party.founded!,
           ),
+          SizedBox(height: MediaQuery.of(context).size.height*0.032,),
           infoData(
             context,
             PartyPageData.flagIcon,
             PartyPageData.founder,
               party.founder?.isNotEmpty == true ? party.founder! : "-"
           ),
+          SizedBox(height: MediaQuery.of(context).size.height*0.032,),
           infoData(
             context,
             PartyPageData.personIcon,
             PartyPageData.president,
               party.president?.isNotEmpty == true ? party.president! : "-"
           ),
+          SizedBox(height: MediaQuery.of(context).size.height*0.032,),
           infoData(
             context,
             PartyPageData.personIcon,
             PartyPageData.generalSecretary,
               party.generalSecretary?.isNotEmpty == true ? party.generalSecretary! : "-"
           ),
+          SizedBox(height: MediaQuery.of(context).size.height*0.032,),
           infoData(
             context,
             PartyPageData.headquarterIcon,
             PartyPageData.headquarters,
               party.headquarters?.isNotEmpty == true ? party.headquarters! : "-"
           ),
+          SizedBox(height: MediaQuery.of(context).size.height*0.032,),
           infoData(
             context,
             PartyPageData.globalIcon,
@@ -77,60 +82,83 @@ class InfoTab extends StatelessWidget {
 }
 
 Widget infoData(BuildContext context, String icon, String title, String data) {
+  final screenWidth = MediaQuery.of(context).size.width;
+
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Padding(
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(context).size.height * 0.023,
-        ),
-        child: SvgPicture.asset(icon, height: 21,width: 20,),
-      ),
-      SizedBox(width: MediaQuery.of(context).size.width * 0.05),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w400,
-              letterSpacing: 0.21,
-              color: Color(0xFF666666),
+      SizedBox(
+        width: screenWidth * 0.08,
+        child: Padding(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).size.height * 0.023,
+          ),
+          child: Center(
+            child: SvgPicture.asset(
+              icon,
+              height: MediaQuery.of(context).size.height * 0.03,
             ),
           ),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.01),
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.7,
-            child: title == PartyPageData.website
+        ),
+      ),
+
+      SizedBox(width: screenWidth * 0.045),
+
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                letterSpacing: 0.21,
+                color: Color(0xFF666666),
+              ),
+            ),
+
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.01,
+            ),
+
+            title == PartyPageData.website
                 ? InkWell(
-                    onTap: () => launchWebsite(data),
-                    child: Text(
-                      data!=" "?data:'-',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        letterSpacing: 0.31,
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  )
-                : Text(
-                    data,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      letterSpacing: 0.31,
-                    ),
+              onTap: () => launchWebsite(data),
+              child: Text(
+                data != " " ? data : '-',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: (screenWidth * 0.045).clamp(
+                    14.0,
+                    16.0,
                   ),
-          ),
-          //SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-        ],
+                  letterSpacing: 0.31,
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            )
+                : Text(
+              data,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: (screenWidth * 0.045).clamp(
+                  14.0,
+                  16.0,
+                ),
+                letterSpacing: 0.31,
+              ),
+            ),
+          ],
+        ),
       ),
     ],
   );

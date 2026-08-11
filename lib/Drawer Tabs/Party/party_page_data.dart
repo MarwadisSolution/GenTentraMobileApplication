@@ -12,7 +12,7 @@ class PartyPageData {
   static final founded="FOUNDED";
   static final founder="FOUNDER";
   static final president="PRESIDENT";
-  static final generalSecretary="General Secretary";
+  static final generalSecretary="GENERAL SECRETARY";
   static final headquarters="HEADQUARTERS";
   static final website="OFFICIAL WEBSITE";
   static final favoriteIcon="Assets/PartyPage/favourite.svg";
@@ -26,4 +26,5 @@ class PartyPageData {
   static final deleteIcon="Assets/PartyPage/delete.svg";
   static final edit="Assets/PartyPage/edit.svg";
   static final share="Assets/PartyPage/share.svg";
+  static final likeIcon="Assets/PartyPage/likeIcon.svg";
 }
