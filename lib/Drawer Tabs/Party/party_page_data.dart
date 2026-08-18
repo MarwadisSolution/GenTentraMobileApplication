@@ -27,4 +27,35 @@ class PartyPageData {
   static final edit="Assets/PartyPage/edit.svg";
   static final share="Assets/PartyPage/share.svg";
   static final likeIcon="Assets/PartyPage/likeIcon.svg";
+  static final feedTitle ="ADD FEED";
+  static final quote="ADD QUOTE";
+  static final quoteIcon="Assets/PartyPage/quoteIcon.svg";
+  static final crossIcon="Assets/PartyPage/crossIcon.svg";
+  static final descriptionIcon="Assets/PartyPage/descriptionIcon.svg";
+  static final tagLeader="Tag Leader";
+  static final searchBy="Search by Name - OR - Unique ID";
+  static final addIcon="Assets/PartyPage/addIcon.svg";
+  static final taggedPeople="Tagged Peoples";
+  static final scheduledFor="Scheduled For";
+  static final schedule="Schedule";
+  static final chooseDate ="Choose a date and time in the future when you want your post to be published.";
+  static final date="Date";
+  static final time="Time";
+  static final setDateTime="SET DATE & TIME";
+  static final am="AM";
+  static final pm="PM";
+  static final photoIcon="Assets/PartyPage/photoIcon.svg";
+  static final dateIcon="Assets/PartyPage/dateIcon.svg";
+  static final eventImagesVideos="Event Images & Videos";
+  static final add="Add";
+  static final publish="PUBLISH";
+  static final authorName ="Enter Author Name";
+  static final addQuote="Add Your Quote";
+static final sampleQuote="Every sunrise is a second chance to shine.";
+static final sampleAuthorName="Amish Mehta";
+static final addImage="Add Image";
+static final quoteDiffIcon="Assets/PartyPage/quoteDiffIcon.svg";
+static final feedIcon="Assets/PartyPage/feedIcon.svg";
+
+
 }

@@ -81,6 +81,8 @@ class LoginApi{
 
         data: jsonEncode(body)
     );
+    print("Response Of Login: ${response.data}");
+    print("Admin:- ${response.data["data"]["partyId"].toString()}");
     if(response.data["success"]==false){
       print(response.statusCode);
     }

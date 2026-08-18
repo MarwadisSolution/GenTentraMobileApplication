@@ -33,6 +33,8 @@ class _BannerSectionState extends State<BannerSection> {
   @override
   Widget build(BuildContext context) {
     final List banners = widget.partyData["bannerImages"] as List? ?? [];
+    print("Banners:- ");
+    print(banners);
     return Stack(
       children: [
         ///Banner Images
@@ -515,9 +517,6 @@ else if(view>99999){
                           final id = widget.partyData["id"];
                           if (id == null) return;
 
-                          // setState(() {
-                          //   isLoading = true;
-                          // });
 
                           try {
                             if (favorite) {

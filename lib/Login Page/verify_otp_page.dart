@@ -206,7 +206,12 @@ print(state.requirePassword);
             await prefs.setString("accessToken", auth["accessToken"]);
             await prefs.setString("refreshToken", auth["refreshToken"]);
             await prefs.setString("userUuid", auth["userUuid"]);
-            await prefs.setString("role", auth['roles'][0]);
+            await prefs.setString("role", auth['role']);
+            if(auth['role']=="ROLE_PARTY_ADMIN") {
+              await prefs.setString("AdminOfParty", result["data"]["partyId"].toString());
+            }
+            print("profile3");
+            print(prefs.getString("AdminOfParty"));
             print("Roles5");
             print(prefs.getString("role"));
             await prefs.setInt(

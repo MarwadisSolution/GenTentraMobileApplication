@@ -72,9 +72,8 @@ class _FavouritePageState extends State<FavouritePage> {
                 Positioned.fill(
                   top: h * 0.02,
                   child: Container(
-                    // constraints: BoxConstraints(
-                    //   minHeight: MediaQuery.of(context).size.height,
-                    // ),
+                    height: h,
+                    width: w,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(

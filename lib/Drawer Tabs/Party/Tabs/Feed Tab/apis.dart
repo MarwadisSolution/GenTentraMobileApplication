@@ -52,12 +52,13 @@ class FeedApis {
 
   /// GET Feed List
   Future<List<FeedModel>> getFeeds({
+  required int partyId,
     int page = 0,
     int size = 20,
   }) async {
     try {
       final response = await _dio.get(
-        "$api/api/v1/feed/posts",
+        "$api/api/v1/feed/parties/${partyId}/posts",
         queryParameters: {
           "page": page,
           "size": size,
@@ -71,4 +72,39 @@ class FeedApis {
       throw Exception(e.response?.data ?? e.message);
     }
   }
+  ///--------------React
+  Future<bool>likeThePost(int feedId)async{
+    final response=await _dio.post("$api/api/v1/feed/posts/$feedId/like");
+    if(response.statusCode==200 || response.statusCode==201){
+      return true;
+    }
+    return false;
+  }
+  ///----------Search of political leaders
+  Future<List<LeaderModel>>searchBarData(String? query,int? id)async{
+
+    final response=await _dio.get("$api/api/v1/profile/politicians?&",
+        queryParameters: {
+          if(id!=null)
+            "partyId":id,
+          if(query!=null)
+            "q":query,
+          // "designation":query,
+          // "region":query,
+          // "partyId":query,
+        }
+    );
+    final items=response.data["data"]["items"] as List;
+    return items
+        .map((e)=>LeaderModel.fromJson(e)).toList();
+  }
+  Future<String>deletePost(int id)async{
+    final response=await _dio.delete("$api/api/v1/feed/posts/$id",
+    );
+    if(response.statusCode==200 || response.statusCode==201){
+      if(response.data["success"]==true) return "Successfully post deleted";
+    }
+     return "Unable to delete post, try again";
+  }
+
 }

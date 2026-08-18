@@ -33,77 +33,6 @@ class _SplashScreenState extends State<SplashScreen> {
     // TODO: implement initState
     super.initState();
     checkLogin();
-
-    ///------------for is user present in database call the api and check
-    // Future.delayed(const Duration(seconds: 5), () {
-    //   if (mounted) {
-    //     isUserInDatabase ?
-    //     isUserLogOut == false ?
-    //     //HomePage():OtpPage():LoginPage()
-    //     Navigator.pushReplacement(
-    //         context,
-    //         MaterialPageRoute(
-    //             builder: (context) =>
-    //                 BlocProvider(create: (context) =>
-    //                     LoginBloc(LoginRepository(LoginApi())),
-    //                   child: const OtpPage(),)
-    //         )) :
-    //     Navigator.pushReplacement(
-    //         context, MaterialPageRoute(builder: (context) => const OtpPage())) :
-    //     // Navigator.pushReplacement(
-    //     //   context,
-    //     //   MaterialPageRoute(
-    //     //     builder: (_) => BlocProvider(
-    //     //       create: (_) => LoginBloc(
-    //     //         LoginRepository(LoginApi()),
-    //     //       ),
-    //     //       child: const SignupPage(),
-    //     //     ),
-    //     //   ),
-    //     // );
-    //     Navigator.pushReplacement(
-    //       context,
-    //       MaterialPageRoute(
-    //         builder: (_) =>
-    //             BlocProvider(
-    //               create: (_) =>
-    //                   LoginBloc(
-    //                     LoginRepository(LoginApi()),
-    //                   ),
-    //               child: const OtpPage(),
-    //             ),
-    //       ),
-    //     );
-    //     // Navigator.pushReplacement(
-    //     //   context,
-    //     //   MaterialPageRoute(builder: (_)=>HomePage())
-    //     // MaterialPageRoute(
-    //     //   builder: (context) => BlocProvider(
-    //     //     create: (context) => LoginBloc(
-    //     //       LoginRepository(LoginApi()),
-    //     //     ),
-    //     //     child: const SignupPage(),
-    //     //   ),
-    //     // ),
-    //     // Navigator.pushReplacement(
-    //     //   context,
-    //     //   MaterialPageRoute(
-    //     //     builder: (_) => MultiBlocProvider(
-    //     //       providers: [
-    //     //         BlocProvider(
-    //     //           create: (_) => BottomNavBloc(),
-    //     //         ),
-    //     //         BlocProvider(
-    //     //           create: (_) => DrawerBloc(),
-    //     //         ),
-    //     //       ],
-    //     //       child: MainPage(),
-    //     //     ),
-    //     //   ),
-    //     // );
-    //
-    //   }
-    // });
   }
 
   @override
@@ -159,12 +88,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void goToLogin() {
     if(!mounted)return;
-    // Navigator.pushReplacement(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) => PasswordVerificationPage(verificationToken: ""),
-    //   ),
-    // );
+
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>
         BlocProvider(create: (_) => LoginBloc(LoginRepository(LoginApi()),
         ),

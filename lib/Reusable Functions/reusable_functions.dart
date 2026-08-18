@@ -119,7 +119,9 @@ class CustomTextField extends StatelessWidget {
   final int? maxLength;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
-
+  final double? height;
+  final int?maxLines;
+final bool readOnly;
   const CustomTextField({
     super.key,
     required this.controller,
@@ -131,61 +133,69 @@ class CustomTextField extends StatelessWidget {
     this.maxLength,
     this.prefixIcon,
     this.suffixIcon,
+    this.height,
+    this.maxLines=1,
+    this.readOnly=false,
 
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      onChanged: onChanged,
-      keyboardType: keyboardType,
-      cursorColor: ColorScheme.of(context).onSurface,
-      style: textStyle ??
-           TextStyle(
-            fontSize: (MediaQuery.of(context).size.width * 0.06).clamp(14.0, 18.0),
-            fontWeight: FontWeight.w500,
-          ),
-      maxLength: maxLength,
-      decoration: InputDecoration(
-        counterText: "",
-        label: RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: labelText,
-                style: TextStyle(
-                  fontSize: MediaQuery.of(context).size.width*0.044,
-                  color: ColorScheme.of(context).onSurface.withOpacity(0.3),
-                ),
-              ),
-              if (isRequired)
-                const TextSpan(
-                  text: " *",
+    return SizedBox(
+      height: height,
+      child: TextField(
+        readOnly: readOnly,
+        controller: controller,
+        onChanged: onChanged,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        cursorColor: ColorScheme.of(context).onSurface,
+        style: textStyle ??
+             TextStyle(
+              fontSize: (MediaQuery.of(context).size.width * 0.06).clamp(14.0, 18.0),
+              fontWeight: FontWeight.w500,
+            ),
+        maxLength: maxLength,
+        decoration: InputDecoration(
+          counterText: "",
+          label: RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: labelText,
                   style: TextStyle(
-                    color: Colors.red,
+                    fontSize: MediaQuery.of(context).size.width*0.044,
+                    color: ColorScheme.of(context).onSurface.withOpacity(0.3),
                   ),
                 ),
-            ],
+                if (isRequired)
+                  const TextSpan(
+                    text: " *",
+                    style: TextStyle(
+                      color: Colors.red,
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
-        prefixIcon: prefixIcon,
-        suffixIcon: suffixIcon,
-        labelStyle: TextStyle(
-          color: ColorScheme.of(context).onSurface.withOpacity(0.3),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
+          prefixIcon: prefixIcon,
+          suffixIcon: suffixIcon,
+          labelStyle: TextStyle(
             color: ColorScheme.of(context).onSurface.withOpacity(0.3),
-            width: 1,
           ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: ColorScheme.of(context).onSurface.withOpacity(0.3),
-            width: 1,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: ColorScheme.of(context).onSurface.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: ColorScheme.of(context).onSurface.withOpacity(0.3),
+              width: 1,
+            ),
           ),
         ),
       ),

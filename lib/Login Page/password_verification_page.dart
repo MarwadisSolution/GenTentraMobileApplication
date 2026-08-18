@@ -41,7 +41,12 @@ class _PasswordVerificationPageState extends State<PasswordVerificationPage> {
       await prefs.setString("accessToken", auth["accessToken"]);
       await prefs.setString("refreshToken", auth["refreshToken"]);
       await prefs.setString("userUuid", auth["userUuid"]);
-      await prefs.setString("role", auth['roles'][0]);
+      await prefs.setString("role", auth['role']);
+      if(auth['role']=="ROLE_PARTY_ADMIN") {
+        await prefs.setString("AdminOfParty", result["partyId"].toString());
+      }
+      print("profile");
+      print(prefs.getString("AdminOfParty"));
       print("Roles3");
       print(prefs.getString("role"));
       await prefs.setInt(
@@ -235,7 +240,10 @@ class _PasswordVerificationPageState extends State<PasswordVerificationPage> {
                                             "userUuid",
                                             auth["userUuid"],
                                           );
-                                          await prefs.setString("role", auth['roles'][0]);
+                                          await prefs.setString("role", auth['role']);
+                                          if(auth['role']=="ROLE_PARTY_ADMIN") await prefs.setString("AdminOfParty", result["partyId"].toString());
+                                          print("profile4");
+                                          print(prefs.getString("AdminOfParty"));
                                           print("Roles4");
                                           print(prefs.getString("role"));
                                           await prefs.setInt(

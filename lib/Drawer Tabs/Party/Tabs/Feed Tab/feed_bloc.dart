@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_event.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_state.dart';
@@ -11,6 +12,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState>{
     on<AddNewFeedEvent>(_addNewFeed);
     on<YearWiseFeedEvent>(_yearWiseFeed);
     on<DeleteFeedEvent>(_deleteFeed);
+
   }
   Future<void>_loadFeed(
       LoadFeedEvent event,
@@ -22,6 +24,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState>{
     ));
     try{
       final feed=await api.getFeeds(
+        partyId: event.partyId,
         page: event.page,
         size: event.size,
       );
@@ -40,25 +43,50 @@ class FeedBloc extends Bloc<FeedEvent, FeedState>{
       ));
     }
   }
-  Future<void>_addNewFeed(
-AddNewFeedEvent event,
-Emitter<FeedState>emit,
-      )async{
-    emit(state.copyWith(isPosting: true));
-    try{
-      await api.postTheFeed(feed: event.feed,
-          mediaFiles: event.mediaFiles,
+  Future<void> _addNewFeed(
+      AddNewFeedEvent event,
+      Emitter<FeedState> emit,
+      ) async {
+    emit(state.copyWith(
+      isPosting: true,
+      isError: false,
+      isPostSuccess: false,
+      errorMessage: '',
+    ));
+
+    try {
+      debugPrint("POSTING FEED/QUOTE...");
+      debugPrint("Kind: ${event.feed.kind}");
+
+      await api.postTheFeed(
+        feed: event.feed,
+        mediaFiles: event.mediaFiles,
       );
-      final feed=await api.getFeeds();
+
+      debugPrint("POST API SUCCESS");
+
+      final feed = await api.getFeeds(
+        partyId: event.partyId,
+        page: 0,
+        size: 20,
+      );
+
       emit(state.copyWith(
-        isPosting: true,
+        isPosting: false,
+        isError: false,
+        isPostSuccess: true,
         feeds: feed,
       ));
-    }
-    catch(e){
+
+      debugPrint("PUBLISH SUCCESS");
+    } catch (e, stackTrace) {
+      debugPrint("PUBLISH ERROR: $e");
+      debugPrint("$stackTrace");
+
       emit(state.copyWith(
         isPosting: false,
         isError: true,
+        isPostSuccess: false,
         errorMessage: e.toString(),
       ));
     }
@@ -73,6 +101,42 @@ Emitter<FeedState>emit,
       DeleteFeedEvent event,
       Emitter<FeedState>emit,
       )async{
-    ///-----------------Delete Api call karna hai
+    ///-----------------Delete Api call
+    try{
+      emit(state.copyWith(
+        isLoading: true,
+        isError: false,
+        errorMessage: '',
+      ));
+
+      debugPrint("Deleting feed ID: ${event.id}");
+
+      final message = await api.deletePost(event.id);
+
+      debugPrint("Delete response: $message");
+      final feed=await api.getFeeds(partyId: event.partyId,page: 0, size: 20,);
+      emit(
+        state.copyWith(
+          isLoading: false,
+          isError: false,
+          feeds: feed,
+          errorMessage: message,
+        )
+      );
+    }
+    catch(e, stackTrace){
+      debugPrint("DELETE ERROR: $e");
+      debugPrint("$stackTrace");
+      emit(
+        state.copyWith(
+          isLoading: false,
+          isError: true,
+          errorMessage: e.toString(),
+        )
+      );
+    }
+
+
   }
+
 }

@@ -11,14 +11,16 @@ abstract class FeedEvent extends Equatable {
 }
 
 class LoadFeedEvent extends FeedEvent {
+  final int partyId;
   final int page;
   final int size;
   const LoadFeedEvent({
+    required this.partyId,
     this.page=0,
     this.size=20,
 });
   @override
-  List<Object?>get props=>[page, size];
+  List<Object?>get props=>[partyId,page, size];
 }
 
 class YearWiseFeedEvent extends FeedEvent {
@@ -29,33 +31,40 @@ class YearWiseFeedEvent extends FeedEvent {
 }
 
 class AddNewFeedEvent extends FeedEvent {
+  final int partyId;
   final FeedModel feed;
   final List<File>mediaFiles;
   const AddNewFeedEvent({
+    required this.partyId,
     required this.feed,
     required this.mediaFiles,
 });
   @override
-  List<Object?>get props=>[feed, mediaFiles];
+  List<Object?>get props=>[partyId,feed, mediaFiles];
 }
 
 class EditFeedEvent extends FeedEvent {
   final int id;
+  final int partyId;
+  final List<Tagged> tagged;
   final FeedModel feed;
   final List<File>mediaFiles;
   const EditFeedEvent({
     required this.id,
+    required this.partyId,
+    required this.tagged,
     required this.feed,
     required this.mediaFiles,
 });
   @override
-  List<Object?> get props=>[id, feed, mediaFiles];
+  List<Object?> get props=>[id,partyId,feed, tagged, mediaFiles];
 }
 
 class DeleteFeedEvent extends FeedEvent {
   final int id;
-  const DeleteFeedEvent(this.id);
+  final int partyId;
+  const DeleteFeedEvent( this.id, this.partyId );
   @override
-  List<Object?>get props=>[id];
+  List<Object?>get props=>[id,partyId];
 }
 

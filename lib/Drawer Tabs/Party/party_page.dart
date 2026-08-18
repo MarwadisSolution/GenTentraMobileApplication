@@ -130,17 +130,31 @@ class _PartyPageState extends State<PartyPage> {
                                 itemBuilder: (context, index) {
                                   final party = parties[index];
                                   return InkWell(
+                                    onTap: () async {
+                                      try {
+                                        final partyData = await apiService.fetchPartySingleWithId(
+                                          party["id"],
+                                        );
 
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              PartyFetchedData(
-                                                partyData: party,
-                                              ),
-                                        ),
-                                      );
+                                        if (!mounted) return;
+
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => PartyFetchedData(
+                                              partyData: partyData,
+                                            ),
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        if (!mounted) return;
+
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text("Failed to load party details"),
+                                          ),
+                                        );
+                                      }
                                     },
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
@@ -149,10 +163,7 @@ class _PartyPageState extends State<PartyPage> {
                                         Container(
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
-                                            // border: Border.all(
-                                            //   //color: Color(0xFFD6D6D6),
-                                            //   width: 1,
-                                            // ),
+
                                           ),
                                           child: CircleAvatar(
                                             radius:  MediaQuery.of(context).size.width*0.11,

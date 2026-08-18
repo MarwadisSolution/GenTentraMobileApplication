@@ -8,61 +8,80 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Ta
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 import 'package:readmore/readmore.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'apis.dart';
+
 class FeedTab extends StatefulWidget {
-  const FeedTab({super.key});
+  final int partyId;
+  const FeedTab({super.key, required this.partyId});
 
   @override
   State<FeedTab> createState() => _FeedTabState();
 }
 
 class _FeedTabState extends State<FeedTab> {
-  bool threeDotsSelected=false;
   int? selectedIndex;
-   String? roles;
-   int? partyAdminId=1;
-  bool likeIconSelected=false;
+  bool? isAdmin;
+
+  Future<void> isAdminChecking() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? adminPartyId = prefs.getString("AdminOfParty");
+    final String currentPartyId = widget.partyId.toString();
+    final bool admin = adminPartyId == currentPartyId;
+
+    if (!mounted) return;
+
+    setState(() {
+      isAdmin = admin;
+    });
+  }
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    roleChecking();
-    context.read<FeedBloc>().add(const LoadFeedEvent());
+    isAdminChecking();
+    context.read<FeedBloc>().add(LoadFeedEvent(partyId: widget.partyId));
   }
-  void roleChecking()async{
-    final prefs = await SharedPreferences.getInstance();
-    roles=prefs.getString("roles");
-    //partyAdminId=prefs.getString("partyAdminId")! as int;
+
+  Future<void> shareFeed(dynamic feed) async {
+    final String shareLink =
+        'https://gentantrabackend-production.up.railway.app/feed/${feed.uuid}';
+    await Share.share('Check out this post: \n$shareLink');
   }
 
   @override
   Widget build(BuildContext context) {
-    final w=MediaQuery.of(context).size.width;
-    final h=MediaQuery.of(context).size.height;
-    return BlocBuilder<FeedBloc, FeedState>(
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+
+    return BlocConsumer<FeedBloc, FeedState>(
+      listener: (context, state) {
+        if (state.isError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 2),
+              backgroundColor: Colors.red,
+              content: Text(state.errorMessage),
+            ),
+          );
+        }
+      },
       builder: (context, state) {
         if (state.isLoading) {
           return Padding(
-            padding:  EdgeInsets.only(top: h*0.4),
+            padding: EdgeInsets.only(top: h * 0.4),
             child: const Center(
               child: CircularProgressIndicator(color: Colors.black),
             ),
           );
         }
-        if (state.isError) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                duration: const Duration(seconds: 2),
-                backgroundColor: Colors.red,
-                content: Text(state.errorMessage),
-              ),
-            );
-          });
 
-          return const SizedBox();
+        if (state.isError) {
+          return const SizedBox.shrink();
         }
+
         if (state.feeds.isEmpty) {
           return const Center(
             child: Text(
@@ -71,276 +90,331 @@ class _FeedTabState extends State<FeedTab> {
             ),
           );
         }
-        return Stack(
-          children: [
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  threeDotsSelected = false;
-                  selectedIndex = null;
-                });
-                FocusScope.of(context).unfocus();
-              },
-              child: ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: EdgeInsets.all(h * 0.012),
-                itemCount: state.feeds.length,
-                itemBuilder: (context, index) {
-                  final feed = state.feeds[index];
-                  return Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
 
-                          ListTile(
-                            leading: CircleAvatar(
-                                  radius: w*0.07,
-                                  backgroundColor: Colors.white,
-                                  child: ClipOval(
-                                    child: SizedBox.expand(
-                                      child: buildImageWidget(
-                                        feed.author?.photoUrl ?? "",
-                                        width: double.infinity,
-                                        height: double.infinity,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            title: Text(
-                              maxLines: 2,
-                              feed.author?.name??"-",
-                              style: TextStyle(
-                                fontSize: (w * 0.04).clamp(14.0, 18.0),
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.31,
-                              ),
-                            ),
-                            subtitle: Text(
-                              feed.author?.region??"-",
-                              style: TextStyle(
-                                fontSize: (w*0.025).clamp(12, 15),
-                                fontWeight: FontWeight.w400,
-                                letterSpacing: 0.21,
-                                color: Color(0xFF666666)
-                              ),
-                            ),
-                              trailing: InkWell(
-                                onTap: (){
-                                  setState(() {
-                                    threeDotsSelected=true;
-                                    selectedIndex=index;
-                                  });
-                                },
-                                child: SizedBox(
-                                  width: w * 0.05,
-                                  height: h * 0.06,
-                                  child: Center(
-                                    child: SvgPicture.asset(
-                                      PartyPageData.threeDots,
-                                      height: h * 0.005,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ),
-                         ///-------------Yeha pe tagged wale aayege
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding:  EdgeInsets.only(top: 8.0,right: w*0.044,left: w*0.044),
-                                child: ReadMoreText(
-                                  feed.body??"-",
-                                  trimLines: 3,
-                                  trimMode: TrimMode.Line,
-                                  trimCollapsedText: "\nRead More",
-                                  trimExpandedText: "\nShow Less",
-                                  moreStyle: const TextStyle(
-                                    color: Color(0xFFFE3A31),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  lessStyle: const TextStyle(
-                                    color: Color(0xFFFE3A31),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  style:  TextStyle(
-                                    fontSize: (w*0.04).clamp(12, 16),
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w400
-                                  ),
-                                ),
-                              ),
-                              ///---------Images will come
-
-                              if (feed.media != null && feed.media!.isNotEmpty) ...[
-                                SizedBox(height: h * 0.012),
-
-                                FeedMediaWidget(
-                                  media: feed.media!,
-                                ),
-                              ],
-
-                              ///-----Views
-                              Padding(
-                                padding:  EdgeInsets.only(top: 8.0,right: w*0.034,left: w*0.044),
-                                child: Row(
-                                  children: [
-                                    Text(feed.viewCount.toString(),
-                                      style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                        fontSize: (w*0.03).clamp(16, 18),
-                                    ),),
-                                    SizedBox(width: w*0.03,),
-                                    Text("Views",style: TextStyle(
-                                      fontSize: (w*0.025).clamp(12, 15),
-                                      fontWeight: FontWeight.w400,
-                                      color: ColorScheme.of(context).onSurface.withOpacity(0.6),
-                                    ),),
-                                    Spacer(),
-                                    InkWell(
-                                      onTap: () {
-                                        setState(() {
-                                          likeIconSelected = !likeIconSelected;
-                                        });
-                                      },
-                                      child: SvgPicture.asset(
-                                        PartyPageData.likeIcon,
-                                        color: likeIconSelected
-                                            ? const Color(0xFFFE3A31)
-                                            : null,
-                                      ),
-                                    ),
-                                    SizedBox(width: w*0.06,),
-                                    SvgPicture.asset(PartyPageData.share)
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                          SizedBox(height: h * 0.01),
-                          Container(
-                            color: Color(0xFF000000).withOpacity(0.08),
-                            width: w,
-                            height: h * 0.009,
-                          ),
-                        ],
-                      ),
-
-                      if (threeDotsSelected && selectedIndex == index)
-                        Positioned(
-                          right: w * 0.028,
-                          top: h * 0.005,
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Container(
-                              width: w * 0.18,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 12,
-                                horizontal: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey),
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(
-                                  (w * 0.1).clamp(16.0, 40.0),
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (partyAdminId == 1) ...[
-                                    InkWell(
-                                      onTap: () {
-                                        // Baki hai
-                                      },
-                                      child: SizedBox(
-                                        height: h * 0.044,
-                                        width: w * 0.044,
-                                        child: SvgPicture.asset(
-                                          PartyPageData.edit,
-                                          height: h * 0.004,
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      "Edit",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: (w * 0.027).clamp(12, 15),
-                                      ),
-                                    ),
-                                  ],
-
-                                  SizedBox(height: h * 0.017),
-
-                                  InkWell(
-                                    onTap: () {
-                                      // Baki hai
-                                    },
-                                    child: SizedBox(
-                                      height: h * 0.044,
-                                      width: w * 0.044,
-                                      child: SvgPicture.asset(
-                                        PartyPageData.share,
-                                        height: h * 0.004,
-                                      ),
-                                    ),
-                                  ),
-
-                                  Text(
-                                    "Share",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: (w * 0.027).clamp(12, 15),
-                                    ),
-                                  ),
-
-                                  SizedBox(height: h * 0.017),
-
-                                  if (partyAdminId == 1) ...[
-                                    InkWell(
-                                      onTap: () {
-                                        // Baki hai
-                                      },
-                                      child: SizedBox(
-                                        height: h * 0.044,
-                                        width: w * 0.044,
-                                        child: SvgPicture.asset(
-                                          PartyPageData.deleteIcon,
-                                          height: h * 0.004,
-                                        ),
-                                      ),
-                                    ),
-
-                                    Text(
-                                      "Delete",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: (w * 0.027).clamp(12, 15),
-                                      ),
-                                    ),
-
-                                    SizedBox(height: h * 0.017),
-                                  ],
-                                ],
-                              ),
-                            ),
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.all(h * 0.012),
+          itemCount: state.feeds.length,
+          itemBuilder: (context, index) {
+            final feed = state.feeds[index];
+            return Container(
+              key: ValueKey(feed.id ?? index),
+              margin: EdgeInsets.only(bottom: h * 0.012),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ListTile(
+                    leading: CircleAvatar(
+                      radius: w * 0.07,
+                      backgroundColor: Colors.white,
+                      child: ClipOval(
+                        child: SizedBox.expand(
+                          child: buildImageWidget(
+                            feed.author?.photoUrl ?? "",
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
                           ),
                         ),
-                        ],
+                      ),
+                    ),
+                    title: Text(
+                      feed.author?.name ?? "-",
+                      maxLines: 2,
+                      style: TextStyle(
+                        fontSize: (w * 0.04).clamp(14.0, 18.0),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.31,
+                      ),
+                    ),
+                    subtitle: Text(
+                      feed.author?.region ?? "-",
+                      style: TextStyle(
+                        fontSize: (w * 0.025).clamp(12.0, 15.0),
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0.21,
+                        color: const Color(0xFF666666),
+                      ),
+                    ),
+                    trailing: isAdmin == true
+                        ? PopupMenuButton<String>(
+                      icon: SvgPicture.asset(
+                        PartyPageData.threeDots,
+                        height: h * 0.005,
+                      ),
+                      onSelected: (value) async {
+                        if (value == 'share') {
+                          shareFeed(feed);
+                        } else if (value == 'delete') {
+                          final shouldDelete = await showDialog<bool>(
+                            context: context,
+                            builder: (dialogContext) {
+                              return AlertDialog(
+                                title: Text(
+                                  "Delete Post",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: ColorScheme.of(context).onSurface,
+                                  ),
+                                ),
+                                content: Text(
+                                  "Are you sure you want to delete this post?",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    color: ColorScheme.of(context).onSurface,
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(dialogContext, false),
+                                    child: Text(
+                                      "Cancel",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: ColorScheme.of(context).onSurface,
+                                      ),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(dialogContext, true),
+                                    child: Text(
+                                      "Delete",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: ColorScheme.of(context).onSurface,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
 
-                  );
-                },
+                          if (shouldDelete == true && mounted) {
+                            context.read<FeedBloc>().add(
+                              DeleteFeedEvent(feed.id!, widget.partyId),
+                            );
+                          }
+                        }
+                      },
+                      itemBuilder: (BuildContext context) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              SvgPicture.asset(PartyPageData.edit, width: 18),
+                              const SizedBox(width: 8),
+                              const Text("Edit"),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'share',
+                          child: Row(
+                            children: [
+                              SvgPicture.asset(PartyPageData.share, width: 18),
+                              const SizedBox(width: 8),
+                              const Text("Share"),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              SvgPicture.asset(PartyPageData.deleteIcon, width: 18),
+                              const SizedBox(width: 8),
+                              const Text("Delete"),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                        : null,
+                  ),
+
+                  // Post content
+                  Padding(
+                    padding: EdgeInsets.only(top: 8.0, right: w * 0.044, left: w * 0.044),
+                    child: ReadMoreText(
+                      feed.body ?? "-",
+                      trimLines: 3,
+                      trimMode: TrimMode.Line,
+                      trimCollapsedText: "\nRead More",
+                      trimExpandedText: "\nShow Less",
+                      moreStyle: const TextStyle(
+                        color: Color(0xFFFE3A31),
+                        fontWeight: FontWeight.w600,
+                      ),
+                      lessStyle: const TextStyle(
+                        color: Color(0xFFFE3A31),
+                        fontWeight: FontWeight.w600,
+                      ),
+                      style: TextStyle(
+                        fontSize: (w * 0.04).clamp(12.0, 16.0),
+                        color: Colors.black,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+
+                  if (feed.media != null &&
+                      feed.media!.isNotEmpty &&
+                      feed.kind == "POST" &&
+                      feed.hidden == false) ...[
+                    SizedBox(height: h * 0.012),
+                    FeedMediaWidget(media: feed.media!),
+                  ] else if (feed.kind == "QUOTE" && feed.hidden == false) ...[
+                    SizedBox(height: h * 0.012),
+                    FeedQuoteWidget(
+                      feed.quote!["quote"],
+                      feed.quote!["author"],
+                      feed.media!,
+                      context,
+                    ),
+                  ],
+
+                  // Views and Interactions
+                  Padding(
+                    padding: EdgeInsets.only(top: 8.0, right: w * 0.034, left: w * 0.044),
+                    child: Row(
+                      children: [
+                        Text(
+                          feed.viewCount.toString(),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: (w * 0.03).clamp(16.0, 18.0),
+                          ),
+                        ),
+                        SizedBox(width: w * 0.03),
+                        Text(
+                          "Views",
+                          style: TextStyle(
+                            fontSize: (w * 0.025).clamp(12.0, 15.0),
+                            fontWeight: FontWeight.w400,
+                            color: ColorScheme.of(context).onSurface.withOpacity(0.6),
+                          ),
+                        ),
+                        const Spacer(),
+                        LikeButton(
+                          key: ValueKey('like_${feed.id}'),
+                          feedId: feed.id,
+                          reacted: feed.reacted ?? false,
+                        ),
+                        SizedBox(width: w * 0.06),
+                        InkWell(
+                          onTap: () => shareFeed(feed),
+                          child: SvgPicture.asset(PartyPageData.share),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: h * 0.01),
+                  Container(
+                    color: const Color(0xFF000000).withOpacity(0.08),
+                    width: w,
+                    height: h * 0.009,
+                  ),
+                ],
               ),
-            ),
-          ],
+            );
+          },
         );
-
       },
+    );
+  }
+}
+
+class LikeButton extends StatefulWidget {
+  final int? feedId;
+  final bool reacted;
+
+  const LikeButton({
+    super.key,
+    required this.feedId,
+    required this.reacted,
+  });
+
+  @override
+  State<LikeButton> createState() => _LikeButtonState();
+}
+
+class _LikeButtonState extends State<LikeButton> {
+  final FeedApis feedApis = FeedApis();
+  late bool isLiked;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isLiked = widget.reacted;
+  }
+
+  @override
+  void didUpdateWidget(covariant LikeButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.reacted != widget.reacted) {
+      setState(() {
+        isLiked = widget.reacted;
+      });
+    }
+  }
+
+  Future<void> likePost() async {
+    if (widget.feedId == null || isLoading) return;
+
+    final previousLikedState = isLiked;
+
+    setState(() {
+      isLoading = true;
+      isLiked = !previousLikedState;
+    });
+
+    try {
+      final success = await feedApis.likeThePost(widget.feedId!);
+
+      if (!mounted) return;
+
+      if (!success) {
+        setState(() {
+          isLiked = previousLikedState;
+          isLoading = false;
+        });
+        return;
+      }
+
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint("Error liking/unliking post: $e");
+
+      if (!mounted) return;
+
+      setState(() {
+        isLiked = previousLikedState;
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: likePost,
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: Center(
+          child: SvgPicture.asset(
+            PartyPageData.likeIcon,
+            colorFilter: isLiked
+                ? const ColorFilter.mode(Color(0xFFFE3A31), BlendMode.srcIn)
+                : null,
+          ),
+        ),
+      ),
     );
   }
 }

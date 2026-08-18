@@ -26,6 +26,8 @@ class AuthService{
       );
       if(response.statusCode==200 || response.statusCode==201){
         final auth = response.data["data"];
+        print("Refresh");
+        print(response.data);
         print("Auths");
         print(auth);
         await prefs.setString(
@@ -42,9 +44,10 @@ class AuthService{
           "userUuid",
           auth["userUuid"],
         );
-        await prefs.setString("role", auth['roles'][0]);
-        print("Roles2");
-        print(prefs.getString("role"));
+        await prefs.setString("role", auth['role']);
+        //if(auth['role']=="ROLE_PARTY_ADMIN") {await prefs.setString("AdminOfParty", response.data["partyId"].toString());}
+        print("profile2");
+        print(prefs.getString("AdminOfParty"));
         await prefs.setInt("loginTime", DateTime.now().millisecondsSinceEpoch,);
         await prefs.setBool("isLogged", true);
         return true;

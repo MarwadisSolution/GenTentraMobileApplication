@@ -1,10 +1,14 @@
 class FeedModel {
 final int? id;
+final String?uuid;
 final Author? author;
+
 final int? authorUserId;
 final int? authorPartyId;
 final String? kind;
+final String? title;
 final String? body;
+final Map<String, dynamic>? quote;
 final int? repostPostId; ///----Ye check karna hai
 final String? status;
 final bool? hidden;
@@ -20,12 +24,17 @@ final bool? reacted;
 
 FeedModel({
   this.id,
+  this.uuid,
   this.author,
   this.authorUserId,
   this.authorPartyId,
   this.kind,
+
+  this.title,
   this.body,
+  this.quote,
   this.repostPostId,
+
   this.status,
   this.hidden,
   this.scheduledAt,
@@ -41,12 +50,16 @@ FeedModel({
 factory FeedModel.fromJson(Map<String, dynamic>json){
   return FeedModel(
     id: json["id"],
+    uuid: json["uuid"],
     author: json["author"]!=null?
         Author.fromJson(json["author"]):null,
     authorUserId: json["authorUserId"],
     authorPartyId: json["authorPartyId"],
+
     kind: json["kind"],
+    title: json["title"],
     body: json["postText"] ?? json["body"],
+    quote: json["quote"],
     repostPostId: json["repostPostId"],
     status: json["status"],
     hidden: json["hidden"],
@@ -75,8 +88,11 @@ factory FeedModel.fromJson(Map<String, dynamic>json){
 }
 Map<String, dynamic>toJson(){
   return {
+    "title": title,
     "body":body,
+    "quote": quote,
     "kind":kind,
+
     "authorPartyId": authorPartyId,
     "tagged":tagged?.map((e)=>e.toPostJson()).toList(),
     "scheduledAt": scheduledAt?.toIso8601String(),
@@ -183,4 +199,66 @@ class Tagged {
     "name": name,
     "photoUrl": photoUrl,
   };
+}
+///-------------------Of Search of politicians
+class LeaderModel {
+  final int id;
+  final String name;
+  final String designation;
+  final String uniqueId;
+  final String? image;
+  final String? partyName;
+  final int? partyId;
+  final String status;
+  final String region;
+
+  LeaderModel({
+    required this.id,
+    required this.name,
+    required this.designation,
+    required this.uniqueId,
+    this.image,
+    this.partyName,
+    required this.partyId, required this.status, required this.region,
+  });
+
+  factory LeaderModel.fromJson(Map<String, dynamic> json) {
+    return LeaderModel(
+      id: json["politicianId"] ?? json["id"],
+      name: json["name"],
+      designation: json["designation"] ?? "",
+      uniqueId: json["uniqueId"] ?? "",
+      image: json["photoUrl"] ?? "",
+      partyName: json['partyName'] ?? "",
+      partyId: json['partyId'] ,
+      region: json['region'] ?? "",
+      status: json['status'] ?? "",
+    );
+  }
+
+  LeaderModel copyWith({
+    int? id,
+    Object? image = _noChange,
+    String? name,
+    String? designation,
+    String? uniqueId,
+    int? partyId,
+    String? region,
+    String? status,
+  }) {
+    return LeaderModel(
+      id: id ?? this.id,
+      image: image == _noChange
+          ? this.image
+          : image as String?,
+      name: name ?? this.name,
+      designation: designation ?? this.designation,
+      uniqueId: uniqueId ?? this.uniqueId, partyId: partyId ?? this.partyId,
+      region: region ?? this.region,
+      status: status ?? this.status,
+    );
+  }
+
+  static const _noChange = Object();
+
 }

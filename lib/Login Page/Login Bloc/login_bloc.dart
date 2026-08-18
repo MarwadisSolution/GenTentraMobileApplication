@@ -300,7 +300,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       await prefs.setString("refreshToken", auth["refreshToken"]);
 
       await prefs.setString("userUuid", auth["userUuid"]);
-     await prefs.setString("role", auth['roles'][0]);
+     await prefs.setString("role", auth['role']);
+      if(auth['role']=="ROLE_PARTY_ADMIN") {
+        await prefs.setString("AdminOfParty", response.data["data"]["partyId"].toString());
+      }
+      print("profile1");
+      print(prefs.getString("AdminOfParty"));
      print("Roles");
      print(prefs.getString("role"));
       await prefs.setBool("isLogged", true);

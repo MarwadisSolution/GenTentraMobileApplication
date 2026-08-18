@@ -9,18 +9,20 @@ import 'reusable_functions.dart';
 class ReusableSliverAppBar extends StatelessWidget {
   final String? title;
   final Widget? titleWidget;
-  final bool automaticallyImplyLeading;
+  final bool? automaticallyImplyLeading;
   final double height;
   final Widget? child;
   final VoidCallback? onMenuTap;
+  final List<Widget>? actions;
   const ReusableSliverAppBar({
     super.key,
     this.title,
     this.titleWidget,
-    this.automaticallyImplyLeading=false,
+    this.automaticallyImplyLeading,
     this.height=200,
     this.child,
     this.onMenuTap,
+    this.actions,
   });
 
   @override
@@ -32,10 +34,10 @@ class ReusableSliverAppBar extends StatelessWidget {
       forceElevated: false,
 
       // automaticallyImplyActions:automaticallyImplyLeading,
-      leading: automaticallyImplyLeading
+      leading: automaticallyImplyLeading == true
           ? IconButton(
         onPressed: () => Navigator.pop(context),
-        padding: const EdgeInsets.all(12), // Increase hit area
+        padding: const EdgeInsets.all(12),
         constraints: const BoxConstraints(
           minWidth: 56,
           minHeight: 56,
@@ -49,33 +51,35 @@ class ReusableSliverAppBar extends StatelessWidget {
           ),
         ),
       )
-          : IconButton(
+          : automaticallyImplyLeading == false
+          ? IconButton(
         onPressed: onMenuTap,
         icon: const Icon(
           Icons.menu,
           color: Color(0xFFE3E3E3),
         ),
-      ),
-      // actions: [
-      //  IconButton(
-      //      onPressed: (){},
-      //      icon: SvgPicture.asset("Assets/appBar&NavBar/plusIcon.svg"),
-      //  ),
-      //   IconButton(
-      //       onPressed: (){},
-      //       icon: SvgPicture.asset("Assets/appBar&NavBar/bellIcon.svg"),
-      //   )
-      // ],
-      title:titleWidget?? Text(
-        title??'',
-        textAlign: TextAlign.left,
-        style:  TextStyle(
-          color: ColorScheme.of(context).surface,
-          fontWeight: FontWeight.w600,
-          fontSize: (MediaQuery.of(context).size.width * 0.06).clamp(14.0, 18.0),
-          letterSpacing: 0.5,
+      )
+          : null,
+
+      title: Padding(
+        padding: EdgeInsets.only(
+          left: automaticallyImplyLeading == null ?
+           MediaQuery.of(context).size.width*0.04 : 0.0,
         ),
+        child: titleWidget ??
+            Text(
+              title ?? '',
+              textAlign: TextAlign.left,
+              style: TextStyle(
+                color: ColorScheme.of(context).surface,
+                fontWeight: FontWeight.w600,
+                fontSize:
+                (MediaQuery.of(context).size.width * 0.06).clamp(14.0, 18.0),
+                letterSpacing: 0.5,
+              ),
+            ),
       ),
+    actions: actions,
 
     //  backgroundColor: Colors.black,
       //automaticallyImplyLeading: true,
