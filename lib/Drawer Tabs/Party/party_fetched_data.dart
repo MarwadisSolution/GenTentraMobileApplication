@@ -92,6 +92,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
     required List<LeaderGroupModel> leaders,
     required List<MemberDirectoryModel> members,
     required Map<String, List<MemberDirectoryModel>> membersByRegion,
+    required ScrollController scrollController,
   }) {
     switch (_tabController.index) {
       case 0:
@@ -109,6 +110,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
       case 4:
         return FeedTab(
           partyId: widget.partyData["id"],
+          scrollController: scrollController,
         );
       default:
         return const SizedBox.shrink();
@@ -295,6 +297,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                     leaders: leaders,
                                     members: members,
                                     membersByRegion: membersByRegion,
+                                    scrollController: scrollController,
                                   ),
                                 ),
                               ],

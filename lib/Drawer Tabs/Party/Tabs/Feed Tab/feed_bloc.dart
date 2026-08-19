@@ -24,19 +24,76 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     on<DeleteFeedEvent>(_deleteFeed);
   }
 
-  Future<void> _loadFeed(LoadFeedEvent event, Emitter<FeedState> emit) async {
-    emit(state.copyWith(isLoading: true, isError: false));
+  Future<void> _loadFeed(
+      LoadFeedEvent event,
+      Emitter<FeedState> emit,
+      ) async {
+    final bool isFirstPage = event.page == 0;
+
+    // Don't make duplicate pagination requests
+    if (!isFirstPage) {
+      if (state.isLoadingMore || !state.hasMore) {
+        return;
+      }
+
+      emit(
+        state.copyWith(
+          isLoadingMore: true,
+          isError: false,
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(
+          isLoading: true,
+          isError: false,
+        ),
+      );
+    }
+
     try {
-      final feed = await api.getFeeds(
+      final newFeeds = await api.getFeeds(
         partyId: event.partyId,
         page: event.page,
         size: event.size,
       );
-      emit(state.copyWith(isLoading: false, feeds: feed));
+
+      // If less than 20 came back, there is no next page.
+      final bool hasMore = newFeeds.length == event.size;
+
+      if (isFirstPage) {
+        emit(
+          state.copyWith(
+            isLoading: false,
+            isLoadingMore: false,
+            isError: false,
+            feeds: newFeeds,
+            currentPage: 0,
+            hasMore: hasMore,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            isLoadingMore: false,
+            isError: false,
+
+
+            feeds: [
+              ...state.feeds,
+              ...newFeeds,
+            ],
+
+            currentPage: event.page,
+            hasMore: hasMore,
+          ),
+        );
+      }
     } catch (e) {
       emit(
         state.copyWith(
           isLoading: false,
+          isLoadingMore: false,
           isError: true,
           errorMessage: e.toString(),
         ),
@@ -100,6 +157,9 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
             isPostSuccess: true,
             isOfflineQueued: false,
             feeds: feed,
+            currentPage: 0,
+            hasMore: feed.length == 20,
+            isLoadingMore: false,
             errorMessage: '',
           ),
         );
@@ -173,6 +233,9 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           isLoading: false,
           isError: false,
           feeds: feed,
+          currentPage: 0,
+          hasMore: feed.length == 20,
+          isLoadingMore: false,
           errorMessage: message,
         ),
       );

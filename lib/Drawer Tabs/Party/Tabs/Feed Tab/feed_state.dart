@@ -10,6 +10,9 @@ class FeedState extends Equatable{
   final String errorMessage;
   final int selectYearFeed;
   final List<FeedModel> feeds;
+  final int currentPage;
+  final bool hasMore;
+  final bool isLoadingMore;
   const FeedState({
     this.isLoading=true,
     this.isError=false,
@@ -19,6 +22,9 @@ class FeedState extends Equatable{
     this.errorMessage='',
     this.selectYearFeed=2026,
      this.feeds=const[],
+    this.currentPage = 0,
+    this.hasMore = true,
+    this.isLoadingMore = false,
 });
   FeedState copyWith({
     bool? isLoading,
@@ -29,6 +35,9 @@ class FeedState extends Equatable{
     String? errorMessage,
     int? selectYearFeed,
     List<FeedModel>? feeds,
+    int? currentPage,
+    bool? hasMore,
+    bool? isLoadingMore,
 }){
     return FeedState(
       isLoading: isLoading??this.isLoading,
@@ -39,6 +48,9 @@ class FeedState extends Equatable{
       errorMessage: errorMessage??this.errorMessage,
       selectYearFeed: selectYearFeed??this.selectYearFeed,
       feeds: feeds??this.feeds,
+      currentPage: currentPage ?? this.currentPage,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
   factory FeedState.initial()=> FeedState();
@@ -53,5 +65,8 @@ class FeedState extends Equatable{
         errorMessage,
         selectYearFeed,
         feeds,
+        currentPage,
+        hasMore,
+        isLoadingMore,
       ];
 }

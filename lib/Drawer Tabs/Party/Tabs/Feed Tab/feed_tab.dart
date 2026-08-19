@@ -15,7 +15,8 @@ import 'apis.dart';
 
 class FeedTab extends StatefulWidget {
   final int partyId;
-  const FeedTab({super.key, required this.partyId});
+  final ScrollController scrollController;
+  const FeedTab({super.key, required this.partyId,required this.scrollController,});
 
   @override
   State<FeedTab> createState() => _FeedTabState();
@@ -37,14 +38,45 @@ class _FeedTabState extends State<FeedTab> {
       isAdmin = admin;
     });
   }
+  void _onScroll() {
+    if (!widget.scrollController.hasClients) return;
 
+    final feedBloc = context.read<FeedBloc>();
+    final feedState = feedBloc.state;
+
+    if (widget.scrollController.position.extentAfter < 500 &&
+        !feedState.isLoadingMore &&
+        feedState.hasMore) {
+      feedBloc.add(
+        LoadFeedEvent(
+          partyId: widget.partyId,
+          page: feedState.currentPage + 1,
+          size: 20,
+        ),
+      );
+    }
+  }
   @override
   void initState() {
     super.initState();
-    isAdminChecking();
-    context.read<FeedBloc>().add(LoadFeedEvent(partyId: widget.partyId));
-  }
 
+    isAdminChecking();
+
+    context.read<FeedBloc>().add(
+      LoadFeedEvent(
+        partyId: widget.partyId,
+        page: 0,
+        size: 20,
+      ),
+    );
+
+    widget.scrollController.addListener(_onScroll);
+  }
+  @override
+  void dispose() {
+    widget.scrollController.removeListener(_onScroll);
+    super.dispose();
+  }
   Future<void> shareFeed(dynamic feed) async {
     final String shareLink =
         'https://gentantrabackend-production.up.railway.app/feed/${feed.uuid}';
@@ -95,8 +127,17 @@ class _FeedTabState extends State<FeedTab> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.all(h * 0.012),
-          itemCount: state.feeds.length,
+          itemCount: state.feeds.length + (state.isLoadingMore ? 1 : 0),
           itemBuilder: (context, index) {
+            if(index>=state.feeds.length){
+              return const Padding(padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Colors.black,
+                ),
+              ),
+              );
+            }
             final feed = state.feeds[index];
             return Container(
               key: ValueKey(feed.id ?? index),
@@ -128,14 +169,29 @@ class _FeedTabState extends State<FeedTab> {
                         letterSpacing: 0.31,
                       ),
                     ),
-                    subtitle: Text(
-                      feed.author?.region ?? "-",
-                      style: TextStyle(
-                        fontSize: (w * 0.025).clamp(12.0, 15.0),
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 0.21,
-                        color: const Color(0xFF666666),
-                      ),
+                    subtitle: Row(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          feed.author?.state ?? "-",
+                          style: TextStyle(
+                            fontSize: (w * 0.025).clamp(12.0, 15.0),
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0.21,
+                            color: const Color(0xFF666666),
+                          ),
+                        ),
+                        SizedBox(width: w*0.01,),
+                        Text(
+                          feed.author?.country ?? "",
+                          style: TextStyle(
+                            fontSize: (w * 0.025).clamp(12.0, 15.0),
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0.21,
+                            color: const Color(0xFF666666),
+                          ),
+                        ),
+                      ],
                     ),
                     trailing: isAdmin == true
                         ? PopupMenuButton<String>(
@@ -403,17 +459,11 @@ class _LikeButtonState extends State<LikeButton> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: likePost,
-      child: SizedBox(
-        width: 40,
-        height: 40,
-        child: Center(
-          child: SvgPicture.asset(
-            PartyPageData.likeIcon,
-            colorFilter: isLiked
-                ? const ColorFilter.mode(Color(0xFFFE3A31), BlendMode.srcIn)
-                : null,
-          ),
-        ),
+      child: Center(
+        child:Icon(Icons.thumb_up,
+        size: MediaQuery.of(context).size.height*0.04 ,
+        color: isLiked?Color(0xFFFE3A31):Colors.grey,
+        )
       ),
     );
   }

@@ -107,7 +107,8 @@ class Author {
   final String? region;
   final String? designation;
   final String? photoUrl;
-
+  final String? state;
+  final String? country;
   Author({
     this.type,
     this.id,
@@ -115,6 +116,8 @@ class Author {
     this.region,
     this.designation,
     this.photoUrl,
+    this.state,
+    this.country,
   });
 
   factory Author.fromJson(Map<String, dynamic> json) {
@@ -125,6 +128,8 @@ class Author {
       region: json["region"],
       designation: json["designation"],
       photoUrl: json["photoUrl"],
+      state: json["state"],
+        country:json["country"],
     );
   }
 
@@ -135,6 +140,8 @@ class Author {
     "region": region,
     "designation": designation,
     "photoUrl": photoUrl,
+    "state":state,
+    "country":country,
   };
 }
 ///-------------Feed Media
