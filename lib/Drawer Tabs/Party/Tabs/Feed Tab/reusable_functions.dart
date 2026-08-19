@@ -537,14 +537,14 @@ class LeaderPickerDialog extends StatefulWidget {
     this.existingTagged = const [],
   });
 
-  static Future<List<Tagged>?> show({
+  static Future<Map<String, dynamic>?> show({
     required Future<List<LeaderModel>> Function(String text) searchFunction,
     required bool isNew,
     required bool single,
     required BuildContext context,
     List<Tagged> existingTagged = const [],
   }) {
-    return showDialog<List<Tagged>?>(
+    return showDialog<Map<String, dynamic>?>(
       context: context,
       barrierDismissible: false,
       builder: (_) => LeaderPickerDialog(
@@ -566,6 +566,8 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
   List<LeaderModel> leaders = [];
 
   List<LeaderModel> selectedLeaders = [];
+
+  List<LeaderModel> removedExistingLeaders = [];
 
   bool loading = false;
 
@@ -716,10 +718,15 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
                               (e) => e.id == leader.id,
                         );
 
-                        final checked = alreadyTagged ||
-                            selectedLeaders.any(
-                                  (e) => e.id == leader.id,
-                            );
+                        final isSelected = selectedLeaders.any(
+                              (e) => e.id == leader.id,
+                        );
+
+                        final isRemoved = removedExistingLeaders.any(
+                              (e) => e.id == leader.id,
+                        );
+
+                        final checked = !isRemoved && (alreadyTagged || isSelected);
                         return Column(
                           children: [
                             ListTile(
@@ -728,11 +735,25 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
                                       (e) => e.id == leader.id,
                                 );
 
-                                if (alreadyTagged) {
-                                  return;
-                                }
-
                                 setState(() {
+                                  // Previously tagged leader
+                                  if (alreadyTagged) {
+                                    final removedIndex = removedExistingLeaders.indexWhere(
+                                          (e) => e.id == leader.id,
+                                    );
+
+                                    if (removedIndex != -1) {
+                                      // User selected it again
+                                      removedExistingLeaders.removeAt(removedIndex);
+                                    } else {
+                                      // User wants to untag it
+                                      removedExistingLeaders.add(leader);
+                                    }
+
+                                    return;
+                                  }
+
+                                  // Newly selected leader
                                   final index = selectedLeaders.indexWhere(
                                         (e) => e.id == leader.id,
                                   );
@@ -846,7 +867,8 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
                         SizedBox(width: w * 0.07),
                         InkWell(
                           onTap: () {
-                            if (selectedLeaders.isEmpty) {
+                            if (selectedLeaders.isEmpty &&
+                                removedExistingLeaders.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("Please select a leader"),
@@ -854,17 +876,20 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
                               );
                               return;
                             }
-                            final List<Tagged> taggedLeaders = selectedLeaders
-                                .map((leader) {
-                                  return Tagged(
-                                    type: "POLITICIAN",
-                                    id: leader.id,
-                                    name: leader.name,
-                                    photoUrl: leader.image,
-                                  );
-                                })
-                                .toList();
-                            Navigator.pop(context, taggedLeaders);
+
+                            final List<Tagged> taggedLeaders = selectedLeaders.map((leader) {
+                              return Tagged(
+                                type: "POLITICIAN",
+                                id: leader.id,
+                                name: leader.name,
+                                photoUrl: leader.image,
+                              );
+                            }).toList();
+
+                            Navigator.pop(context, {
+                              'added': taggedLeaders,
+                              'removed': removedExistingLeaders.map((e) => e.id).toList(),
+                            });
                           },
                           child: Container(
                             height: h * 0.05,

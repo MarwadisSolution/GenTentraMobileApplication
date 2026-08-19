@@ -46,6 +46,9 @@ Future<void> logoutUser() async {
   await prefs.remove("accessToken");
   await prefs.remove("refreshToken");
   await prefs.remove("userUuid");
+  if(prefs.getString('role')=="ROLE_PARTY_ADMIN") {
+    await prefs.remove("AdminOfParty");
+  }
   await prefs.remove("role");
   await prefs.remove("loginTime");
   await prefs.setBool("isLogged", false);

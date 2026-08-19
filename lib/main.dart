@@ -4,12 +4,19 @@ import 'package:gen_tentra_mobile_application/Services/deep_link_service.dart';
 import 'package:gen_tentra_mobile_application/splash_screen.dart';
 import 'package:gen_tentra_mobile_application/temp_screen_for_url.dart';
 
+import 'Drawer Tabs/Party/Tabs/Feed Tab/Offline/network_sync_manager.dart';
 import 'Home Page/home_page.dart';
 import 'Login Page/otp_page.dart';
 final GlobalKey<NavigatorState> navigatorKey =
 GlobalKey<NavigatorState>();
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  NetworkSyncManager.instance.start();
+
+  runApp(
+    const MyApp(),
+  );
 }
 class MyApp extends StatefulWidget {
 

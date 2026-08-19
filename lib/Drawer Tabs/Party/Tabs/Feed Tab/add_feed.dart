@@ -289,8 +289,20 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
     );
 
     if (result != null) {
+      final List<Tagged> added =
+          (result['added'] as List<Tagged>?) ?? [];
+
+      final List<dynamic> removed =
+          (result['removed'] as List<dynamic>?) ?? [];
+
       setState(() {
-        for (final newPerson in result) {
+        // Remove previously tagged people
+        taggedPeople.removeWhere(
+              (person) => removed.contains(person.id),
+        );
+
+        // Add newly selected people
+        for (final newPerson in added) {
           final alreadyTagged = taggedPeople.any(
                 (person) =>
             person.id == newPerson.id &&
@@ -439,16 +451,18 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
       listener: (context, state) {
         if (state.isPostSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               backgroundColor: Colors.green,
               content: Text(
-                "Successfully published",
-                style: TextStyle(color: Colors.white),
+                state.isOfflineQueued
+                    ? "Saved offline. It will be published automatically when internet is restored."
+                    : "Successfully published",
+                style: const TextStyle(
+                  color: Colors.white,
+                ),
               ),
             ),
           );
-
-          debugPrint("NAVIGATING BACK AFTER SUCCESS");
 
           Navigator.pop(context, true);
         }
@@ -644,8 +658,20 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
                                               );
 
                                               if (result != null) {
+                                                final List<Tagged> added =
+                                                    (result['added'] as List<Tagged>?) ?? [];
+
+                                                final List<dynamic> removed =
+                                                    (result['removed'] as List<dynamic>?) ?? [];
+
                                                 setState(() {
-                                                  for (final newPerson in result) {
+                                                  // Remove untagged existing people
+                                                  taggedPeople.removeWhere(
+                                                        (person) => removed.contains(person.id),
+                                                  );
+
+                                                  // Add newly tagged people
+                                                  for (final newPerson in added) {
                                                     final alreadyTagged = taggedPeople.any(
                                                           (person) =>
                                                       person.id == newPerson.id &&
