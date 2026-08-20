@@ -11,6 +11,7 @@ import 'package:readmore/readmore.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'add_feed.dart';
 import 'apis.dart';
 
 class FeedTab extends StatefulWidget {
@@ -139,6 +140,7 @@ class _FeedTabState extends State<FeedTab> {
               );
             }
             final feed = state.feeds[index];
+           // print("Feeds:--- ${feed.media![0].url}");
             return Container(
               key: ValueKey(feed.id ?? index),
               margin: EdgeInsets.only(bottom: h * 0.012),
@@ -200,7 +202,25 @@ class _FeedTabState extends State<FeedTab> {
                         height: h * 0.005,
                       ),
                       onSelected: (value) async {
-                        if (value == 'share') {
+                        if (value == 'edit') {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => BlocProvider.value(
+                                value: context.read<FeedBloc>(),
+                                child: AddFeed(
+                                  partyId: widget.partyId,
+                                  editFeed: feed,
+                                ),
+                              ),
+                            ),
+                          );
+
+                          if (result == true && mounted) {
+                            setState(() {});
+                          }
+                        }
+                       else if (value == 'share') {
                           shareFeed(feed);
                         } else if (value == 'delete') {
                           final shouldDelete = await showDialog<bool>(
@@ -324,6 +344,7 @@ class _FeedTabState extends State<FeedTab> {
                   ] else if (feed.kind == "QUOTE" && feed.hidden == false) ...[
                     SizedBox(height: h * 0.012),
                     FeedQuoteWidget(
+                      feed.id,
                       feed.quote!["quote"],
                       feed.quote!["author"],
                       feed.media!,

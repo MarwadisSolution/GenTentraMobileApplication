@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../../../../Login Page/Refresh Token/refresh_token.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
@@ -106,5 +107,41 @@ class FeedApis {
     }
      return "Unable to delete post, try again";
   }
+  /// UPDATE Feed / Quote
+  Future<FeedModel> updateThePost({
+    required FeedModel feed,
+    required List<int> deletedMediaIds,
+  }) async {
+    try {
+      final Map<String, dynamic> data = feed.toJson();
+
+      // Add deleted media IDs only if there are any
+      if (deletedMediaIds.isNotEmpty) {
+        data["deletedMediaIds"] = deletedMediaIds;
+      }
+
+      debugPrint("PATCH DATA:");
+      debugPrint(jsonEncode(data));
+
+      final response = await _dio.patch(
+        "$api/api/v1/feed/posts/${feed.id}",
+        data: data,
+        options: Options(
+          contentType: Headers.jsonContentType,
+        ),
+      );
+
+      return FeedModel.fromJson(
+        response.data["data"],
+      );
+    } on DioException catch (e) {
+      debugPrint("PATCH API ERROR: ${e.response?.data}");
+
+      throw Exception(
+        e.response?.data ?? e.message,
+      );
+    }
+  }
 
 }
+

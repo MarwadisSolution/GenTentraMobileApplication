@@ -20,11 +20,13 @@ import 'feed_model.dart';
 
 class AddFeed extends StatefulWidget {
   final int partyId;
+  final FeedModel? editFeed;
   const AddFeed({
     super.key,
-    required this.partyId
+    required this.partyId,
+    this.editFeed,
   });
-
+  bool get isEditMode => editFeed != null;
   @override
   State<AddFeed> createState() => _AddFeedState();
 }
@@ -38,14 +40,110 @@ class _AddFeedState extends State<AddFeed> {
   void initState() {
     super.initState();
 
-    final now = DateTime.now();
+    if (widget.editFeed != null) {
+      _initializeEditData(widget.editFeed!);
+    } else {
+      final now = DateTime.now();
 
-    scheduleController.text =
-    "${now.day.toString().padLeft(2, '0')}-"
-        "${now.month.toString().padLeft(2, '0')}-"
-        "${now.year} "
-        "${now.hour.toString().padLeft(2, '0')}:"
-        "${now.minute.toString().padLeft(2, '0')}";
+      scheduleController.text =
+      "${now.day.toString().padLeft(2, '0')}-"
+          "${now.month.toString().padLeft(2, '0')}-"
+          "${now.year} "
+          "${now.hour.toString().padLeft(2, '0')}:"
+          "${now.minute.toString().padLeft(2, '0')}";
+    }
+  }
+  Future<void> _deleteExistingMedia({
+    required bool isVideo,
+    required int index,
+  }) async {
+    try {
+      final List<FeedMedia> list =
+      isVideo ? existingVideos : existingImages;
+
+      if (index < 0 || index >= list.length) return;
+
+      final media = list[index];
+
+      // Add ID so backend deletes it when UPDATE is submitted
+      if (media.id != null) {
+        if (!deletedMediaIds.contains(media.id!)) {
+          deletedMediaIds.add(media.id!);
+        }
+      }
+
+      // If this video is currently playing, stop it
+      if (isVideo &&
+          playingExistingVideo &&
+          playingVideoIndex == index) {
+        await _videoController?.pause();
+        await _videoController?.dispose();
+
+        _videoController = null;
+        playingVideoIndex = null;
+        playingExistingVideo = false;
+      }
+
+      setState(() {
+        list.removeAt(index);
+      });
+    } catch (e) {
+      debugPrint("Error deleting existing media: $e");
+    }
+  }
+
+  Future<void> _deleteSelectedMedia({
+    required bool isVideo,
+    required int index,
+  }) async {
+    try {
+      final List<XFile> list =
+      isVideo ? selectedVideos : selectedImages;
+
+      if (index < 0 || index >= list.length) return;
+
+      // Stop currently playing new video
+      if (isVideo &&
+          !playingExistingVideo &&
+          playingVideoIndex == index) {
+        await _videoController?.pause();
+        await _videoController?.dispose();
+
+        _videoController = null;
+        playingVideoIndex = null;
+        playingExistingVideo = false;
+      }
+
+      setState(() {
+        list.removeAt(index);
+      });
+    } catch (e) {
+      debugPrint("Error deleting selected media: $e");
+    }
+  }
+  void _initializeEditData(FeedModel feed) {
+    if (feed.kind == "POST") {
+      selectedTab = 0;
+
+      titleController.text = feed.title ?? "";
+      descriptionController.text = feed.body ?? "";
+    } else if (feed.kind == "QUOTE") {
+      selectedTab = 1;
+    }
+
+    taggedPeople = List<Tagged>.from(feed.tagged ?? []);
+
+    if (feed.media != null) {
+      existingImages = feed.media!
+          .where((media) =>
+      media.mediaType?.toUpperCase() == "IMAGE")
+          .toList();
+
+      existingVideos = feed.media!
+          .where((media) =>
+      media.mediaType?.toUpperCase() == "VIDEO")
+          .toList();
+    }
   }
   @override
   void dispose() {
@@ -63,10 +161,13 @@ class _AddFeedState extends State<AddFeed> {
   ///--------------Adding images and videos
   List<XFile> selectedImages = [];
   List<XFile>selectedVideos=[];
+  List<FeedMedia> existingImages = [];
+  List<FeedMedia> existingVideos = [];
+  List<int> deletedMediaIds = [];
   final ImagePicker imagePicker = ImagePicker();
-
   VideoPlayerController? _videoController;
   int? playingVideoIndex;
+  bool playingExistingVideo = false;
   ///---------Media picking
   Future<void>pickMedia()async{
     try{
@@ -96,33 +197,57 @@ class _AddFeedState extends State<AddFeed> {
     }
   }
   ///-------Open video
-  Future<void>playVideo(int index)async{
-    try{
-      if(playingVideoIndex==index && _videoController!=null &&
-      _videoController!.value.isInitialized
-      ){
-        if(_videoController!.value.isInitialized){
+  Future<void> playVideo(
+      int index, {
+        required bool isExisting,
+      }) async {
+    try {
+      // Same video
+      if (playingVideoIndex == index &&
+          playingExistingVideo == isExisting &&
+          _videoController != null &&
+          _videoController!.value.isInitialized) {
+
+        if (_videoController!.value.isPlaying) {
           await _videoController!.pause();
-        }
-        else{
+        } else {
           await _videoController!.play();
         }
-        setState(() {});
-        return;
 
+        if (mounted) setState(() {});
+
+        return;
       }
+
       await _videoController?.dispose();
-      final controller=VideoPlayerController.file(
-        File(selectedVideos[index].path),
-      );
-      _videoController=controller;
-      playingVideoIndex=index;
+      _videoController = null;
+
+      late VideoPlayerController controller;
+
+      if (isExisting) {
+        final url = existingVideos[index].url;
+
+        if (url == null || url.isEmpty) return;
+
+        controller = VideoPlayerController.networkUrl(
+          Uri.parse(url),
+        );
+      } else {
+        controller = VideoPlayerController.file(
+          File(selectedVideos[index].path),
+        );
+      }
+
+      _videoController = controller;
+      playingVideoIndex = index;
+      playingExistingVideo = isExisting;
+
       await controller.initialize();
       await controller.play();
-      setState(() {});
-    }
-    catch(e){
-      print("Error Playing video: $e");
+
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint("Error Playing video: $e");
     }
   }
 ///Showing tagged peoples
@@ -362,21 +487,39 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
       }
 
       final feed = FeedModel(
+        id: widget.editFeed?.id,
         kind: "POST",
         title: titleController.text.trim(),
         body: descriptionController.text.trim(),
         authorPartyId: widget.partyId,
         tagged: taggedPeople,
         scheduledAt: scheduledAt,
+
+        // IMPORTANT: preserve existing media that was NOT deleted
+        media: [
+          ...existingImages,
+          ...existingVideos,
+        ],
       );
 
-      context.read<FeedBloc>().add(
-        AddNewFeedEvent(
-          feed: feed,
-          mediaFiles: mediaFiles,
-          partyId: widget.partyId,
-        ),
-      );
+      if (widget.isEditMode) {
+        context.read<FeedBloc>().add(
+            UpdateFeedEvent(
+              feed: feed,
+              mediaFiles: mediaFiles,
+              deletedMediaIds: deletedMediaIds,
+              partyId: widget.partyId,
+            )
+        );
+      }else {
+        context.read<FeedBloc>().add(
+          AddNewFeedEvent(
+            feed: feed,
+            mediaFiles: mediaFiles,
+            partyId: widget.partyId,
+          ),
+        );
+      }
     } catch (e) {
       debugPrint("Error creating feed event: $e");
 
@@ -405,25 +548,34 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
       }
 
       final feed = FeedModel(
+        id: widget.editFeed?.id,
         kind: "QUOTE",
         quote: {
           "quote": quoteText,
           "author": authorName,
         },
-
-        // IMPORTANT: don't hardcode 4
         authorPartyId: widget.partyId,
-
         tagged: taggedPeople,
       );
 
-      context.read<FeedBloc>().add(
-        AddNewFeedEvent(
-          feed: feed,
-          mediaFiles: mediaFiles,
-          partyId: widget.partyId,
-        ),
-      );
+      if (widget.isEditMode) {
+        context.read<FeedBloc>().add(
+            UpdateFeedEvent(
+              feed: feed,
+              mediaFiles: mediaFiles,
+              deletedMediaIds: deletedMediaIds,
+              partyId: widget.partyId,
+            )
+        );
+      }else {
+        context.read<FeedBloc>().add(
+          AddNewFeedEvent(
+            feed: feed,
+            mediaFiles: mediaFiles,
+            partyId: widget.partyId,
+          ),
+        );
+      }
     } catch (e) {
       debugPrint("Error creating quote event: $e");
 
@@ -438,6 +590,7 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
   }
   @override
   Widget build(BuildContext context) {
+
     final w = MediaQuery
         .of(context)
         .size
@@ -852,13 +1005,17 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
                                       ),
                                     ],),
                                     ///----------------Showing images
-                                    if (selectedImages.isNotEmpty || selectedVideos.isNotEmpty) ...[
+                                    if (selectedImages.isNotEmpty || selectedVideos.isNotEmpty || existingImages.isNotEmpty || existingVideos.isNotEmpty) ...[
                                       SizedBox(height: h * 0.01),
 
                                       GridView.builder(
                                         shrinkWrap: true,
                                         physics: const NeverScrollableScrollPhysics(),
-                                        itemCount: selectedImages.length + selectedVideos.length,
+                                        itemCount:
+                                        existingImages.length +
+                                            existingVideos.length +
+                                            selectedImages.length +
+                                            selectedVideos.length,
                                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                           crossAxisCount: 3,
                                           crossAxisSpacing: 3,
@@ -866,17 +1023,23 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
                                         ),
                                         itemBuilder: (context, index) {
 
-                                          // ---------------- IMAGE ----------------
-                                          if (index < selectedImages.length) {
-                                            final image = selectedImages[index];
+                                          // =========================================================
+                                          // 1. EXISTING IMAGES
+                                          // =========================================================
+
+                                          if (index < existingImages.length) {
+                                            final imageIndex = index;
+                                            final image = existingImages[imageIndex];
+
+                                            print("existingImages[$imageIndex].url = ${image.url}");
 
                                             return Stack(
                                               children: [
                                                 Positioned.fill(
                                                   child: ClipRRect(
                                                     borderRadius: BorderRadius.circular(4),
-                                                    child: Image.file(
-                                                      File(image.path),
+                                                    child: buildImageWidget(
+                                                      image.url ?? "",
                                                       fit: BoxFit.cover,
                                                     ),
                                                   ),
@@ -888,7 +1051,14 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
                                                   child: InkWell(
                                                     onTap: () {
                                                       setState(() {
-                                                        selectedImages.removeAt(index);
+                                                        final media = existingImages[imageIndex];
+
+                                                        if (media.id != null &&
+                                                            !deletedMediaIds.contains(media.id!)) {
+                                                          deletedMediaIds.add(media.id!);
+                                                        }
+
+                                                        existingImages.removeAt(imageIndex);
                                                       });
                                                     },
                                                     child: Container(
@@ -910,28 +1080,241 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
                                             );
                                           }
 
-                                          // ---------------- VIDEO ----------------
 
-                                          final videoIndex = index - selectedImages.length;
+                                          // =========================================================
+                                          // 2. EXISTING VIDEOS
+                                          // =========================================================
+
+                                          final existingVideoStart = existingImages.length;
+
+                                          final existingVideoEnd =
+                                              existingImages.length + existingVideos.length;
+
+                                          if (index >= existingVideoStart &&
+                                              index < existingVideoEnd) {
+
+                                            final videoIndex =
+                                                index - existingVideoStart;
+
+                                            final video = existingVideos[videoIndex];
+
+                                            print(
+                                                "existingVideos[$videoIndex].url = ${video.url}"
+                                            );
+
+                                            return Stack(
+                                              children: [
+                                                Positioned.fill(
+                                                  child: InkWell(
+                                                    onTap: () async {
+                                                      await playVideo(
+                                                        videoIndex,
+                                                        isExisting: true,
+                                                      );
+                                                    },
+                                                    child: ClipRRect(
+                                                      borderRadius: BorderRadius.circular(4),
+                                                      child: Container(
+                                                        color: Colors.black87,
+                                                        child:
+                                                        playingVideoIndex == videoIndex &&
+                                                            playingExistingVideo &&
+                                                            _videoController != null &&
+                                                            _videoController!.value.isInitialized
+                                                            ? Center(
+                                                          child: AspectRatio(
+                                                            aspectRatio:
+                                                            _videoController!
+                                                                .value
+                                                                .aspectRatio,
+                                                            child: VideoPlayer(
+                                                              _videoController!,
+                                                            ),
+                                                          ),
+                                                        )
+                                                            : const Center(
+                                                          child: Icon(
+                                                            Icons.play_circle_fill,
+                                                            color: Colors.white,
+                                                            size: 45,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+
+                                                Positioned(
+                                                  bottom: 5,
+                                                  left: 5,
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 3,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.black54,
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: const Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.videocam,
+                                                          color: Colors.white,
+                                                          size: 14,
+                                                        ),
+                                                        SizedBox(width: 3),
+                                                        Text(
+                                                          "VIDEO",
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 10,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+
+                                                Positioned(
+                                                  top: 4,
+                                                  right: 4,
+                                                  child: InkWell(
+                                                    onTap: () {
+                                                      setState(() {
+                                                        final media = existingVideos[videoIndex];
+
+                                                        if (media.id != null &&
+                                                            !deletedMediaIds.contains(media.id!)) {
+                                                          deletedMediaIds.add(media.id!);
+                                                        }
+
+                                                        existingVideos.removeAt(videoIndex);
+                                                      });
+                                                    },
+                                                    child: Container(
+                                                      height: 22,
+                                                      width: 22,
+                                                      decoration: const BoxDecoration(
+                                                        color: Colors.black54,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons.close,
+                                                        color: Colors.white,
+                                                        size: 15,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          }
+
+
+                                          // =========================================================
+                                          // 3. SELECTED / NEW IMAGES
+                                          // =========================================================
+
+                                          final selectedImageStart =
+                                              existingImages.length +
+                                                  existingVideos.length;
+
+                                          final selectedImageEnd =
+                                              selectedImageStart +
+                                                  selectedImages.length;
+
+                                          if (index >= selectedImageStart &&
+                                              index < selectedImageEnd) {
+
+                                            final imageIndex =
+                                                index - selectedImageStart;
+
+                                            final image = selectedImages[imageIndex];
+
+                                            return Stack(
+                                              children: [
+                                                Positioned.fill(
+                                                  child: ClipRRect(
+                                                    borderRadius: BorderRadius.circular(4),
+                                                    child: Image.file(
+                                                      File(image.path),
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  ),
+                                                ),
+
+                                                Positioned(
+                                                  top: 4,
+                                                  right: 4,
+                                                  child: InkWell(
+                                                    onTap: () {
+                                                      setState(() {
+                                                        selectedImages.removeAt(imageIndex);
+                                                      });
+                                                    },
+                                                    child: Container(
+                                                      height: 22,
+                                                      width: 22,
+                                                      decoration: const BoxDecoration(
+                                                        color: Colors.black54,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons.close,
+                                                        color: Colors.white,
+                                                        size: 15,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          }
+
+
+                                          // =========================================================
+                                          // 4. SELECTED / NEW VIDEOS
+                                          // =========================================================
+
+                                          final selectedVideoStart =
+                                              existingImages.length +
+                                                  existingVideos.length +
+                                                  selectedImages.length;
+                                          final videoIndex =
+                                              index - selectedVideoStart;
+
+                                          final video = selectedVideos[videoIndex];
 
                                           return Stack(
                                             children: [
                                               Positioned.fill(
                                                 child: InkWell(
                                                   onTap: () async {
-                                                    await playVideo(videoIndex);
+                                                    await playVideo(
+                                                      videoIndex,
+                                                      isExisting: false,
+                                                    );
                                                   },
                                                   child: ClipRRect(
                                                     borderRadius: BorderRadius.circular(4),
                                                     child: Container(
                                                       color: Colors.black87,
-                                                      child: playingVideoIndex == videoIndex &&
+                                                      child:
+                                                      playingVideoIndex == videoIndex &&
+                                                          !playingExistingVideo &&
                                                           _videoController != null &&
                                                           _videoController!.value.isInitialized
                                                           ? Center(
                                                         child: AspectRatio(
-                                                          aspectRatio: _videoController!.value.aspectRatio,
-                                                          child: VideoPlayer(_videoController!),
+                                                          aspectRatio:
+                                                          _videoController!
+                                                              .value
+                                                              .aspectRatio,
+                                                          child: VideoPlayer(
+                                                            _videoController!,
+                                                          ),
                                                         ),
                                                       )
                                                           : const Center(
@@ -1052,7 +1435,9 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
                                                       width: MediaQuery.of(context).size.width * 0.02,
                                                     ),
                                                     Text(
-                                                      PartyPageData.publish,
+                                                      widget.isEditMode
+                                                          ? "UPDATE"
+                                                          : PartyPageData.publish,
                                                       textAlign: TextAlign.center,
                                                       style: TextStyle(
                                                         color: ColorScheme.of(context).surface,
@@ -1076,6 +1461,11 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
                                   onAddTaggedPeople: addMoreTaggedPeople,
                                   onShowTaggedPeople: showTaggedPeoplesDialog,
                                   onPublishQuote: _publishQuote,
+                                  initialQuote: widget.editFeed?.quote?["quote"],
+                                  initialAuthor: widget.editFeed?.quote?["author"],
+                                  initialImage: widget.editFeed?.media?.isNotEmpty == true
+                                      ? widget.editFeed?.media?.first.url
+                                      : null,
                                 ),
                               ),
                             ),

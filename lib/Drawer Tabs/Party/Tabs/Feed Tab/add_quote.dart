@@ -11,6 +11,7 @@ import 'feed_model.dart';
 
 class AddQuote extends StatefulWidget {
   final List<Tagged> taggedPeople;
+
   final Future<void> Function() onAddTaggedPeople;
   final Future<void> Function() onShowTaggedPeople;
   final Future<void> Function(
@@ -18,13 +19,18 @@ class AddQuote extends StatefulWidget {
       String authorName,
       XFile? image,
       ) onPublishQuote;
+  final String? initialQuote;
+  final String? initialAuthor;
+  final String? initialImage;
   const AddQuote({super.key,
     required this.taggedPeople,
     required this.onAddTaggedPeople,
     required this.onShowTaggedPeople,
     required this.onPublishQuote,
+    this.initialQuote,
+    this.initialAuthor,
+    this.initialImage,
   });
-
   @override
   State<AddQuote> createState() => _AddQuoteState();
 }
@@ -52,7 +58,20 @@ class _AddQuoteState extends State<AddQuote> {
       debugPrint("Error picking image: $e");
     }
   }
-
+  bool removeInitialImage = false;
+@override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    quoteController.text = widget.initialQuote ?? "";
+    authorNameController.text = widget.initialAuthor ?? "";
+  }
+  @override
+  void dispose() {
+    quoteController.dispose();
+    authorNameController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery
@@ -288,7 +307,8 @@ Row(
       width: w * 0.12,
       height: w * 0.12,
       decoration: BoxDecoration(
-        color: selectedImage == null
+        color: selectedImage == null &&
+            (widget.initialImage == null || removeInitialImage)
             ? Colors.black
             : Colors.black.withOpacity(0.3),
         shape: BoxShape.circle,
@@ -297,8 +317,10 @@ Row(
         color: Colors.transparent,
         shape: const CircleBorder(),
         child: InkWell(
-          onTap: selectedImage == null
-              ?pickImage:null,
+          onTap: selectedImage == null &&
+              (widget.initialImage == null || removeInitialImage)
+              ? pickImage
+              : null,
           customBorder: const CircleBorder(),
           child: Center(
             child: SvgPicture.asset(
@@ -320,18 +342,37 @@ Row(
         color: Colors.grey.shade200,
       ),
       child: ClipOval(
-        child: selectedImage!=null?
-        Image.file(File(selectedImage!.path),
+        child: selectedImage != null
+            ? Image.file(
+          File(selectedImage!.path),
           fit: BoxFit.cover,
-        ): Icon(Icons.image,size: w*0.17,color: ColorScheme.of(context).onSurface.withOpacity(0.2),),
+        )
+            : widget.initialImage != null && !removeInitialImage
+            ? buildImageWidget(
+          widget.initialImage!,
+          fit: BoxFit.cover,
+        )
+            : Icon(
+          Icons.image,
+          size: w * 0.17,
+          color: ColorScheme.of(context)
+              .onSurface
+              .withOpacity(0.2),
+        ),
+
       ),
     ),
     SizedBox(width: w * 0.07),
     InkWell(
       onTap: () {
-        if (selectedImage != null) {
+        if (selectedImage != null ) {
           setState(() {
             selectedImage = null;
+          });
+        }
+        else if (widget.initialImage != null && !removeInitialImage) {
+          setState(() {
+            removeInitialImage = true;
           });
         }
       },
@@ -340,7 +381,8 @@ Row(
         width: w * 0.12,
         height: w * 0.12,
         decoration: BoxDecoration(
-          color: selectedImage != null
+          color: selectedImage != null ||
+              (widget.initialImage != null && !removeInitialImage)
               ? Colors.black
               : Colors.black.withOpacity(0.3),
           shape: BoxShape.circle,

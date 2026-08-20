@@ -672,6 +672,7 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
 }
 ///----------------Quote showing design
 Widget FeedQuoteWidget(
+    final int? feedId,
     final String quote,
     final String author,
 final List<FeedMedia> media,
@@ -713,7 +714,19 @@ return Container(
             backgroundColor: Colors.transparent,
             child: ClipOval(
               child: SizedBox.expand(
-                child: Image.network(media[0].url!,fit: BoxFit.cover,),
+                child: media.isNotEmpty &&
+                    media[0].url != null &&
+                    media[0].url!.isNotEmpty
+                    ? buildImageWidget(
+                  media[0].url!,
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                )
+                    : const Icon(
+                  Icons.person,
+                  color: Colors.grey,
+                ),
               ),
             ),
           ),

@@ -63,8 +63,31 @@ class EditFeedEvent extends FeedEvent {
 class DeleteFeedEvent extends FeedEvent {
   final int id;
   final int partyId;
+
   const DeleteFeedEvent( this.id, this.partyId );
   @override
   List<Object?>get props=>[id,partyId];
+}
+
+class UpdateFeedEvent extends FeedEvent {
+  final FeedModel feed;
+  final List<File> mediaFiles;
+  final List<int> deletedMediaIds;
+  final int partyId;
+
+  const UpdateFeedEvent({
+    required this.feed,
+    required this.mediaFiles,
+    required this.deletedMediaIds,
+    required this.partyId,
+  });
+
+  @override
+  List<Object?> get props => [
+    feed,
+    mediaFiles,
+    deletedMediaIds,
+    partyId,
+  ];
 }
 

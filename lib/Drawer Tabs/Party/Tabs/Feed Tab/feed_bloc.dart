@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -9,7 +10,9 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Ta
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_event.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_state.dart';
 
+import '../../../../media_upload_api.dart';
 import 'apis.dart';
+import 'feed_model.dart';
 
 class FeedBloc extends Bloc<FeedEvent, FeedState> {
   final FeedApis api;
@@ -22,6 +25,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     on<AddNewFeedEvent>(_addNewFeed);
     on<YearWiseFeedEvent>(_yearWiseFeed);
     on<DeleteFeedEvent>(_deleteFeed);
+    on<UpdateFeedEvent>(_updateFeed);
   }
 
   Future<void> _loadFeed(
@@ -251,6 +255,148 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       );
     }
   }
+  Future<void> _updateFeed(
+      UpdateFeedEvent event,
+      Emitter<FeedState> emit,
+      ) async {
+    emit(
+      state.copyWith(
+        isPosting: true,
+        isError: false,
+        isPostSuccess: false,
+        errorMessage: '',
+      ),
+    );
+
+    try {
+      debugPrint("======================================");
+      debugPrint("UPDATING FEED ID: ${event.feed.id}");
+      debugPrint("======================================");
+
+      FeedModel updatedFeed = event.feed;
+// =========================================================
+// 1. UPLOAD NEW MEDIA
+// =========================================================
+
+      final List<FeedMedia> newlyUploadedMedia = [];
+
+      for (final file in event.mediaFiles) {
+        debugPrint("Uploading new media: ${file.path}");
+
+        // Determine type from ORIGINAL FILE
+        final mediaType = _getMediaTypeFromFile(file);
+
+        debugPrint("Detected media type: $mediaType");
+
+        final uploaded = await MediaUploadApi().uploadMedia(
+          filePaths: [file.path],
+          category: "feed",
+        );
+
+        if (uploaded.isNotEmpty) {
+          final uploadedUrl = uploaded.first;
+
+          newlyUploadedMedia.add(
+            FeedMedia(
+              id: null,
+              url: uploadedUrl,
+              mediaType: mediaType,
+            ),
+          );
+
+          debugPrint(
+            "Uploaded successfully: $uploadedUrl | type=$mediaType",
+          );
+        }
+      }
+// =========================================================
+// 2. ADD UPLOADED MEDIA TO FEED
+// =========================================================
+
+      final List<FeedMedia> currentMedia = List<FeedMedia>.from(
+        updatedFeed.media ?? <FeedMedia>[],
+      );
+
+// Remove media that user deleted
+      currentMedia.removeWhere(
+            (media) =>
+        media.id != null &&
+            event.deletedMediaIds.contains(media.id),
+      );
+
+// Add newly uploaded media
+      // Add newly uploaded media
+      currentMedia.addAll(newlyUploadedMedia);
+
+      updatedFeed = updatedFeed.copyWith(
+        media: currentMedia,
+      );
+
+      debugPrint("MEDIA AFTER DELETE + ADD:");
+
+      for (final media in currentMedia) {
+        debugPrint(
+          "id=${media.id}, url=${media.url}, type=${media.mediaType}",
+        );
+      }
+
+      // =========================================================
+      // 3. PATCH JSON
+      // =========================================================
+
+      debugPrint("Final feed before PATCH:");
+      debugPrint(
+        jsonEncode(updatedFeed.toJson()),
+      );
+
+      final result = await api.updateThePost(
+        feed: updatedFeed,
+        deletedMediaIds: event.deletedMediaIds,
+      );
+
+      // =========================================================
+      // 4. UPDATE LOCAL BLOC STATE
+      // =========================================================
+
+      final updatedFeeds = List<FeedModel>.from(
+        state.feeds,
+      );
+
+      final index = updatedFeeds.indexWhere(
+            (feed) => feed.id == result.id,
+      );
+
+      if (index != -1) {
+        updatedFeeds[index] = result;
+      }
+
+      emit(
+        state.copyWith(
+          isPosting: false,
+          isError: false,
+          isPostSuccess: true,
+          feeds: updatedFeeds,
+          errorMessage: '',
+        ),
+      );
+
+      debugPrint("======================================");
+      debugPrint("FEED UPDATED SUCCESSFULLY");
+      debugPrint("======================================");
+    } catch (e, stackTrace) {
+      debugPrint("UPDATE ERROR: $e");
+      debugPrint("$stackTrace");
+
+      emit(
+        state.copyWith(
+          isPosting: false,
+          isError: true,
+          isPostSuccess: false,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
 }
 bool isNetworkError(Object error) {
   /*
@@ -298,4 +444,20 @@ bool isNetworkError(Object error) {
   }
 
   return false;
+}
+
+
+String _getMediaTypeFromFile(File file) {
+  final path = file.path.toLowerCase();
+
+  if (path.endsWith('.mp4') ||
+      path.endsWith('.mov') ||
+      path.endsWith('.avi') ||
+      path.endsWith('.mkv') ||
+      path.endsWith('.webm') ||
+      path.endsWith('.m4v')) {
+    return "VIDEO";
+  }
+
+  return "IMAGE";
 }

@@ -77,8 +77,8 @@ factory FeedModel.fromJson(Map<String, dynamic>json){
         .map((e) => FeedMedia.fromJson(e))
         .toList()
         : [],
-    tagged: json["tagged"]!=null?
-    (json["tagged"] as List)
+    tagged: json["taggedPoliticians"]!=null?
+    (json["taggedPoliticians"] as List)
         .map((e)=>Tagged.fromJson(e)).toList():[],
     viewCount: json["viewCount"],
     likeCount: json["likeCount"],
@@ -86,17 +86,73 @@ factory FeedModel.fromJson(Map<String, dynamic>json){
     reacted: json["reactedByMe"],
   );
 }
-Map<String, dynamic>toJson(){
+Map<String, dynamic> toJson() {
   return {
     "title": title,
-    "body":body,
+    "body": body,
     "quote": quote,
-    "kind":kind,
+    "kind": kind,
 
     "authorPartyId": authorPartyId,
-    "tagged":tagged?.map((e)=>e.toPostJson()).toList(),
-    "scheduledAt": scheduledAt?.toIso8601String(),
+
+    "taggedPoliticiansIds":
+    tagged?.map((e) => e.toPostJson()).toList(),
+
+    "scheduledAt":
+    scheduledAt?.toIso8601String(),
+
+    // IMPORTANT
+    "media": media
+        ?.map((e) => e.toJson())
+        .toList(),
   };
+}
+FeedModel copyWith({
+  int? id,
+  String? uuid,
+  Author? author,
+  int? authorUserId,
+  int? authorPartyId,
+  String? kind,
+  String? title,
+  String? body,
+  Map<String, dynamic>? quote,
+  int? repostPostId,
+  String? status,
+  bool? hidden,
+  DateTime? scheduledAt,
+  DateTime? timestamp,
+  DateTime? updatedAt,
+  List<FeedMedia>? media,
+  List<Tagged>? tagged,
+  int? viewCount,
+  int? likeCount,
+  int? commentCount,
+  bool? reacted,
+}) {
+  return FeedModel(
+    id: id ?? this.id,
+    uuid: uuid ?? this.uuid,
+    author: author ?? this.author,
+    authorUserId: authorUserId ?? this.authorUserId,
+    authorPartyId: authorPartyId ?? this.authorPartyId,
+    kind: kind ?? this.kind,
+    title: title ?? this.title,
+    body: body ?? this.body,
+    quote: quote ?? this.quote,
+    repostPostId: repostPostId ?? this.repostPostId,
+    status: status ?? this.status,
+    hidden: hidden ?? this.hidden,
+    scheduledAt: scheduledAt ?? this.scheduledAt,
+    timestamp: timestamp ?? this.timestamp,
+    updatedAt: updatedAt ?? this.updatedAt,
+    media: media ?? this.media,
+    tagged: tagged ?? this.tagged,
+    viewCount: viewCount ?? this.viewCount,
+    likeCount: likeCount ?? this.likeCount,
+    commentCount: commentCount ?? this.commentCount,
+    reacted: reacted ?? this.reacted,
+  );
 }
 }
 ///----------------------Author
