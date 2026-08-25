@@ -32,7 +32,7 @@ class _JourneyTabState extends State<JourneyTab> {
 
     _pageController = PageController(
       initialPage: selectedIndex,
-      viewportFraction: 0.82,
+      viewportFraction: 0.75,
     );
 
     _timelineController = PageController(
@@ -96,11 +96,12 @@ class _JourneyTabState extends State<JourneyTab> {
       child: Column(
         children: [
           /// 1. IMAGE CAROUSEL
+          SizedBox(height: size*0.05,),
           SizedBox(
-            height: size * 0.79,
+            height: size * 0.9,
             child: PageView.builder(
               controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
+              //physics: const NeverScrollableScrollPhysics(),
               itemCount: journeys.length,
               onPageChanged: _onYearChanged,
               itemBuilder: (context, index) {
@@ -123,21 +124,21 @@ class _JourneyTabState extends State<JourneyTab> {
                         : item.imagePath!,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) =>
-                    const Center(child: Icon(Icons.broken_image)),
+                    const Center(child: Icon(Icons.image)),
                   ),
                 );
               },
             ),
           ),
 
-          SizedBox(height: MediaQuery.of(context).size.height*0.17),
+          SizedBox(height: MediaQuery.of(context).size.height*0.03),
 
           /// 2. TEXT CONTENT PAGEVIEW (Title, Red Line, Description)
           SizedBox(
-            height: MediaQuery.of(context).size.height*0.22,
+            height: MediaQuery.of(context).size.height*0.2,
             child: PageView.builder(
               controller: _textController,
-              physics: NeverScrollableScrollPhysics(),
+            //  physics: NeverScrollableScrollPhysics(),
               itemCount: journeys.length,
               onPageChanged: _onYearChanged,
               itemBuilder: (context, index) {
@@ -172,7 +173,7 @@ class _JourneyTabState extends State<JourneyTab> {
                           color: Color(0xFFFB5051),
                         ),
                       ),
-                      SizedBox(height:  MediaQuery.of(context).size.height*0.02),
+                      SizedBox(height:  MediaQuery.of(context).size.height*0.015),
 
                       /// Description
                       Text(
@@ -195,7 +196,7 @@ class _JourneyTabState extends State<JourneyTab> {
 
           /// 3. CIRCULAR TIMELINE PICKER
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.35,
+            height: MediaQuery.of(context).size.height * 0.1,
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -222,7 +223,7 @@ class _JourneyTabState extends State<JourneyTab> {
 
                 // Horizontal Timeline PageView
                 PageView.builder(
-                  physics: NeverScrollableScrollPhysics(),
+                 // physics: NeverScrollableScrollPhysics(),
                   controller: _timelineController,
                   itemCount: journeys.length,
                   onPageChanged: _onYearChanged,
@@ -250,6 +251,7 @@ class _JourneyTabState extends State<JourneyTab> {
                     );
                   },
                 ),
+
               ],
             ),
           ),

@@ -7,6 +7,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_dat
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
 import '../party_page_modal.dart';
+import '../reusable_functions.dart';
 
 class InfoTab extends StatelessWidget {
   final PartyProfileModel party;
@@ -26,7 +27,7 @@ class InfoTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ExpandableQuillContent(
-              content: party.info?.isNotEmpty == true ? party.info! : "-"
+              content: party.info?.isNotEmpty == true ? party.info! : "-",
           ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.03),
 
@@ -69,7 +70,7 @@ class InfoTab extends StatelessWidget {
           SizedBox(height: MediaQuery.of(context).size.height*0.032,),
           infoData(
             context,
-            PartyPageData.globalIcon,
+            PartyPageData.websiteIcon,
             PartyPageData.website,
                party.officialWebsite?? "-"
           ),
@@ -96,7 +97,7 @@ Widget infoData(BuildContext context, String icon, String title, String data) {
           child: Center(
             child: SvgPicture.asset(
               icon,
-              height: MediaQuery.of(context).size.height * 0.03,
+              height: MediaQuery.of(context).size.height * 0.026,
             ),
           ),
         ),
@@ -164,85 +165,4 @@ Widget infoData(BuildContext context, String icon, String title, String data) {
   );
 }
 
-class ExpandableQuillContent extends StatefulWidget {
-  final String content;
 
-  const ExpandableQuillContent({super.key, required this.content});
-
-  @override
-  State<ExpandableQuillContent> createState() => _ExpandableQuillContentState();
-}
-
-class _ExpandableQuillContentState extends State<ExpandableQuillContent> {
-  bool isExpanded = false;
-  late QuillController controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    controller = QuillController(
-      document: _buildDocument(widget.content),
-      selection: const TextSelection.collapsed(offset: 0),
-    );
-  }
-
-  Document _buildDocument(String content) {
-    if (content.isEmpty) {
-      return Document();
-    }
-
-    try {
-      return Document.fromJson(jsonDecode(content));
-    } catch (_) {
-      return Document()..insert(0, content);
-    }
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRect(
-          child: ConstrainedBox(
-            constraints: isExpanded
-                ? const BoxConstraints()
-                : const BoxConstraints(maxHeight: 120),
-            child: QuillEditor.basic(
-
-              controller: controller,
-              config: const QuillEditorConfig(
-                showCursor: false,
-                scrollable: false,
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: MediaQuery.of(context).size.height * 0.008),
-        if (widget.content.isNotEmpty && widget.content.length>500 )
-          GestureDetector(
-            onTap: () {
-
-              setState(() {
-                isExpanded = !isExpanded;
-              });
-            },
-            child: Text(
-              isExpanded ? "Read Less" : "Read More",
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: Color(0xFFFE3A31),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}

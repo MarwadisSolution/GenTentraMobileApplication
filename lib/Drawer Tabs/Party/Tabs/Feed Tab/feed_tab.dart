@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'add_feed.dart';
 import 'apis.dart';
+import 'functions.dart';
 
 class FeedTab extends StatefulWidget {
   final int partyId;
@@ -26,7 +27,6 @@ class FeedTab extends StatefulWidget {
 class _FeedTabState extends State<FeedTab> {
   int? selectedIndex;
   bool? isAdmin;
-
   Future<void> isAdminChecking() async {
     final prefs = await SharedPreferences.getInstance();
     final String? adminPartyId = prefs.getString("AdminOfParty");
@@ -104,7 +104,7 @@ class _FeedTabState extends State<FeedTab> {
       builder: (context, state) {
         if (state.isLoading) {
           return Padding(
-            padding: EdgeInsets.only(top: h * 0.4),
+            padding: EdgeInsets.only(top: h * 0.2),
             child: const Center(
               child: CircularProgressIndicator(color: Colors.black),
             ),
@@ -127,7 +127,7 @@ class _FeedTabState extends State<FeedTab> {
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-
+          padding: EdgeInsets.zero,
           itemCount: state.feeds.length + (state.isLoadingMore ? 1 : 0),
           itemBuilder: (context, index) {
             if(index>=state.feeds.length){
@@ -144,10 +144,10 @@ class _FeedTabState extends State<FeedTab> {
             return Container(
               key: ValueKey(feed.id ?? index),
               margin: EdgeInsets.only(bottom: h * 0.012),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
+
                     leading: CircleAvatar(
                       radius: w * 0.07,
                       backgroundColor: Colors.white,
@@ -174,6 +174,31 @@ class _FeedTabState extends State<FeedTab> {
                     subtitle: Row(
                        crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                     Text(
+                       getTimeAgo(feed.timestamp),
+                       style: TextStyle(
+                         fontSize: (w * 0.025).clamp(12.0, 15.0),
+                         fontWeight: FontWeight.w400,
+                         letterSpacing: 0.21,
+                         color: const Color(0xFF666666),
+                       ),
+                     ),
+                        SizedBox(width: w*0.01,),
+                        Text(
+                          "•",
+                          style: TextStyle(
+                            fontSize: (w * 0.025).clamp(12.0, 15.0),
+                            color: ColorScheme.of(context).error,
+                          ),
+                        ),
+                        SizedBox(width: w*0.03,),
+                        Padding(
+                          padding:  EdgeInsets.only(top: h*0.0027),
+                          child: SvgPicture.asset(PartyPageData.headquarterIcon,
+                          height: (h * 0.017) ,
+                          ),
+                        ),
+                        SizedBox(width: w*0.01,),
                         Text(
                           feed.author?.state ?? "-",
                           style: TextStyle(
@@ -197,9 +222,12 @@ class _FeedTabState extends State<FeedTab> {
                     ),
                     trailing: isAdmin == true
                         ? PopupMenuButton<String>(
-                      icon: SvgPicture.asset(
-                        PartyPageData.threeDots,
-                        height: h * 0.004,
+                      icon: Transform.translate(
+                        offset: const Offset(20, 0),
+                        child: SvgPicture.asset(
+                          PartyPageData.threeDots,
+                          height: h * 0.004,
+                        ),
                       ),
                       onSelected: (value) async {
                         if (value == 'edit') {
@@ -311,6 +339,8 @@ class _FeedTabState extends State<FeedTab> {
                   ),
 
                   // Post content
+
+                  ShowingTaggedPersons(tagged:feed.tagged),
                   Padding(
                     padding: EdgeInsets.only(top: h*0.001, right: w * 0.044, left: w * 0.044),
                     child: feed.kind=='POST'?ReadMoreText(
@@ -351,13 +381,17 @@ class _FeedTabState extends State<FeedTab> {
                       context,
                     ),
                   ],
+                  if(feed.kind=="QUOTE")
                   Divider(
                     color: ColorScheme.of(context).onSurface.withOpacity(0.08),
                     thickness: 1,
                   ),
-// Views and Interactions
+        // Views and Interactions
                   Padding(
-                    padding: EdgeInsets.only(right: w * 0.034, left: w * 0.044),
+                    padding: EdgeInsets.only(
+                        top:feed.kind=="QUOTE"?0:h*0.012 ,
+                        right: w * 0.034, left: w * 0.044
+                    ),
                     child: Row(
                       children: [
                         Text(
@@ -383,9 +417,12 @@ class _FeedTabState extends State<FeedTab> {
                           reacted: feed.reacted ?? false,
                         ),
                         SizedBox(width: w * 0.08),
-                        InkWell(
-                          onTap: () => shareFeed(feed),
-                          child: SvgPicture.asset(PartyPageData.share),
+                        Padding(
+                          padding:  EdgeInsets.only(right: w*0.015),
+                          child: InkWell(
+                            onTap: () => shareFeed(feed),
+                            child: SvgPicture.asset(PartyPageData.share),
+                          ),
                         ),
                       ],
                     ),

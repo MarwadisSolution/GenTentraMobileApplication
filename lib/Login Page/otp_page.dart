@@ -25,14 +25,7 @@ class _OtpPageState extends State<OtpPage> {
   String selectedCountryCode = "+91";
   int phoneMaxLength = 10;
   final TextEditingController phoneController = TextEditingController();
-  // final TextEditingController urlController =
-  // TextEditingController(
-  //   text: ApiConfig.baseUrl,
-  // );
-  // void clearCacheFirst()async{
-  //   final prefs = await SharedPreferences.getInstance();
-  //   await prefs.clear();
-  // }
+
 @override
   void initState(){
     // TODO: implement initState
@@ -56,7 +49,7 @@ class _OtpPageState extends State<OtpPage> {
               builder: (_) =>
                   BlocProvider.value(
                     value: context.read<LoginBloc>(),
-                    child: const VerifyOtpPage(),
+                    child:  VerifyOtpPage(fromWhereICame: 'From OTP page',),
                   ),
             ),
           );

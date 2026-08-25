@@ -95,8 +95,8 @@ Map<String, dynamic> toJson() {
 
     "authorPartyId": authorPartyId,
 
-    "taggedPoliticiansIds":
-    tagged?.map((e) => e.toPostJson()).toList(),
+    "taggedPoliticianIds":
+    tagged?.map((e) => e.id).whereType<int>().toList(),
 
     "scheduledAt":
     scheduledAt?.toIso8601String(),

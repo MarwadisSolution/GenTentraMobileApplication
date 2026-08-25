@@ -17,7 +17,8 @@ import 'login_apis.dart';
 import 'login_pages_data.dart';
 
 class VerifyOtpPage extends StatefulWidget {
-  const VerifyOtpPage({super.key});
+  String fromWhereICame;
+   VerifyOtpPage({super.key, required this.fromWhereICame});
 
   @override
   State<VerifyOtpPage> createState() => _VerifyOtpPageState();
@@ -37,22 +38,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      // if (temporarySavingOtp.isNotEmpty) {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(
-      //       duration: const Duration(seconds: 6),
-      //       backgroundColor: Colors.white,
-      //       content: Text(
-      //         "OTP: $temporarySavingOtp",
-      //         style: const TextStyle(
-      //           color: Colors.black,
-      //           fontWeight: FontWeight.bold,
-      //         ),
-      //         textAlign: TextAlign.center,
-      //       ),
-      //     ),
-      //   );
-      // }
+
     });
   }
 
@@ -67,10 +53,6 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
     super.dispose();
   }
 
-  // final List<TextEditingController> otpControllers = List.generate(
-  //   6,
-  //       (_) => TextEditingController(),
-  // );
   @override
   Widget build(BuildContext context) {
     // print("VERIFY PAGE BUILD");
@@ -92,22 +74,6 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
           "require password=${state.requirePassword}",
         );
         if (state.otpResent) {
-          // if (temporarySavingOtp.isNotEmpty) {
-          //   ScaffoldMessenger.of(context).showSnackBar(
-          //     SnackBar(
-          //       duration: const Duration(seconds: 6),
-          //       backgroundColor: Colors.white,
-          //       content: Text(
-          //         "OTP:- $temporarySavingOtp",
-          //         style: const TextStyle(
-          //           color: Colors.black,
-          //           fontWeight: FontWeight.bold,
-          //         ),
-          //         textAlign: TextAlign.center,
-          //       ),
-          //     ),
-          //   );
-          // }
 
           context.read<LoginBloc>().add(ClearOtpResentEvent());
         }
@@ -137,10 +103,9 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
 
           if (!mounted) return;
 
-print(state.requirePassword);
-          if (!state.requirePassword) {
+          if (!state.requirePassword && widget.fromWhereICame=="From OTP Page") {
 
-            Navigator.pushReplacement(
+            Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
                 builder: (_) => BlocProvider.value(
@@ -148,9 +113,10 @@ print(state.requirePassword);
                   child: AddressPage(verificationToken: token),
                 ),
               ),
+                  (route) => false,
             );
           } else {
-            Navigator.pushReplacement(
+            Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
                 builder: (_) => BlocProvider.value(
@@ -158,24 +124,12 @@ print(state.requirePassword);
                   child: const SignupPage(),
                 ),
               ),
+                  (route) => false,
             );
           }
 
           return;
         }
-        // if (state.navigateToNewUser) {
-        //   context.read<LoginBloc>().add(ResetNavigationEvent());
-        //
-        //   Navigator.pushReplacement(
-        //     context,
-        //     MaterialPageRoute(
-        //       builder: (_) => BlocProvider.value(
-        //         value: context.read<LoginBloc>(),
-        //         child: const SignupPage(),
-        //       ),
-        //     ),
-        //   );
-        // }
 
         if (state.navigateToOldUser && state.requirePassword == true) {
           final token = state.verificationToken;
