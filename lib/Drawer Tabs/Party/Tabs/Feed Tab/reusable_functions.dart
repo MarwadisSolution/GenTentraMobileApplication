@@ -41,7 +41,7 @@ class FeedMediaWidget extends StatelessWidget {
       context: context,
       index: 0,
       height: 280,
-      borderRadius: BorderRadius.circular(12),
+      // borderRadius: BorderRadius.circular(12),
     );
   }
 
@@ -58,10 +58,10 @@ class FeedMediaWidget extends StatelessWidget {
             child: _mediaTile(
               context: context,
               index: 0,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                bottomLeft: Radius.circular(12),
-              ),
+              // borderRadius: const BorderRadius.only(
+              //   topLeft: Radius.circular(12),
+              //   bottomLeft: Radius.circular(12),
+              // ),
             ),
           ),
 
@@ -71,10 +71,10 @@ class FeedMediaWidget extends StatelessWidget {
             child: _mediaTile(
               context: context,
               index: 1,
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(12),
-                bottomRight: Radius.circular(12),
-              ),
+              // borderRadius: const BorderRadius.only(
+              //   topRight: Radius.circular(12),
+              //   bottomRight: Radius.circular(12),
+              // ),
             ),
           ),
         ],
@@ -100,10 +100,10 @@ class FeedMediaWidget extends StatelessWidget {
             child: _mediaTile(
               context: context,
               index: 0,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
+              // borderRadius: const BorderRadius.only(
+              //   topLeft: Radius.circular(12),
+              //   topRight: Radius.circular(12),
+              // ),
             ),
           ),
 
@@ -119,9 +119,7 @@ class FeedMediaWidget extends StatelessWidget {
                   child: _mediaTile(
                     context: context,
                     index: 1,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(12),
-                    ),
+
                   ),
                 ),
 
@@ -131,9 +129,7 @@ class FeedMediaWidget extends StatelessWidget {
                   child: _mediaTile(
                     context: context,
                     index: 2,
-                    borderRadius: const BorderRadius.only(
-                      bottomRight: Radius.circular(12),
-                    ),
+
                     overlayCount: remaining > 0 ? remaining : null,
                   ),
                 ),
@@ -178,11 +174,11 @@ class FeedMediaWidget extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.collections_outlined,
-                        color: Colors.white,
-                        size: 28,
-                      ),
+                      // const Icon(
+                      //   Icons.collections_outlined,
+                      //   color: Colors.white,
+                      //   size: 28,
+                      // ),
 
                       const SizedBox(height: 6),
 
@@ -195,16 +191,16 @@ class FeedMediaWidget extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 2),
+                     // const SizedBox(height: 2),
 
-                      const Text(
-                        "more",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      // const Text(
+                      //   "more",
+                      //   style: TextStyle(
+                      //     color: Colors.white,
+                      //     fontSize: 13,
+                      //     fontWeight: FontWeight.w500,
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
@@ -683,11 +679,15 @@ return Container(
   ),
   child: Column(
     children: [
-      Align(
-        alignment: Alignment.topLeft,
-        child: SvgPicture.asset(PartyPageData.quoteIcon),
+
+      Padding(
+        padding:  EdgeInsets.only(left:MediaQuery.of(context).size.width*0.04),
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: SvgPicture.asset(PartyPageData.quoteIcon),
+        ),
       ),
-      SizedBox(height: MediaQuery.of(context).size.height * 0.021,),
+      SizedBox(height: MediaQuery.of(context).size.height * 0.081,),
       Align(
         alignment: Alignment.center,
         child: Padding(
@@ -696,12 +696,15 @@ return Container(
           ),
           child: Text(
            quote,
+
             textAlign: TextAlign.center,
             maxLines: 5,
+
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
+              height: 1.1,
               fontWeight: FontWeight.w600,
-              fontSize: MediaQuery.of(context).size.height * 0.038,
+              fontSize: MediaQuery.of(context).size.height * 0.035,
             ),
           ),
         ),
@@ -734,19 +737,24 @@ return Container(
           Text(author,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize:MediaQuery.of(context).size.height * 0.021,
+            fontSize:MediaQuery.of(context).size.height * 0.019,
             color: Color(0xFF666666)
           ),
           ),
         ],
       ),
-      SizedBox(height: MediaQuery.of(context).size.height * 0.021,),
-      Align(
-        alignment: Alignment.bottomRight,
-        child: Transform.rotate(
-          angle: 3.14,
-            child: SvgPicture.asset(PartyPageData.quoteIcon)),
-      )
+      SizedBox(height: MediaQuery.of(context).size.height * 0.081,),
+      Padding(
+        padding:  EdgeInsets.only(right:MediaQuery.of(context).size.width*0.04),
+        child: Align(
+          alignment: Alignment.bottomRight,
+          child: Transform.rotate(
+            angle: 3.14,
+              child: SvgPicture.asset(PartyPageData.quoteIcon)),
+        ),
+      ),
+      SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+
     ],
   ),
 );

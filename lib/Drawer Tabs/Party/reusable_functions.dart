@@ -256,13 +256,14 @@ else if(view>99999){
 
   @override
   Widget build(BuildContext context) {
-
+final h=MediaQuery.of(context).size.height;
+final w=MediaQuery.of(context).size.width;
     return Container(
-      padding: const EdgeInsets.only(
-        top: 10,
-        left: 20,
-        right: 20,
-        bottom: 20,
+      padding:  EdgeInsets.only(
+        top: h*0.01,
+        left: w*0.053,
+        right: w*0.04,
+        bottom: h*0.015,
       ),
       decoration: const BoxDecoration(
         // color: Colors.white,
@@ -369,113 +370,115 @@ else if(view>99999){
                 ),
                 SizedBox(height: MediaQuery.of(context).size.height*0.015),
 
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            PartyPageData.view,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 11,
-                              letterSpacing: 0.22,
-                              color: Color(0xFF666666),
-                            ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          PartyPageData.view,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 11,
+                            letterSpacing: 0.22,
+                            color: Color(0xFF666666),
                           ),
-                          Text(
-                            viewCount,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 24,
-                              letterSpacing: 0.3,
-                              color: Color(0xFF333333),
-                            ),
+                        ),
+                        Text(
+                          viewCount,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 24,
+                            letterSpacing: 0.3,
+                            color: Color(0xFF333333),
                           ),
-                        ],
-                      ),
-                      SizedBox(width: MediaQuery.of(context).size.width * 0.06),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            PartyPageData.followers,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 11,
-                              letterSpacing: 0.22,
-                              color: Color(0xFF666666),
-                            ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.06),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          PartyPageData.followers,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 11,
+                            letterSpacing: 0.22,
+                            color: Color(0xFF666666),
                           ),
-                          Text(
-                            formatFollowCount(followCount),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 24,
-                              letterSpacing: 0.3,
-                              color: Color(0xFF333333),
-                            ),
+                        ),
+                        Text(
+                          formatFollowCount(followCount),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 24,
+                            letterSpacing: 0.3,
+                            color: Color(0xFF333333),
                           ),
-                        ],
-                      ),
-                       SizedBox(width: MediaQuery.of(context).size.width * 0.1),
-                      InkWell(
-                        onTap: () async {
-                          if (isLoading) return;
+                        ),
+                      ],
+                    ),
+                     Spacer(),
+                    // SizedBox(width: MediaQuery.of(context).size.width * 0.1),
+                    InkWell(
+                      onTap: () async {
+                        if (isLoading) return;
 
-                          setState(() {
-                            isLoading = true;
-                          });
+                        setState(() {
+                          isLoading = true;
+                        });
 
-                          try {
-                            if (!following) {
-                              await apiService.followParty(
-                                "PARTY",
-                                widget.partyData["id"],
-                              );
+                        try {
+                          if (!following) {
+                            await apiService.followParty(
+                              "PARTY",
+                              widget.partyData["id"],
+                            );
 
-                              await followingPartyCaching.addFollowing(
-                                widget.partyData["id"],
-                              );
+                            await followingPartyCaching.addFollowing(
+                              widget.partyData["id"],
+                            );
 
-                              following = true;
-                              followCount++;
+                            following = true;
+                            followCount++;
+                            setState(() {
+
+                            });
+                          } else {
+                            await apiService.deleteFollowing(
+                              "PARTY",
+                              widget.partyData["id"],
+                            );
+
+                            await followingPartyCaching.removeFollowing(
+                              widget.partyData["id"],
+                            );
+
+                            following = false;
+                            if (followCount > 0) {
+                              followCount--;
                               setState(() {
-
-                              });
-                            } else {
-                              await apiService.deleteFollowing(
-                                "PARTY",
-                                widget.partyData["id"],
-                              );
-
-                              await followingPartyCaching.removeFollowing(
-                                widget.partyData["id"],
-                              );
-
-                              following = false;
-                              if (followCount > 0) {
-                                followCount--;
-                                setState(() {
-                                });
-                              }
-                            }
-                          } finally {
-                            if (mounted) {
-                              setState(() {
-                                isLoading = false;
                               });
                             }
                           }
-                        },
+                        } finally {
+                          if (mounted) {
+                            setState(() {
+                              isLoading = false;
+                            });
+                          }
+                        }
+                      },
+                      child: Padding(
+                        padding:  EdgeInsets.only(top: MediaQuery.of(context).size.height*0.008),
                         child: Container(
-                          constraints: BoxConstraints(
-                              minHeight: 40,
-                              maxWidth: 110
+                          height: MediaQuery.of(context).size.height*0.05,
+                          padding: EdgeInsets.only(
+                            left: MediaQuery.of(context).size.width*0.05, right: MediaQuery.of(context).size.width*0.05,
                           ),
+
                           decoration: BoxDecoration(
                             color: following?null:Color(0xFF666666),
                             gradient:following? GradientColors.primaryGradient:null,
@@ -506,49 +509,50 @@ else if(view>99999){
                           ),
                         ),
                       ),
-                      //SizedBox(width: MediaQuery.of(context).size.width * 0.04),
-                    Padding(
+                    ),
+                    //SizedBox(width: MediaQuery.of(context).size.width * 0.04),
 
-                      padding: EdgeInsetsGeometry.only(top: MediaQuery.of(context).size.height*0.01, left:MediaQuery.of(context).size.width * 0.06,
+                  Padding(
 
-                      ),
-                      child: InkWell(
-                        onTap: () async {
-                          final id = widget.partyData["id"];
-                          if (id == null) return;
+                    padding: EdgeInsets.only(top: MediaQuery.of(context).size.height*0.02, left:MediaQuery.of(context).size.width * 0.06,
+
+                    ),
+                    child: InkWell(
+                      onTap: () async {
+                        final id = widget.partyData["id"];
+                        if (id == null) return;
 
 
-                          try {
-                            if (favorite) {
-                              await apiServiceFav.deleteFavourite(id);
-                            } else {
-                              await apiServiceFav.postFavourite(id);
-                            }
-
-                            if (mounted) {
-                              setState(() {
-                                favorite = !favorite;
-                              });
-                            }
-                          } catch (e) {
-                            print(e);
-                          } finally {
-                            if (mounted) {
-                              // setState(() {
-                              //   isLoading = false;
-                              // });
-                            }
+                        try {
+                          if (favorite) {
+                            await apiServiceFav.deleteFavourite(id);
+                          } else {
+                            await apiServiceFav.postFavourite(id);
                           }
-                        },
-                        child: SvgPicture.asset(
-                          PartyPageData.favoriteIcon,
-                          height: MediaQuery.of(context).size.height*0.027,
-                          color: favorite ? null : const Color(0xFF666666),
-                        ),
+
+                          if (mounted) {
+                            setState(() {
+                              favorite = !favorite;
+                            });
+                          }
+                        } catch (e) {
+                          print(e);
+                        } finally {
+                          if (mounted) {
+                            // setState(() {
+                            //   isLoading = false;
+                            // });
+                          }
+                        }
+                      },
+                      child: SvgPicture.asset(
+                        PartyPageData.favoriteIcon,
+                        height: MediaQuery.of(context).size.height*0.027,
+                        color: favorite ? null : const Color(0xFF666666),
                       ),
-                    )
-                    ],
-                  ),
+                    ),
+                  )
+                  ],
                 ),
 
               ],

@@ -121,7 +121,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
   Widget build(BuildContext context) {
 
     final double screenHeight = MediaQuery.of(context).size.height;
-    final double defaultSheetRatio = (207.0 / screenHeight).clamp(0.0, 0.9);
+    print(screenHeight);
+    final double defaultSheetRatio = (screenHeight < 500) ? 0.45 :(screenHeight < 800) ? 0.28 :(screenHeight < 900) ? 0.247 : (218.0 / screenHeight).clamp(0.1, 0.85);
 
     return BlocProvider(
       create: (_)=>FeedBloc(FeedApis()),

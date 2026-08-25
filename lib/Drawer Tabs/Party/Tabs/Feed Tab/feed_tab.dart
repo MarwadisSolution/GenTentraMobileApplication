@@ -127,7 +127,7 @@ class _FeedTabState extends State<FeedTab> {
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.all(h * 0.012),
+
           itemCount: state.feeds.length + (state.isLoadingMore ? 1 : 0),
           itemBuilder: (context, index) {
             if(index>=state.feeds.length){
@@ -166,7 +166,7 @@ class _FeedTabState extends State<FeedTab> {
                       feed.author?.name ?? "-",
                       maxLines: 2,
                       style: TextStyle(
-                        fontSize: (w * 0.04).clamp(14.0, 18.0),
+                        fontSize: (w * 0.045),
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.31,
                       ),
@@ -199,7 +199,7 @@ class _FeedTabState extends State<FeedTab> {
                         ? PopupMenuButton<String>(
                       icon: SvgPicture.asset(
                         PartyPageData.threeDots,
-                        height: h * 0.005,
+                        height: h * 0.004,
                       ),
                       onSelected: (value) async {
                         if (value == 'edit') {
@@ -312,8 +312,8 @@ class _FeedTabState extends State<FeedTab> {
 
                   // Post content
                   Padding(
-                    padding: EdgeInsets.only(top: 8.0, right: w * 0.044, left: w * 0.044),
-                    child: ReadMoreText(
+                    padding: EdgeInsets.only(top: h*0.001, right: w * 0.044, left: w * 0.044),
+                    child: feed.kind=='POST'?ReadMoreText(
                       feed.body ?? "-",
                       trimLines: 3,
                       trimMode: TrimMode.Line,
@@ -328,11 +328,11 @@ class _FeedTabState extends State<FeedTab> {
                         fontWeight: FontWeight.w600,
                       ),
                       style: TextStyle(
-                        fontSize: (w * 0.04).clamp(12.0, 16.0),
+                        fontSize: (w * 0.042),
                         color: Colors.black,
                         fontWeight: FontWeight.w400,
                       ),
-                    ),
+                    ):null,
                   ),
 
                   if (feed.media != null &&
@@ -351,17 +351,20 @@ class _FeedTabState extends State<FeedTab> {
                       context,
                     ),
                   ],
-
-                  // Views and Interactions
+                  Divider(
+                    color: ColorScheme.of(context).onSurface.withOpacity(0.08),
+                    thickness: 1,
+                  ),
+// Views and Interactions
                   Padding(
-                    padding: EdgeInsets.only(top: 8.0, right: w * 0.034, left: w * 0.044),
+                    padding: EdgeInsets.only(right: w * 0.034, left: w * 0.044),
                     child: Row(
                       children: [
                         Text(
-                          feed.viewCount.toString(),
+                         feed.viewCount.toString(),
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
-                            fontSize: (w * 0.03).clamp(16.0, 18.0),
+                            fontSize: (w * 0.05)
                           ),
                         ),
                         SizedBox(width: w * 0.03),
@@ -379,7 +382,7 @@ class _FeedTabState extends State<FeedTab> {
                           feedId: feed.id,
                           reacted: feed.reacted ?? false,
                         ),
-                        SizedBox(width: w * 0.06),
+                        SizedBox(width: w * 0.08),
                         InkWell(
                           onTap: () => shareFeed(feed),
                           child: SvgPicture.asset(PartyPageData.share),
@@ -482,8 +485,8 @@ class _LikeButtonState extends State<LikeButton> {
       onTap: likePost,
       child: Center(
         child:Icon(Icons.thumb_up,
-        size: MediaQuery.of(context).size.height*0.04 ,
-        color: isLiked?Color(0xFFFE3A31):Colors.grey,
+        size: MediaQuery.of(context).size.height*0.028 ,
+        color: isLiked?Color(0xFFFE3A31):ColorScheme.of(context).onSurface.withOpacity(0.22),
         )
       ),
     );

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/login_pages_data.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/Drawer/drawer.dart';
@@ -46,8 +46,8 @@ class ReusableSliverAppBar extends StatelessWidget {
           angle: 3.14,
           child: SvgPicture.asset(
             "Assets/arrow.svg",
-            width: MediaQuery.of(context).size.width * .018,
-            height: MediaQuery.of(context).size.height * .023,
+            height: MediaQuery.of(context).size.height * 0.016,
+           // width: MediaQuery.of(context).size.width * 0.008,
           ),
         ),
       )

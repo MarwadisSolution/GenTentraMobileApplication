@@ -7,6 +7,7 @@ import 'package:gen_tentra_mobile_application/temp_screen_for_url.dart';
 import 'Drawer Tabs/Party/Tabs/Feed Tab/Offline/network_sync_manager.dart';
 import 'Home Page/home_page.dart';
 import 'Login Page/otp_page.dart';
+
 final GlobalKey<NavigatorState> navigatorKey =
 GlobalKey<NavigatorState>();
 Future<void> main() async {
@@ -57,6 +58,7 @@ class _MyAppState extends State<MyApp> {
           surface: Color(0xFFFFFFFF),
           onSurface: Color(0xFF000000),
         ),
+        
       ),
        home:
        //AddFeed()

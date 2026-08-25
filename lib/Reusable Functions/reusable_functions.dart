@@ -231,6 +231,7 @@ ScaffoldMessenger.of(context).showSnackBar(SnackBar(
 
 ///--------------------------
 ///
+
 Widget buildImageWidget(
     String imagePath, {
       double? width,
@@ -245,7 +246,7 @@ Widget buildImageWidget(
       height: height,
       fit: fit,
       errorBuilder: (_, __, ___) =>
-      const Center(child: Icon(Icons.broken_image)),
+      const Center(child: Icon(Icons.image)),
     );
   }
 
@@ -257,7 +258,7 @@ Widget buildImageWidget(
       height: height,
       fit: fit,
       errorBuilder: (_, __, ___) =>
-      const Center(child: Icon(Icons.broken_image)),
+      const Center(child: Icon(Icons.image)),
     );
   }
 
@@ -287,3 +288,4 @@ Future<void> launchWebsite(String url) async {
   );
 
 }
+
