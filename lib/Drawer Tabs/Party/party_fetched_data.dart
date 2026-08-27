@@ -35,6 +35,9 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
   late TabController _tabController;
   bool showPartyDetails = true;
   Timer? _showDetailsTimer;
+  double _scrollDelta = 0.0;
+  static const double _hideThreshold = 0.025;
+  static const double _showThreshold = 0.015;
   double? _previousSheetExtent;
   bool? isAdmin;
 
@@ -157,35 +160,39 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                             return false;
                           }
 
-                          final isScrollingUp = currentExtent > previousExtent;
-                          final isScrollingDown =
-                              currentExtent < previousExtent;
+                          final delta = currentExtent - previousExtent;
 
-                          if (isScrollingUp) {
-                            _showDetailsTimer?.cancel();
+                          // Sheet is expanding = user scrolling up
+                          if (delta > 0) {
+                            _scrollDelta += delta;
 
-                            if (showPartyDetails) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (!mounted || !showPartyDetails) return;
+                            // Don't hide immediately.
+                            // Wait until the user has actually scrolled enough.
+                            if (_scrollDelta >= _hideThreshold && showPartyDetails) {
+                              _scrollDelta = 0.0;
 
-                                setState(() {
-                                  showPartyDetails = false;
-                                });
+                              _showDetailsTimer?.cancel();
+
+                              setState(() {
+                                showPartyDetails = false;
                               });
                             }
-                          } else if (isScrollingDown && !showPartyDetails) {
-                            _showDetailsTimer?.cancel();
+                          }
 
-                            _showDetailsTimer = Timer(
-                              const Duration(milliseconds: 100),
-                              () {
-                                if (!mounted || showPartyDetails) return;
+                          // Sheet is collapsing = user scrolling down
+                          else if (delta < 0) {
+                            _scrollDelta += delta;
 
-                                setState(() {
-                                  showPartyDetails = true;
-                                });
-                              },
-                            );
+                            // Wait until enough downward scrolling has happened.
+                            if (_scrollDelta.abs() >= _showThreshold && !showPartyDetails) {
+                              _scrollDelta = 0.0;
+
+                              _showDetailsTimer?.cancel();
+
+                              setState(() {
+                                showPartyDetails = true;
+                              });
+                            }
                           }
 
                           return false;
@@ -248,10 +255,21 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                     child: Column(
                                       children: [
                                         ///--------Party, followers, follow, like....
-                                        if (showPartyDetails)
-                                          PartyDetailsSection(
-                                            partyData: widget.partyData,
+                                        AnimatedSize(
+                                          duration: const Duration(milliseconds: 250),
+                                          curve: Curves.easeOutCubic,
+                                          alignment: Alignment.topCenter,
+                                          child: ClipRect(
+                                            child: Align(
+                                              alignment: Alignment.topCenter,
+                                              heightFactor: showPartyDetails ? 1.0 : 0.0,
+                                              child: PartyDetailsSection(
+                                                key: const ValueKey('party_details'),
+                                                partyData: widget.partyData,
+                                              ),
+                                            ),
                                           ),
+                                        ),
                                         Container(
                                           width: MediaQuery.of(
                                             context,

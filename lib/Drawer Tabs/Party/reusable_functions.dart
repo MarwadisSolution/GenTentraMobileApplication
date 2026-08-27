@@ -229,15 +229,20 @@ else if(view>99999){
     );
   }
 
- @override
- void initState() {
-   super.initState();
-   syncFollowingCache();
-   loadFavouriteStatus();
-   _initializeView();
-   _initializeFollow();
- }
+  @override
+  void initState() {
+    super.initState();
 
+    _initializeData();
+  }
+  Future<void> _initializeData() async {
+    await Future.wait([
+      syncFollowingCache(),
+      loadFavouriteStatus(),
+      _initializeView(),
+      _initializeFollow(),
+    ]);
+  }
   Future<void> _initializeView() async {
     final count = await viewCountFunction();
 
@@ -651,7 +656,7 @@ class _ExpandableQuillContentState extends State<ExpandableQuillContent> {
                      TextStyle(
                       fontSize: MediaQuery.of(context).size.width * 0.04,
                       fontWeight: FontWeight.w400,
-                      color: Colors.black,
+                     color: Colors.black,
                       letterSpacing: 0.81,
                        height: 1.25
                     ),

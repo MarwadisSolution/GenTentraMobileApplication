@@ -13,6 +13,8 @@ class PartyPageApis{
       final response = await _dio.get(
         "$api/api/v1/profile/parties",
       );
+      print("All Parties");
+      print(response.data);
       if (response.statusCode == 200) {
         final items = response.data['data']['items'] as List;
 

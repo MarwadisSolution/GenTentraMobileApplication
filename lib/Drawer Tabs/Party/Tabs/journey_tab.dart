@@ -255,7 +255,7 @@ class _JourneyTabState extends State<JourneyTab> {
               ],
             ),
           ),
-
+SizedBox(height: MediaQuery.of(context).size.height*0.04,),
 
         ],
       ),

@@ -6,6 +6,7 @@ class PartyProfileModel {
   final String? generalSecretary;
   final String? president;
   final String? founded;
+  final String? partyInitials;
   final String? partySymbol;
   final String? partySymbolName;
   final String? founder;
@@ -26,6 +27,7 @@ class PartyProfileModel {
     this.generalSecretary = '',
     this.president = '',
     this.founded = '',
+    this.partyInitials='',
     this.partySymbol = '',
     this.partySymbolName = '',
     this.founder = '',
@@ -48,6 +50,7 @@ class PartyProfileModel {
     String? generalSecretary,
     String? president,
     String? founded,
+    String?partyInitials,
     String? partySymbol,
     String? partySymbolName,
     String? founder,
@@ -69,6 +72,7 @@ class PartyProfileModel {
       generalSecretary: generalSecretary ?? this.generalSecretary,
       president: president ?? this.president,
       founded: founded ?? this.founded,
+      partyInitials: partyInitials??this.partyInitials,
       partySymbol: partySymbol ?? this.partySymbol,
       partySymbolName: partySymbolName ?? this.partySymbolName,
       founder: founder ?? this.founder,
@@ -95,6 +99,7 @@ class PartyProfileModel {
           ? json['president']['name'] as String?
           : '',
       founded: json['foundedOn'] ?? '',
+      partyInitials: json['partyInitial']??'',
       partySymbol: json['partySymbolUrl'] ?? '',
       partySymbolName: json['symbolName'] ?? '',
       founder: json['founder'] ?? '',

@@ -369,7 +369,7 @@ class _FeedTabState extends State<FeedTab> {
                       feed.media!.isNotEmpty &&
                       feed.kind == "POST" &&
                       feed.hidden == false) ...[
-                    SizedBox(height: h * 0.012),
+                   SizedBox(height: h * 0.012),
                     FeedMediaWidget(media: feed.media!),
                   ] else if (feed.kind == "QUOTE" && feed.hidden == false) ...[
                     SizedBox(height: h * 0.012),
@@ -381,47 +381,55 @@ class _FeedTabState extends State<FeedTab> {
                       context,
                     ),
                   ],
-                  if(feed.kind=="QUOTE")
-                  Divider(
-                    color: ColorScheme.of(context).onSurface.withOpacity(0.08),
-                    thickness: 1,
-                  ),
+
         // Views and Interactions
                   Padding(
                     padding: EdgeInsets.only(
                         top:feed.kind=="QUOTE"?0:h*0.012 ,
-                        right: w * 0.034, left: w * 0.044
+
                     ),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Text(
-                         feed.viewCount.toString(),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: (w * 0.05)
+                        if(feed.kind=="QUOTE"||feed.media!.isEmpty)
+                          Divider(
+                            color: ColorScheme.of(context).onSurface.withOpacity(0.08),
+                            thickness: 1,
                           ),
-                        ),
-                        SizedBox(width: w * 0.03),
-                        Text(
-                          "Views",
-                          style: TextStyle(
-                            fontSize: (w * 0.025).clamp(12.0, 15.0),
-                            fontWeight: FontWeight.w400,
-                            color: ColorScheme.of(context).onSurface.withOpacity(0.6),
-                          ),
-                        ),
-                        const Spacer(),
-                        LikeButton(
-                          key: ValueKey('like_${feed.id}'),
-                          feedId: feed.id,
-                          reacted: feed.reacted ?? false,
-                        ),
-                        SizedBox(width: w * 0.08),
                         Padding(
-                          padding:  EdgeInsets.only(right: w*0.015),
-                          child: InkWell(
-                            onTap: () => shareFeed(feed),
-                            child: SvgPicture.asset(PartyPageData.share),
+                          padding:  EdgeInsets.only( right: w * 0.034, left: w * 0.044),
+                          child: Row(
+                            children: [
+                              Text(
+                               feed.viewCount.toString(),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: (w * 0.05)
+                                ),
+                              ),
+                              SizedBox(width: w * 0.03),
+                              Text(
+                                "Views",
+                                style: TextStyle(
+                                  fontSize: (w * 0.025).clamp(12.0, 15.0),
+                                  fontWeight: FontWeight.w400,
+                                  color: ColorScheme.of(context).onSurface.withOpacity(0.6),
+                                ),
+                              ),
+                              const Spacer(),
+                              LikeButton(
+                                key: ValueKey('like_${feed.id}'),
+                                feedId: feed.id,
+                                reacted: feed.reacted ?? false,
+                              ),
+                              SizedBox(width: w * 0.08),
+                              Padding(
+                                padding:  EdgeInsets.only(right: w*0.015),
+                                child: InkWell(
+                                  onTap: () => shareFeed(feed),
+                                  child: SvgPicture.asset(PartyPageData.share),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],

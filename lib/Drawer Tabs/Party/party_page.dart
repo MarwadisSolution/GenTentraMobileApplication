@@ -192,7 +192,7 @@ class _PartyPageState extends State<PartyPage> {
                                         Text(
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          party["name"] ?? "",
+                                          party["partyInitial"] ?? "",
                                           textAlign: TextAlign.center,
                                           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                                         ),
