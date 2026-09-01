@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/add_feed.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/Add%20Feed%20With%20Bloc/adding_feed.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/Add%20Feed%20With%20Bloc/adding_quote.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_apis.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_modal.dart';
@@ -117,6 +118,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
     }
   }
 
+  final ValueNotifier<bool> isAddSelected = ValueNotifier(false);
+
   @override
   Widget build(BuildContext context) {
     final double screenHeight = MediaQuery.of(context).size.height;
@@ -168,7 +171,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
 
                             // Don't hide immediately.
                             // Wait until the user has actually scrolled enough.
-                            if (_scrollDelta >= _hideThreshold && showPartyDetails) {
+                            if (_scrollDelta >= _hideThreshold &&
+                                showPartyDetails) {
                               _scrollDelta = 0.0;
 
                               _showDetailsTimer?.cancel();
@@ -178,13 +182,13 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                               });
                             }
                           }
-
                           // Sheet is collapsing = user scrolling down
                           else if (delta < 0) {
                             _scrollDelta += delta;
 
                             // Wait until enough downward scrolling has happened.
-                            if (_scrollDelta.abs() >= _showThreshold && !showPartyDetails) {
+                            if (_scrollDelta.abs() >= _showThreshold &&
+                                !showPartyDetails) {
                               _scrollDelta = 0.0;
 
                               _showDetailsTimer?.cancel();
@@ -256,15 +260,21 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                       children: [
                                         ///--------Party, followers, follow, like....
                                         AnimatedSize(
-                                          duration: const Duration(milliseconds: 250),
+                                          duration: const Duration(
+                                            milliseconds: 250,
+                                          ),
                                           curve: Curves.easeOutCubic,
                                           alignment: Alignment.topCenter,
                                           child: ClipRect(
                                             child: Align(
                                               alignment: Alignment.topCenter,
-                                              heightFactor: showPartyDetails ? 1.0 : 0.0,
+                                              heightFactor: showPartyDetails
+                                                  ? 1.0
+                                                  : 0.0,
                                               child: PartyDetailsSection(
-                                                key: const ValueKey('party_details'),
+                                                key: const ValueKey(
+                                                  'party_details',
+                                                ),
                                                 partyData: widget.partyData,
                                               ),
                                             ),
@@ -358,36 +368,148 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                       right: 0,
                       child: Center(
                         child: InkWell(
-                          onTap: () {
-                            final feedBloc = context.read<FeedBloc>();
+                          onTap: () async{
+                            isAddSelected.value = true;
+                          await  showGeneralDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              barrierLabel: 'Close',
+                              barrierColor: Colors.transparent,
+                              pageBuilder: (_, __, ___) {
+                                return Stack(
+                                  children: [
+                                    Positioned(
+                                      bottom:
+                                          MediaQuery.of(context).size.height *
+                                              0.03 +
+                                          MediaQuery.of(context).size.width *
+                                              0.2 +
+                                          20,
+                                      left: 0,
+                                      right: 0,
+                                      child: Center(
+                                        child: VerticalActionMenu(
+                                          height: MediaQuery.of(context).size.height*0.35,
+                                          items: [
+                                            ActionMenuItem(
+                                              imageIcon:
+                                                  PartyPageData.addFeedIcon,
+                                              title: PartyPageData.feed,
+                                              onTap: () {
+                                                Navigator.pop(context);
 
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => BlocProvider.value(
-                                  value: feedBloc,
-                                  child: AddFeed(
-                                    partyId: widget.partyData["id"],
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        BlocProvider.value(
+                                                          value: context
+                                                              .read<FeedBloc>(),
+                                                          child: AddingFeed(
+                                                            partyId: widget
+                                                                .partyData["id"],
+                                                            editFeed: null,
+                                                          ),
+                                                        ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                            ActionMenuItem(
+                                              imageIcon:
+                                                  PartyPageData.addQuoteIcon,
+                                              title: PartyPageData.quotes,
+                                              onTap: () {
+                                                Navigator.pop(context);
+
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        BlocProvider.value(
+                                                          value: context
+                                                              .read<FeedBloc>(),
+                                                          child: AddingQuote(
+                                                            partyId: widget
+                                                                .partyData["id"],
+                                                            editQuote: null,
+                                                          ),
+                                                        ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+
+                                            ActionMenuItem(
+                                              imageIcon:
+                                                  PartyPageData.eventIcon,
+                                              title: PartyPageData.event,
+                                              onTap: () {
+                                                // Event action
+                                              },
+                                            ),
+
+                                            ActionMenuItem(
+                                              imageIcon:
+                                                  PartyPageData.newGroupIcon,
+                                              title: PartyPageData.newGroup,
+                                              onTap: () {
+                                                // New Group action
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                              transitionDuration: const Duration(
+                                milliseconds: 650,
+                              ),
+                              transitionBuilder: (_, animation, __, child) {
+                                return SlideTransition(
+                                  position:
+                                      Tween<Offset>(
+                                        begin: const Offset(0, 1),
+                                        end: Offset.zero,
+                                      ).animate(
+                                        CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeInOutCubic,
+                                        ),
+                                      ),
+                                  child: child,
+                                );
+                              },
+                            );
+                            isAddSelected.value = false;
+                          },
+                          child: ValueListenableBuilder(
+                            valueListenable: isAddSelected,
+                            builder: (context, isSelected, child) {
+                              return Container(
+                                height: MediaQuery.of(context).size.width * 0.2,
+                                width: MediaQuery.of(context).size.width * 0.35,
+                                decoration: BoxDecoration(
+                                  gradient: GradientColors.primaryGradient,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: SvgPicture.asset(
+                                    isSelected
+                                        ? PartyPageData.crossIconLight
+                                        : PartyPageData.addIconLight,
+                                    height:
+                                        MediaQuery.of(context).size.width *
+                                        0.06,
+                                    width:
+                                        MediaQuery.of(context).size.width *
+                                        0.06,
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            height: MediaQuery.of(context).size.width * 0.2,
-                            width: MediaQuery.of(context).size.width * 0.35,
-                            decoration: BoxDecoration(
-                              gradient: GradientColors.primaryGradient,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: SvgPicture.asset(
-                                PartyPageData.addIcon,
-                                height:
-                                    MediaQuery.of(context).size.width * 0.06,
-                                width: MediaQuery.of(context).size.width * 0.06,
-                              ),
-                            ),
+                              );
+                            },
                           ),
                         ),
                       ),

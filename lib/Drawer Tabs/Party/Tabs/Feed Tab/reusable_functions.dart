@@ -1,19 +1,671 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_model.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart';
 import 'package:video_player/video_player.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
+class PickedMedia {
+  final List<XFile> images;
+  final List<XFile> videos;
+
+  const PickedMedia({required this.images, required this.videos});
+}
+
+class ReusableMediaPicker {
+  static final ImagePicker _imagePicker = ImagePicker();
+
+  static Future<PickedMedia> pickMedia(
+  BuildContext context,
+      ) async {
+    final List<XFile> media = await _imagePicker.pickMultipleMedia(
+      imageQuality: 85,
+    );
+
+    final List<XFile> images = [];
+    final List<XFile> videos = [];
+
+    for (final file in media) {
+      final path = file.path.toLowerCase();
+
+      if (path.endsWith('.mp4') ||
+          path.endsWith('.mov') ||
+          path.endsWith('.avi') ||
+          path.endsWith('.mkv') ||
+          path.endsWith('.webm')) {
+        videos.add(file);
+      } else if (path.endsWith('.jpg') ||
+          path.endsWith('.jpeg') ||
+          path.endsWith('.png') ||
+          path.endsWith('.gif') ||
+          path.endsWith('.webp') ||
+          path.endsWith('.svg') ||
+          path.endsWith('.bmp') ||
+          path.endsWith('.tiff') ||
+          path.endsWith('.heic')) {
+        images.add(file);
+      }
+      else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                backgroundColor: Colors.red,
+                content: Text("add image or videos only",
+                style: TextStyle(color: Colors.white),
+                )));
+      }
+    }
+    print("Images:$images");
+    print("Videos: $videos");
+    return PickedMedia(images: images, videos: videos);
+  }
+}
+
+///-----------------initializeEditData------------------
+class EditFeedData {
+
+  final String? description;
+  final List<Tagged> taggedPeoples;
+  final List<FeedMedia>? existingImages;
+  final List<FeedMedia>? existingVideos;
+  final String? initialImage;
+ final String? quote;
+ final String? authorName;
+  const EditFeedData({
+     this.description,
+    required this.taggedPeoples,
+     this.existingImages,
+     this.existingVideos,
+    this.initialImage,
+    this.quote,
+    this.authorName,
+
+  });
+}
+
+class FeedHelper {
+  static EditFeedData initializeEditData(String kind,FeedModel feed) {
+    final media = feed.media ?? [];
+    // print("Data: ${feed.quote?["quote"]} }");
+    return kind=="FEED"?EditFeedData(
+      description: feed.body ?? "",
+      taggedPeoples: List<Tagged>.from(feed.tagged ?? []),
+      existingImages: media
+          .where((media) => media.mediaType?.toUpperCase() == "IMAGE")
+          .toList(),
+      existingVideos: media
+          .where((media) => media.mediaType?.toUpperCase() == "VIDEO")
+          .toList(),
+    ):
+    EditFeedData(
+
+      taggedPeoples:  List<Tagged>.from(feed.tagged ?? []),
+      existingImages: media
+          .where(
+            (media) =>
+        media.mediaType?.toUpperCase() == "IMAGE",
+      )
+          .toList(),
+      initialImage: feed.media?.isNotEmpty == true
+        ? feed.media?.first.url
+        : null,
+      quote: feed.quote?["quote"],
+      authorName: feed.quote?["author"],
+    )
+    ;
+  }
+}
+
+///---------------------------
+///----------------------Play Video
+class VideoPlayerHelper {
+  VideoPlayerController? controller;
+  int? playingVideoIndex;
+  bool playingExistingVideo = false;
+
+  Future<void> playVideo({
+    required BuildContext context,
+    required int index,
+    required bool isExisting,
+    String? existingVideoUrl,
+    String? localVideoPath,
+  }) async {
+    try {
+      if (playingVideoIndex == index &&
+          playingExistingVideo == isExisting &&
+          controller != null &&
+          controller!.value.isInitialized) {
+        if (controller!.value.isPlaying) {
+          await controller!.pause();
+        } else {
+          await controller!.play();
+        }
+        return;
+      }
+      await controller?.dispose();
+      controller = null;
+      late VideoPlayerController newController;
+      if (isExisting) {
+        if (existingVideoUrl == null || existingVideoUrl.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(
+                "Video URL is not available.",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          );
+          return;
+        }
+        newController = VideoPlayerController.networkUrl(
+          Uri.parse(existingVideoUrl),
+        );
+      } else {
+        if (localVideoPath == null || localVideoPath.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(
+                "Video file is not available.",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          );
+          return;
+        }
+        newController = VideoPlayerController.file(File(localVideoPath));
+      }
+      controller = newController;
+      playingVideoIndex = index;
+      playingExistingVideo = isExisting;
+      await newController.initialize();
+      await newController.play();
+    } catch (e) {
+      if (context.mounted) {
+        debugPrint("Error Playing video: $e");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.red,
+            content: const Text(
+              "Unable to play video. Please try again.",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        );
+      }
+    }
+  }
+  Future<void> stopVideo() async {
+    await controller?.pause();
+    await controller?.dispose();
+
+    controller = null;
+    playingVideoIndex = null;
+    playingExistingVideo = false;
+  }
+  Future<void> dispose() async {
+    await controller?.dispose();
+    controller = null;
+  }
+}
+
+///--------------------------
+///---------------Tagged Peoples
+class TaggedPeopleDialog {
+  static Future<void> show({
+    required BuildContext context,
+    required List<Tagged> taggedPeople,
+    required Future<void> Function() onAddMore,
+  }) async {
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return _TaggedPeopleDialogContent(
+          taggedPeople: taggedPeople,
+          onAddMore: onAddMore,
+        );
+      },
+    );
+  }
+}
+class _TaggedPeopleDialogContent extends StatefulWidget {
+  final List<Tagged> taggedPeople;
+  final Future<void> Function() onAddMore;
+
+  const _TaggedPeopleDialogContent({
+    required this.taggedPeople,
+    required this.onAddMore,
+  });
+
+  @override
+  State<_TaggedPeopleDialogContent> createState() =>
+      _TaggedPeopleDialogContentState();
+}
+
+class _TaggedPeopleDialogContentState
+    extends State<_TaggedPeopleDialogContent> {
+  late List<Tagged> taggedPeople;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Create a local copy for the dialog.
+    taggedPeople = List<Tagged>.from(widget.taggedPeople);
+  }
+
+  void removePerson(int index) {
+    setState(() {
+      taggedPeople.removeAt(index);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      title: Text(
+        PartyPageData.taggedPeople,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.8,
+        child: ListView.separated(
+          shrinkWrap: true,
+          itemCount: taggedPeople.length,
+          separatorBuilder: (_, __) => const Divider(),
+          itemBuilder: (context, index) {
+            final person = taggedPeople[index];
+
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: CircleAvatar(
+                backgroundColor: Colors.grey.shade300,
+                child: ClipOval(
+                  child: SizedBox.expand(
+                    child: person.photoUrl != null &&
+                        person.photoUrl!.isNotEmpty
+                        ? buildImageWidget(
+                      person.photoUrl!,
+                      fit: BoxFit.cover,
+                    )
+                        : Text(
+                      person.name?.isNotEmpty == true
+                          ? person.name![0].toUpperCase()
+                          : "?",
+                    ),
+                  ),
+                ),
+              ),
+              title: Text(
+                person.name ?? "",
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              trailing: InkWell(
+                onTap: () {
+                  removePerson(index);
+                },
+                child: const Icon(
+                  Icons.close,
+                  color: Colors.red,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      actions: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.05,
+                width: MediaQuery.of(context).size.width * 0.27,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: const Color(0xFFFF2164),
+                  ),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: MediaQuery.of(context).size.width * 0.015,
+                    right: MediaQuery.of(context).size.width * 0.01,
+                  ),
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        PartyPageData.crossIcon,
+                        color: const Color(0xFFFF2164),
+                        height:
+                        MediaQuery.of(context).size.height * 0.02,
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.02,
+                      ),
+                      Text(
+                        'CANCEL',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: const Color(0xFFFF2164),
+                          fontWeight: FontWeight.w500,
+                          fontSize:
+                          (MediaQuery.of(context).size.width * 0.04)
+                              .clamp(14.0, 16.0),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.05,
+            ),
+
+            InkWell(
+              onTap: () async {
+                Navigator.pop(context);
+                await widget.onAddMore();
+              },
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.05,
+                width: MediaQuery.of(context).size.width * 0.2,
+                decoration: BoxDecoration(
+                  gradient: GradientColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: const Color(0xFFFF2164),
+                  ),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: MediaQuery.of(context).size.width * 0.015,
+                    right: MediaQuery.of(context).size.width * 0.01,
+                  ),
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        PartyPageData.addIcon,
+                        color: ColorScheme.of(context).surface,
+                        height:
+                        MediaQuery.of(context).size.height * 0.02,
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.02,
+                      ),
+                      Text(
+                        'ADD',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ColorScheme.of(context).surface,
+                          fontWeight: FontWeight.w500,
+                          fontSize:
+                          (MediaQuery.of(context).size.width * 0.04)
+                              .clamp(14.0, 16.0),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+// class TaggedPeopleDialog {
+//   static Future<void> show({
+//     required BuildContext context,
+//     required List<Tagged> taggedPeople,
+//     required Future<void> Function() onAddMore,
+//   }) async {
+//     await showDialog(
+//       context: context,
+//       builder: (dialogContext) {
+//         return AlertDialog(
+//           backgroundColor: Colors.white,
+//           title: Text(
+//             PartyPageData.taggedPeople,
+//             style: const TextStyle(
+//               fontWeight: FontWeight.w600,
+//             ),
+//           ),
+//           content: SizedBox(
+//             width: MediaQuery
+//                 .of(context)
+//                 .size
+//                 .width * 0.8,
+//             child: ListView.separated(
+//               shrinkWrap: true,
+//               itemCount: taggedPeople.length,
+//               separatorBuilder: (_, __) => const Divider(),
+//               itemBuilder: (_, index) {
+//                 final person = taggedPeople[index];
+//
+//                 return ListTile(
+//                   contentPadding: EdgeInsets.zero,
+//                   leading: CircleAvatar(
+//                     backgroundColor: Colors.grey.shade300,
+//                     child: ClipOval(
+//                       child: SizedBox.expand(
+//                         child: person.photoUrl != null &&
+//                             person.photoUrl!.isNotEmpty
+//                             ? buildImageWidget(
+//                           person.photoUrl!,
+//                           fit: BoxFit.cover,
+//                         )
+//                             : Text(
+//                           person.name?.isNotEmpty == true
+//                               ? person.name![0].toUpperCase()
+//                               : "?",
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                   title: Text(
+//                     person.name ?? "",
+//                     style: const TextStyle(
+//                       fontSize: 14,
+//                       fontWeight: FontWeight.w500,
+//                     ),
+//                   ),
+//                   trailing: InkWell(
+//                     onTap: () {
+//                       taggedPeople.removeAt(index);
+//                       //Navigator.pop(dialogContext);
+//                     },
+//                     child: const Icon(
+//                       Icons.close,
+//                       color: Colors.red,
+//                     ),
+//                   ),
+//                 );
+//               },
+//             ),
+//           ),
+//           actions: [
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.center,
+//               children: [
+//                 InkWell(
+//                   onTap: () {
+//                     Navigator.pop(dialogContext);
+//                   },
+//                   child: Container(
+//                     height: MediaQuery
+//                         .of(context)
+//                         .size
+//                         .height * 0.05,
+//                     width: MediaQuery
+//                         .of(context)
+//                         .size
+//                         .width * 0.27,
+//                     decoration: BoxDecoration(
+//                       borderRadius: BorderRadius.circular(4),
+//                       border: Border.all(
+//                         color: const Color(0xFFFF2164),
+//                       ),
+//                     ),
+//                     child: Padding(
+//                       padding: EdgeInsets.only(
+//                         left: MediaQuery
+//                             .of(context)
+//                             .size
+//                             .width * 0.015,
+//                         right: MediaQuery
+//                             .of(context)
+//                             .size
+//                             .width * 0.01,
+//                       ),
+//                       child: Row(
+//                         children: [
+//                           SvgPicture.asset(
+//                             PartyPageData.crossIcon,
+//                             color: const Color(0xFFFF2164),
+//                             height:
+//                             MediaQuery
+//                                 .of(context)
+//                                 .size
+//                                 .height * 0.02,
+//                           ),
+//                           SizedBox(
+//                             width: MediaQuery
+//                                 .of(context)
+//                                 .size
+//                                 .width * 0.02,
+//                           ),
+//                           Text(
+//                             'CANCEL',
+//                             textAlign: TextAlign.center,
+//                             style: TextStyle(
+//                               color: const Color(0xFFFF2164),
+//                               fontWeight: FontWeight.w500,
+//                               fontSize:
+//                               (MediaQuery
+//                                   .of(context)
+//                                   .size
+//                                   .width * 0.04)
+//                                   .clamp(14.0, 16.0),
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//                 SizedBox(
+//                   width: MediaQuery
+//                       .of(context)
+//                       .size
+//                       .width * 0.05,
+//                 ),
+//                 InkWell(
+//                   onTap: () async {
+//                     Navigator.pop(dialogContext);
+//                     await onAddMore();
+//                   },
+//                   child: Container(
+//                     height: MediaQuery
+//                         .of(context)
+//                         .size
+//                         .height * 0.05,
+//                     width: MediaQuery
+//                         .of(context)
+//                         .size
+//                         .width * 0.2,
+//                     decoration: BoxDecoration(
+//                       gradient: GradientColors.primaryGradient,
+//                       borderRadius: BorderRadius.circular(4),
+//                       border: Border.all(
+//                         color: const Color(0xFFFF2164),
+//                       ),
+//                     ),
+//                     child: Padding(
+//                       padding: EdgeInsets.only(
+//                         left: MediaQuery
+//                             .of(context)
+//                             .size
+//                             .width * 0.015,
+//                         right: MediaQuery
+//                             .of(context)
+//                             .size
+//                             .width * 0.01,
+//                       ),
+//                       child: Row(
+//                         children: [
+//                           SvgPicture.asset(
+//                             PartyPageData.addIcon,
+//                             color: ColorScheme
+//                                 .of(context)
+//                                 .surface,
+//                             height:
+//                             MediaQuery
+//                                 .of(context)
+//                                 .size
+//                                 .height * 0.02,
+//                           ),
+//                           SizedBox(
+//                             width: MediaQuery
+//                                 .of(context)
+//                                 .size
+//                                 .width * 0.02,
+//                           ),
+//                           Text(
+//                             'ADD',
+//                             textAlign: TextAlign.center,
+//                             style: TextStyle(
+//                               color: ColorScheme
+//                                   .of(context)
+//                                   .surface,
+//                               fontWeight: FontWeight.w500,
+//                               fontSize:
+//                               (MediaQuery
+//                                   .of(context)
+//                                   .size
+//                                   .width * 0.04)
+//                                   .clamp(14.0, 16.0),
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
+// }
+
+///----------------------------
 class FeedMediaWidget extends StatelessWidget {
   final List<FeedMedia> media;
 
-  const FeedMediaWidget({
-    super.key,
-    required this.media,
-  });
+  const FeedMediaWidget({super.key, required this.media});
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +746,6 @@ class FeedMediaWidget extends StatelessWidget {
       child: Column(
         children: [
           // ---------------- TOP LARGE MEDIA ----------------
-
           Expanded(
             flex: 2,
             child: _mediaTile(
@@ -110,18 +761,11 @@ class FeedMediaWidget extends StatelessWidget {
           const SizedBox(height: 3),
 
           // ---------------- BOTTOM TWO MEDIA ----------------
-
           Expanded(
             flex: 1,
             child: Row(
               children: [
-                Expanded(
-                  child: _mediaTile(
-                    context: context,
-                    index: 1,
-
-                  ),
-                ),
+                Expanded(child: _mediaTile(context: context, index: 1)),
 
                 const SizedBox(width: 3),
 
@@ -179,7 +823,6 @@ class FeedMediaWidget extends StatelessWidget {
                       //   color: Colors.white,
                       //   size: 28,
                       // ),
-
                       const SizedBox(height: 6),
 
                       Text(
@@ -191,7 +834,7 @@ class FeedMediaWidget extends StatelessWidget {
                         ),
                       ),
 
-                     // const SizedBox(height: 2),
+                      // const SizedBox(height: 2),
 
                       // const Text(
                       //   "more",
@@ -250,11 +893,7 @@ class FeedMediaWidget extends StatelessWidget {
         return Container(
           color: Colors.grey.shade300,
           alignment: Alignment.center,
-          child: const Icon(
-            Icons.image_outlined,
-            size: 40,
-            color: Colors.grey,
-          ),
+          child: const Icon(Icons.image_outlined, size: 40, color: Colors.grey),
         );
       },
       loadingBuilder: (context, child, loadingProgress) {
@@ -282,18 +921,12 @@ class FeedMediaWidget extends StatelessWidget {
   // FULL SCREEN VIEWER
   // ============================================================
 
-  void _openViewer(
-      BuildContext context,
-      int initialIndex,
-      ) {
+  void _openViewer(BuildContext context, int initialIndex) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) {
-          return FeedMediaViewer(
-            media: media,
-            initialIndex: initialIndex,
-          );
+          return FeedMediaViewer(media: media, initialIndex: initialIndex);
         },
       ),
     );
@@ -303,10 +936,7 @@ class FeedMediaWidget extends StatelessWidget {
 class VideoPreview extends StatefulWidget {
   final String url;
 
-  const VideoPreview({
-    super.key,
-    required this.url,
-  });
+  const VideoPreview({super.key, required this.url});
 
   @override
   State<VideoPreview> createState() => VideoPreviewState();
@@ -324,9 +954,7 @@ class VideoPreviewState extends State<VideoPreview> {
 
     print("VIDEO URL: ${widget.url}");
 
-    controller = VideoPlayerController.networkUrl(
-      Uri.parse(widget.url),
-    );
+    controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
 
     _initializeVideo();
   }
@@ -386,11 +1014,7 @@ class VideoPreviewState extends State<VideoPreview> {
         child: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.video_library_outlined,
-              color: Colors.grey,
-              size: 38,
-            ),
+            Icon(Icons.video_library_outlined, color: Colors.grey, size: 38),
             SizedBox(height: 8),
             Text(
               "Unable to load video",
@@ -530,10 +1154,7 @@ class _FeedMediaViewerState extends State<FeedMediaViewer> {
 class FullScreenVideo extends StatefulWidget {
   final String url;
 
-  const FullScreenVideo({
-    super.key,
-    required this.url,
-  });
+  const FullScreenVideo({super.key, required this.url});
 
   @override
   State<FullScreenVideo> createState() => _FullScreenVideoState();
@@ -550,9 +1171,7 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
   void initState() {
     super.initState();
 
-    controller = VideoPlayerController.networkUrl(
-      Uri.parse(widget.url),
-    );
+    controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
 
     _initializeVideo();
   }
@@ -596,16 +1215,13 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
   void _startHideTimer() {
     _hideTimer?.cancel();
 
-    _hideTimer = Timer(
-      const Duration(seconds: 2),
-          () {
-        if (mounted) {
-          setState(() {
-            showPlayButton = false;
-          });
-        }
-      },
-    );
+    _hideTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          showPlayButton = false;
+        });
+      }
+    });
   }
 
   @override
@@ -619,9 +1235,7 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
   Widget build(BuildContext context) {
     if (!controller.value.isInitialized) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: Colors.white,
-        ),
+        child: CircularProgressIndicator(color: Colors.white),
       );
     }
 
@@ -652,9 +1266,7 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  controller.value.isPlaying
-                      ? Icons.pause
-                      : Icons.play_arrow,
+                  controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
                   color: Colors.white,
                   size: 38,
                 ),
@@ -666,105 +1278,137 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
     );
   }
 }
+
 ///----------------Quote showing design
-Widget FeedQuoteWidget(
-    final int? feedId,
+Widget FeedQuoteWidget(final int? feedId,
     final String quote,
     final String author,
-final List<FeedMedia> media,
-BuildContext context,
-    ){
-return Container(
-  decoration: BoxDecoration(
-  ),
-  child: Column(
-    children: [
-
-      Padding(
-        padding:  EdgeInsets.only(left:MediaQuery.of(context).size.width*0.04),
-        child: Align(
-          alignment: Alignment.topLeft,
-          child: SvgPicture.asset(PartyPageData.quoteIcon),
-        ),
-      ),
-      SizedBox(height: MediaQuery.of(context).size.height * 0.081,),
-      Align(
-        alignment: Alignment.center,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.08,
+    final List<FeedMedia> media,
+    BuildContext context,) {
+  return Container(
+    decoration: BoxDecoration(),
+    child: Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(
+            left: MediaQuery
+                .of(context)
+                .size
+                .width * 0.04,
           ),
-          child: Text(
-           quote,
-
-            textAlign: TextAlign.center,
-            maxLines: 5,
-
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              height: 1.1,
-              fontWeight: FontWeight.w600,
-              fontSize: MediaQuery.of(context).size.height * 0.035,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: SvgPicture.asset(PartyPageData.quoteIcon),
+          ),
+        ),
+        SizedBox(height: MediaQuery
+            .of(context)
+            .size
+            .height * 0.081),
+        Align(
+          alignment: Alignment.center,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery
+                  .of(context)
+                  .size
+                  .width * 0.08,
             ),
-          ),
-        ),
-      ),
-      SizedBox(height: MediaQuery.of(context).size.height * 0.01,),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            backgroundColor: Colors.transparent,
-            child: ClipOval(
-              child: SizedBox.expand(
-                child: media.isNotEmpty &&
-                    media[0].url != null &&
-                    media[0].url!.isNotEmpty
-                    ? buildImageWidget(
-                  media[0].url!,
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                )
-                    : const Icon(
-                  Icons.person,
-                  color: Colors.grey,
-                ),
+            child: Text(
+              quote,
+
+              textAlign: TextAlign.center,
+              maxLines: 5,
+
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                height: 1.1,
+                fontWeight: FontWeight.w600,
+                fontSize: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.035,
               ),
             ),
           ),
-          SizedBox(width: MediaQuery.of(context).size.width*0.03,),
-          Text(author,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize:MediaQuery.of(context).size.height * 0.019,
-            color: Color(0xFF666666)
-          ),
-          ),
-        ],
-      ),
-      SizedBox(height: MediaQuery.of(context).size.height * 0.081,),
-      Padding(
-        padding:  EdgeInsets.only(right:MediaQuery.of(context).size.width*0.04),
-        child: Align(
-          alignment: Alignment.bottomRight,
-          child: Transform.rotate(
-            angle: 3.14,
-              child: SvgPicture.asset(PartyPageData.quoteIcon)),
         ),
-      ),
-      SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
-
-    ],
-  ),
-);
+        SizedBox(height: MediaQuery
+            .of(context)
+            .size
+            .height * 0.01),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.transparent,
+              child: ClipOval(
+                child: SizedBox.expand(
+                  child:
+                  media.isNotEmpty &&
+                      media[0].url != null &&
+                      media[0].url!.isNotEmpty
+                      ? buildImageWidget(
+                    media[0].url!,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                  )
+                      : const Icon(Icons.person, color: Colors.grey),
+                ),
+              ),
+            ),
+            SizedBox(width: MediaQuery
+                .of(context)
+                .size
+                .width * 0.03),
+            Text(
+              author,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.019,
+                color: Color(0xFF666666),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: MediaQuery
+            .of(context)
+            .size
+            .height * 0.081),
+        Padding(
+          padding: EdgeInsets.only(
+            right: MediaQuery
+                .of(context)
+                .size
+                .width * 0.04,
+          ),
+          child: Align(
+            alignment: Alignment.bottomRight,
+            child: Transform.rotate(
+              angle: 3.14,
+              child: SvgPicture.asset(PartyPageData.quoteIcon),
+            ),
+          ),
+        ),
+        SizedBox(height: MediaQuery
+            .of(context)
+            .size
+            .height * 0.025),
+      ],
+    ),
+  );
 }
+
 ///------------------Search Bar for tagging
 class LeaderPickerDialog extends StatefulWidget {
   final Future<List<LeaderModel>> Function(String text) searchFunction;
   final bool isNew;
   final bool single;
   final List<Tagged> existingTagged;
+
   const LeaderPickerDialog({
     super.key,
     required this.searchFunction,
@@ -783,12 +1427,13 @@ class LeaderPickerDialog extends StatefulWidget {
     return showDialog<Map<String, dynamic>?>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => LeaderPickerDialog(
-        searchFunction: searchFunction,
-        isNew: isNew,
-        single: single,
-        existingTagged: existingTagged,
-      ),
+      builder: (_) =>
+          LeaderPickerDialog(
+            searchFunction: searchFunction,
+            isNew: isNew,
+            single: single,
+            existingTagged: existingTagged,
+          ),
     );
   }
 
@@ -843,13 +1488,25 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
+    final w = MediaQuery
+        .of(context)
+        .size
+        .width;
+    final h = MediaQuery
+        .of(context)
+        .size
+        .height;
     return Dialog(
       backgroundColor: Colors.white,
       child: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.9,
-        height: MediaQuery.of(context).size.height * 0.75,
+        width: MediaQuery
+            .of(context)
+            .size
+            .width * 0.9,
+        height: MediaQuery
+            .of(context)
+            .size
+            .height * 0.75,
         child: Stack(
           children: [
             if (leaders.isEmpty && controller.text.isEmpty)
@@ -962,7 +1619,8 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
                               (e) => e.id == leader.id,
                         );
 
-                        final checked = !isRemoved && (alreadyTagged || isSelected);
+                        final checked =
+                            !isRemoved && (alreadyTagged || isSelected);
                         return Column(
                           children: [
                             ListTile(
@@ -974,13 +1632,14 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
                                 setState(() {
                                   // Previously tagged leader
                                   if (alreadyTagged) {
-                                    final removedIndex = removedExistingLeaders.indexWhere(
-                                          (e) => e.id == leader.id,
-                                    );
+                                    final removedIndex = removedExistingLeaders
+                                        .indexWhere((e) => e.id == leader.id);
 
                                     if (removedIndex != -1) {
                                       // User selected it again
-                                      removedExistingLeaders.removeAt(removedIndex);
+                                      removedExistingLeaders.removeAt(
+                                        removedIndex,
+                                      );
                                     } else {
                                       // User wants to untag it
                                       removedExistingLeaders.add(leader);
@@ -1021,7 +1680,8 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
                                 ),
                               ),
                               subtitle: Text(
-                                "${leader.designation.toUpperCase()}, ${leader.uniqueId.toUpperCase()}",
+                                "${leader.designation.toUpperCase()}, ${leader
+                                    .uniqueId.toUpperCase()}",
                                 style: TextStyle(
                                   color: Color.fromRGBO(101, 101, 121, 1),
                                   fontSize: 14,
@@ -1113,18 +1773,22 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
                               return;
                             }
 
-                            final List<Tagged> taggedLeaders = selectedLeaders.map((leader) {
+                            final List<Tagged> taggedLeaders = selectedLeaders
+                                .map((leader) {
                               return Tagged(
                                 type: "POLITICIAN",
                                 id: leader.id,
                                 name: leader.name,
                                 photoUrl: leader.image,
                               );
-                            }).toList();
+                            })
+                                .toList();
 
                             Navigator.pop(context, {
                               'added': taggedLeaders,
-                              'removed': removedExistingLeaders.map((e) => e.id).toList(),
+                              'removed': removedExistingLeaders
+                                  .map((e) => e.id)
+                                  .toList(),
                             });
                           },
                           child: Container(
@@ -1144,7 +1808,9 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
                                 children: [
                                   SvgPicture.asset(
                                     PartyPageData.addIcon,
-                                    color: ColorScheme.of(context).surface,
+                                    color: ColorScheme
+                                        .of(context)
+                                        .surface,
                                     height: h * 0.02,
                                   ),
                                   SizedBox(width: w * 0.02),
@@ -1152,7 +1818,9 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
                                     'ADD',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      color: ColorScheme.of(context).surface,
+                                      color: ColorScheme
+                                          .of(context)
+                                          .surface,
                                       fontWeight: FontWeight.w500,
                                       fontSize: (w * 0.04).clamp(14.0, 16.0),
                                     ),
@@ -1174,10 +1842,14 @@ class _LeaderPickerDialogState extends State<LeaderPickerDialog> {
     );
   }
 }
+
 ///--------------Set time and date
 
 class AddSchedule extends StatefulWidget {
-  const AddSchedule({super.key});
+  final DateTime? initialDateTime;
+  const AddSchedule({super.key,
+    this.initialDateTime,
+  });
 
   @override
   State<AddSchedule> createState() => _AddScheduleState();
@@ -1191,6 +1863,7 @@ class _AddScheduleState extends State<AddSchedule> {
   TimeOfDay? selectedTime;
 
   String? errorMessage;
+
   bool isSelectedDateTimeValid() {
     if (selectedDate == null || selectedTime == null) {
       return false;
@@ -1209,9 +1882,48 @@ class _AddScheduleState extends State<AddSchedule> {
     return selectedDateTime.isAfter(now);
   }
   @override
+  void initState() {
+    super.initState();
+
+    if (widget.initialDateTime != null) {
+      final dateTime = widget.initialDateTime!;
+
+      selectedDate = DateTime(
+        dateTime.year,
+        dateTime.month,
+        dateTime.day,
+      );
+
+      selectedTime = TimeOfDay(
+        hour: dateTime.hour,
+        minute: dateTime.minute,
+      );
+
+      dateController.text =
+      "${dateTime.day.toString().padLeft(2, '0')}-"
+          "${dateTime.month.toString().padLeft(2, '0')}-"
+          "${dateTime.year}";
+
+      timeController.text =formatTime(selectedTime!);
+    }
+  }
+  String formatTime(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+
+    return '$hour:$minute $period';
+  }
+  @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
+    final w = MediaQuery
+        .of(context)
+        .size
+        .width;
+    final h = MediaQuery
+        .of(context)
+        .size
+        .height;
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -1253,7 +1965,8 @@ class _AddScheduleState extends State<AddSchedule> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: w * 0.038,
-                    color: ColorScheme.of(context)
+                    color: ColorScheme
+                        .of(context)
                         .onSurface
                         .withOpacity(0.6),
                   ),
@@ -1292,9 +2005,7 @@ class _AddScheduleState extends State<AddSchedule> {
                     },
                     child: Padding(
                       padding: EdgeInsets.all(w * 0.045),
-                      child: SvgPicture.asset(
-                        PartyPageData.dateIcon,
-                      ),
+                      child: SvgPicture.asset(PartyPageData.dateIcon),
                     ),
                   ),
                 ),
@@ -1343,9 +2054,7 @@ class _AddScheduleState extends State<AddSchedule> {
                     },
                     child: Padding(
                       padding: EdgeInsets.all(w * 0.045),
-                      child: SvgPicture.asset(
-                        PartyPageData.dateIcon,
-                      ),
+                      child: SvgPicture.asset(PartyPageData.dateIcon),
                     ),
                   ),
                 ),
@@ -1363,9 +2072,7 @@ class _AddScheduleState extends State<AddSchedule> {
                           height: h * 0.05,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: const Color(0xFFFF2164),
-                            ),
+                            border: Border.all(color: const Color(0xFFFF2164)),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -1381,8 +2088,7 @@ class _AddScheduleState extends State<AddSchedule> {
                                 style: TextStyle(
                                   color: const Color(0xFFFF2164),
                                   fontWeight: FontWeight.w500,
-                                  fontSize:
-                                  (w * 0.04).clamp(14.0, 16.0),
+                                  fontSize: (w * 0.04).clamp(14.0, 16.0),
                                 ),
                               ),
                             ],
@@ -1398,7 +2104,8 @@ class _AddScheduleState extends State<AddSchedule> {
                         onTap: () {
                           if (selectedDate == null || selectedTime == null) {
                             setState(() {
-                              errorMessage = 'Please select both date and time.';
+                              errorMessage =
+                              'Please select both date and time.';
                             });
                             return;
                           }
@@ -1415,25 +2122,22 @@ class _AddScheduleState extends State<AddSchedule> {
                             'date': dateController.text,
                             'time': timeController.text,
                           });
-
                         },
                         child: Container(
                           height: h * 0.05,
                           decoration: BoxDecoration(
-                            gradient:
-                            GradientColors.primaryGradient,
+                            gradient: GradientColors.primaryGradient,
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: const Color(0xFFFF2164),
-                            ),
+                            border: Border.all(color: const Color(0xFFFF2164)),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               SvgPicture.asset(
                                 PartyPageData.addIcon,
-                                color:
-                                ColorScheme.of(context).surface,
+                                color: ColorScheme
+                                    .of(context)
+                                    .surface,
                                 height: h * 0.02,
                               ),
                               SizedBox(width: w * 0.02),
@@ -1442,11 +2146,11 @@ class _AddScheduleState extends State<AddSchedule> {
                                   PartyPageData.setDateTime,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: ColorScheme.of(context)
+                                    color: ColorScheme
+                                        .of(context)
                                         .surface,
                                     fontWeight: FontWeight.w500,
-                                    fontSize:
-                                    (w * 0.04).clamp(14.0, 16.0),
+                                    fontSize: (w * 0.04).clamp(14.0, 16.0),
                                   ),
                                 ),
                               ),
@@ -1466,61 +2170,44 @@ class _AddScheduleState extends State<AddSchedule> {
   }
 }
 
-
-Widget buildTaggedPeopleAvatars(
-    List<Tagged> taggedPeople,
-    double h,
-    double w,
-    ) {
+Widget buildTaggedPeopleAvatars(List<Tagged> taggedPeople, double h, double w) {
   final peopleToShow = taggedPeople.take(3).toList();
 
   return SizedBox(
-    width: peopleToShow.isEmpty
-        ? 0
-        : (peopleToShow.length * 22.0) + 10,
+    width: peopleToShow.isEmpty ? 0 : (peopleToShow.length * 22.0) + 10,
     height: h * 0.05,
     child: Stack(
       clipBehavior: Clip.none,
-      children: List.generate(
-        peopleToShow.length,
-            (index) {
-          final person = peopleToShow[index];
+      children: List.generate(peopleToShow.length, (index) {
+        final person = peopleToShow[index];
 
-          return Positioned(
-            left: index * 20.0,
-            top: 0,
-            child: Container(
-              width: h * 0.045,
-              height: h * 0.045,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white,
-                  width: 2,
-                ),
-              ),
-              child: CircleAvatar(
-                backgroundColor: Colors.grey.shade300,
-                child: ClipOval(
-                  child: SizedBox.expand(
-                    child: person.photoUrl != null &&
-                        person.photoUrl!.isNotEmpty
-                        ? buildImageWidget(
-                      person.photoUrl!,
-                      fit: BoxFit.cover,
-                    )
-                        : Text(
-                      person.name?.isNotEmpty == true
-                          ? person.name![0].toUpperCase()
-                          : "?",
-                    ),
+        return Positioned(
+          left: index * 20.0,
+          top: 0,
+          child: Container(
+            width: h * 0.045,
+            height: h * 0.045,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: CircleAvatar(
+              backgroundColor: Colors.grey.shade300,
+              child: ClipOval(
+                child: SizedBox.expand(
+                  child: person.photoUrl != null && person.photoUrl!.isNotEmpty
+                      ? buildImageWidget(person.photoUrl!, fit: BoxFit.cover)
+                      : Text(
+                    person.name?.isNotEmpty == true
+                        ? person.name![0].toUpperCase()
+                        : "?",
                   ),
                 ),
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      }),
     ),
   );
 }
@@ -1531,53 +2218,74 @@ class FeedQuoteTab extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final String? iconName;
-
+ final double?height;
+ final double? width;
   const FeedQuoteTab({
     super.key,
     required this.title,
     required this.isSelected,
     required this.onTap,
     this.iconName,
+    required this.height,
+    required this.width,
   });
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
+    final w = MediaQuery
+        .of(context)
+        .size
+        .width;
+    final h = MediaQuery
+        .of(context)
+        .size
+        .height;
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(h * 0.02),
       child: Container(
-        height: h * 0.05,
-        width: w * 0.25,
+        height: height,//h * 0.05,
+        width:width,// w * 0.35,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(h * 0.025),
-          gradient: isSelected
-              ? GradientColors.primaryGradient
-              : null,
+          gradient: isSelected ? GradientColors.primaryGradient : null,
           color: isSelected
               ? null
-              : ColorScheme.of(context)
+              : ColorScheme
+              .of(context)
               .onSurface
-              .withOpacity(0.26),
+              .withOpacity(0.08),
         ),
         child: Align(
           alignment: Alignment.center,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              SvgPicture.asset(
+                height: h * 0.025,
+
+                iconName!,
+                // color: ColorScheme.of(context).surface,
+              ),
+              SizedBox(width: MediaQuery
+                  .of(context)
+                  .size
+                  .width * 0.02),
               Text(
                 textAlign: TextAlign.center,
                 title,
                 style: TextStyle(
-                  color:ColorScheme.of(context).surface,
+                    color: ColorScheme
+                        .of(context)
+                        .onSurface,
 
-                  fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.22
                 ),
               ),
-              SizedBox(width: MediaQuery.of(context).size.width*0.02,),
-              SvgPicture.asset(iconName!,color: ColorScheme.of(context).surface,),
+
+
             ],
           ),
         ),

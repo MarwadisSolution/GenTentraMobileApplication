@@ -53,74 +53,9 @@ class _AddFeedState extends State<AddFeed> {
           "${now.minute.toString().padLeft(2, '0')}";
     }
   }
-  Future<void> _deleteExistingMedia({
-    required bool isVideo,
-    required int index,
-  }) async {
-    try {
-      final List<FeedMedia> list =
-      isVideo ? existingVideos : existingImages;
 
-      if (index < 0 || index >= list.length) return;
 
-      final media = list[index];
 
-      // Add ID so backend deletes it when UPDATE is submitted
-      if (media.id != null) {
-        if (!deletedMediaIds.contains(media.id!)) {
-          deletedMediaIds.add(media.id!);
-        }
-      }
-
-      // If this video is currently playing, stop it
-      if (isVideo &&
-          playingExistingVideo &&
-          playingVideoIndex == index) {
-        await _videoController?.pause();
-        await _videoController?.dispose();
-
-        _videoController = null;
-        playingVideoIndex = null;
-        playingExistingVideo = false;
-      }
-
-      setState(() {
-        list.removeAt(index);
-      });
-    } catch (e) {
-      debugPrint("Error deleting existing media: $e");
-    }
-  }
-
-  Future<void> _deleteSelectedMedia({
-    required bool isVideo,
-    required int index,
-  }) async {
-    try {
-      final List<XFile> list =
-      isVideo ? selectedVideos : selectedImages;
-
-      if (index < 0 || index >= list.length) return;
-
-      // Stop currently playing new video
-      if (isVideo &&
-          !playingExistingVideo &&
-          playingVideoIndex == index) {
-        await _videoController?.pause();
-        await _videoController?.dispose();
-
-        _videoController = null;
-        playingVideoIndex = null;
-        playingExistingVideo = false;
-      }
-
-      setState(() {
-        list.removeAt(index);
-      });
-    } catch (e) {
-      debugPrint("Error deleting selected media: $e");
-    }
-  }
   void _initializeEditData(FeedModel feed) {
     if (feed.kind == "POST") {
       selectedTab = 0;
@@ -533,6 +468,7 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
     }
   }
 ///------------------quote
+  ///Add it in adding quote page--------------------
   Future<void> _publishQuote(
       String quoteText,
       String authorName,
@@ -741,6 +677,7 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
                                     });
                                   },
                                   iconName: PartyPageData.feedIcon,
+                                  height: h*0.05, width: w*0.35,
                                 ),
                                 SizedBox(width: w*0.03,),
                                 FeedQuoteTab(
@@ -752,6 +689,7 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
                                     });
                                   },
                                     iconName: PartyPageData.quoteDiffIcon,
+                                  height: h*0.05, width: w*0.35,
                                 ),
                                 SizedBox(width: w*0.03,),
                                 FeedQuoteTab(
@@ -763,6 +701,7 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
                                     });
                                   },
                                     iconName: PartyPageData.dateIcon,
+                                  height: h*0.05, width: w*0.35,
                                 ),
                               ],
                             ),

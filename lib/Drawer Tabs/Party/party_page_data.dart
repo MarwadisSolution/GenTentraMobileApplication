@@ -6,8 +6,8 @@ class PartyPageData {
   static final symbol="SYMBOL";
   static final journey="JOURNEY";
   static final leadership="LEADERSHIP";
-  static final feed="FEED";
-  static final event="EVENT";
+  static final feed="Feed";
+  static final event="Events";
   static final manifesto="MANIFESTO";
   static final founded="FOUNDED";
   static final founder="FOUNDER";
@@ -33,11 +33,15 @@ class PartyPageData {
   static final crossIcon="Assets/PartyPage/crossIcon.svg";
   static final descriptionIcon="Assets/PartyPage/descriptionIcon.svg";
   static final tagLeader="Tag Leader";
+  static final tagPeople="Tag Peoples";
+  static final tagPeopleIcon="Assets/PartyPage/tagPeopleIcon.svg";
+
   static final searchBy="Search by Name - OR - Unique ID";
   static final addIcon="Assets/PartyPage/addIcon.svg";
   static final taggedPeople="Tagged Peoples";
   static final scheduledFor="Scheduled For";
   static final schedule="Schedule";
+  static final scheduleIcon="Assets/PartyPage/scheduleIcon.svg";
   static final chooseDate ="Choose a date and time in the future when you want your post to be published.";
   static final date="Date";
   static final time="Time";
@@ -51,11 +55,20 @@ class PartyPageData {
   static final publish="PUBLISH";
   static final authorName ="Enter Author Name";
   static final addQuote="Add Your Quote";
+  static final quotes="Quote";
+  static final newGroup="New Group";
 static final sampleQuote="Every sunrise is a second chance to shine.";
 static final sampleAuthorName="Amish Mehta";
 static final addImage="Add Image";
+static final addImageIcon="Assets/PartyPage/addImageIcon.svg";
 static final quoteDiffIcon="Assets/PartyPage/quoteDiffIcon.svg";
 static final feedIcon="Assets/PartyPage/feedIcon.svg";
+static final addFeedIcon="Assets/PartyPage/addFeedIcon.svg";
+static final addQuoteIcon="Assets/PartyPage/addQuoteIcon.svg";
 
-
+static final eventIcon="Assets/PartyPage/eventIcon.svg";
+static final newGroupIcon="Assets/PartyPage/newGroupIcon.svg";
+static final addIconLight="Assets/PartyPage/addIconLight.svg";
+static final crossIconLight="Assets/PartyPage/crossIconLight.svg";
+static final coloredQuoteIcon="Assets/PartyPage/coloredQuoteIcon.svg";
 }

@@ -19,7 +19,135 @@ import 'Tabs/Feed Tab/feed_bloc.dart';
 import 'Tabs/info_tab.dart';
 import 'Tabs/symbol_tab.dart';
 import 'following_party_caching.dart';
+///-----------Delete cancle pop up message
+Widget popUpMessageForDeleteOrCancel(
+    BuildContext context,
+    String icon,
+    String title,
+    String text,
+    VoidCallback onPressed,
+    ) {
+  final h = MediaQuery.of(context).size.height;
+  final w = MediaQuery.of(context).size.width;
 
+  return Dialog(
+    backgroundColor: Colors.white,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: w * 0.06,
+        vertical: h * 0.055,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SvgPicture.asset(
+            icon,
+            height: w * 0.09,
+            width: w * 0.09,
+          ),
+
+          SizedBox(height: h * 0.025),
+
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: (w * 0.055).clamp(18.0, 24.0),
+              color: const Color(0xFF121212),
+            ),
+          ),
+
+          SizedBox(height: h * 0.01),
+
+          Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.w400,
+              fontSize: (w * 0.038).clamp(13.0, 17.0),
+              color: ColorScheme.of(context)
+                  .onSurface
+                  .withOpacity(0.6),
+            ),
+          ),
+
+          SizedBox(height: h * 0.025),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // CANCEL
+              Expanded(
+                child: SizedBox(
+                  height: h * 0.05,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context, false);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: const BorderSide(
+                          color: Color(0xFFFF2164),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      "CANCEL",
+                      style: TextStyle(
+                        fontSize: (w * 0.032).clamp(12.0, 15.0),
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFFF2164),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              SizedBox(width: w * 0.03),
+
+              // DELETE
+              Expanded(
+                child: SizedBox(
+                  height: h * 0.05,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () {
+                      onPressed();
+                      Navigator.pop(context, true);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: GradientColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        "DELETE",
+                        style: TextStyle(
+                          fontSize: (w * 0.032).clamp(12.0, 15.0),
+                          fontWeight: FontWeight.w500,
+                          color: ColorScheme.of(context).surface,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
 class BannerSection extends StatefulWidget {
   final Map<String, dynamic> partyData;
 

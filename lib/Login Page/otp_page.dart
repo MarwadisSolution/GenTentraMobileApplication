@@ -49,7 +49,8 @@ class _OtpPageState extends State<OtpPage> {
               builder: (_) =>
                   BlocProvider.value(
                     value: context.read<LoginBloc>(),
-                    child:  VerifyOtpPage(fromWhereICame: 'From OTP page',),
+                    child:  VerifyOtpPage(
+                      fromWhereICame: 'From OTP page',),
                   ),
             ),
           );

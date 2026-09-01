@@ -9,27 +9,23 @@ import 'Refresh Token/refresh_token.dart';
 class LoginApi{
   final Dio _dio = apiClient;
 
-  Future<void>otpRequest(String number)async{
-    print("abcd");
-    print("Number:- $number");
-    final response=await _dio.post("$api/api/v1/auth/phone/start",
+  Future<void> otpRequest(String number) async {
+    final url = "$api/api/v1/auth/phone/start";
 
-        data: jsonEncode({
-          "phone": number,
-        })
+    print("========== OTP REQUEST ==========");
+    print("URL: $url");
+    print("PHONE: $number");
+    print("=================================");
+
+    final response = await _dio.post(
+      url,
+      data: {
+        "phone": number,
+      },
     );
-    print("Yes");
-    print(response.data);
-    print(response.statusCode);
-    print(response.data["data"]["devCode"]);
-    if(response.data["success"]==false) {
-      print(response.data["error"]["message"]);
-      throw Exception(response.data["error"]["message"]);
-    }
-    print("Full log data");
-    print(jsonEncode(response.data));
-    print(response.data);
-    print(response.statusCode);
+
+    print("STATUS: ${response.statusCode}");
+    print("DATA: ${response.data}");
   }
   Future<Map<String, dynamic>> otpVerify(
       String number,

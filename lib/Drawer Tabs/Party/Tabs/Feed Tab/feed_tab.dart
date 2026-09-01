@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/Add%20Feed%20With%20Bloc/adding_feed.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/Add%20Feed%20With%20Bloc/adding_quote.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_bloc.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_event.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_state.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/reusable_functions.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/reusable_functions.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 import 'package:readmore/readmore.dart';
 import 'package:share_plus/share_plus.dart';
@@ -231,18 +234,31 @@ class _FeedTabState extends State<FeedTab> {
                       ),
                       onSelected: (value) async {
                         if (value == 'edit') {
-                          final result = await Navigator.push(
+                          final result = feed.kind=="POST"? await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => BlocProvider.value(
+                           builder: (_) => BlocProvider.value(
                                 value: context.read<FeedBloc>(),
-                                child: AddFeed(
+                                child: AddingFeed(
                                   partyId: widget.partyId,
                                   editFeed: feed,
                                 ),
                               ),
                             ),
-                          );
+                          ):
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>  BlocProvider.value(
+                                value: context.read<FeedBloc>(),
+                                child: AddingQuote(
+                                  partyId: widget.partyId,
+                                  editQuote: feed,
+                                ),
+                              ),
+                            ),
+                          )
+                          ;
 
                           if (result == true && mounted) {
                             setState(() {});
@@ -251,55 +267,45 @@ class _FeedTabState extends State<FeedTab> {
                        else if (value == 'share') {
                           shareFeed(feed);
                         } else if (value == 'delete') {
-                          final shouldDelete = await showDialog<bool>(
+                          final shouldDelete = await showGeneralDialog<bool>(
                             context: context,
-                            builder: (dialogContext) {
-                              return AlertDialog(
-                                title: Text(
-                                  "Delete Post",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: ColorScheme.of(context).onSurface,
-                                  ),
-                                ),
-                                content: Text(
-                                  "Are you sure you want to delete this post?",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: ColorScheme.of(context).onSurface,
-                                  ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(dialogContext, false),
-                                    child: Text(
-                                      "Cancel",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: ColorScheme.of(context).onSurface,
-                                      ),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(dialogContext, true),
-                                    child: Text(
-                                      "Delete",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: ColorScheme.of(context).onSurface,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            barrierDismissible: true,
+                            barrierLabel: 'Delete',
+                            barrierColor: Colors.black.withOpacity(0.25),
+                            transitionDuration: const Duration(milliseconds: 250),
+                            pageBuilder: (dialogContext,_,__) {
+                              return popUpMessageForDeleteOrCancel(
+                                dialogContext,
+                               feed.kind=="POST"? PartyPageData.addFeedIcon:PartyPageData.coloredQuoteIcon,
+                                "Would you like to Delete? ",
+                                "Once deleted, this post will be permanently removed.",
+                                    () {},
                               );
                             },
+                            transitionBuilder: (context, animation, secondaryAnimation, child){
+                              return SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(0,1),
+                                    end: Offset.zero,
+                                  ).animate(
+                                   CurvedAnimation(parent: animation,
+                                       curve: Curves.easeOutCubic,
+                                   ),
+                                  ),
+                                child: child,
+                              );
+                            }
                           );
 
                           if (shouldDelete == true && mounted) {
                             context.read<FeedBloc>().add(
-                              DeleteFeedEvent(feed.id!, widget.partyId),
+                              DeleteFeedEvent(
+                                feed.id!,
+                                widget.partyId,
+                              ),
                             );
                           }
+
                         }
                       },
                       itemBuilder: (BuildContext context) => [

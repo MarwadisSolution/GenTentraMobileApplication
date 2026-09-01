@@ -289,3 +289,119 @@ Future<void> launchWebsite(String url) async {
 
 }
 
+///Vertical action menu, as it is for party admin only. on tapping
+///Plus button design
+class VerticalActionMenu extends StatelessWidget{
+  final List<ActionMenuItem>items;
+  final double? width;
+  final double? height;
+  const VerticalActionMenu({
+   super.key,
+   required this.items,
+   this.width,
+   this.height,
+});
+  @override
+  Widget build(BuildContext context){
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final menuWidth = width ?? screenWidth * 0.19;
+    final menuHeight = height ?? screenHeight * 0.27;
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        width: menuWidth,
+        height: menuHeight,
+        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.012),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(MediaQuery.of(context).size.height*0.053),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: items.map((item){
+            return ActionMenuButton(
+              imageIcon: item.imageIcon,
+              title: item.title,
+              onTap: item.onTap,
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+}
+class ActionMenuItem {
+  final String imageIcon;
+  final String title;
+  final VoidCallback onTap;
+
+  const ActionMenuItem({
+    required this.imageIcon,
+    required this.title,
+    required this.onTap,
+  });
+}
+class ActionMenuButton extends StatefulWidget {
+  final String imageIcon;
+  final String title;
+  final VoidCallback onTap;
+
+  const ActionMenuButton({
+    super.key,
+    required this.imageIcon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  State<ActionMenuButton> createState() => _ActionMenuButtonState();
+}
+
+class _ActionMenuButtonState extends State<ActionMenuButton> {
+  final ValueNotifier<bool> isSelected = ValueNotifier(false);
+
+  @override
+  void dispose() {
+    isSelected.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: isSelected,
+      builder: (context, selected, _) {
+        return InkWell(
+          onTap: () {
+            isSelected.value = !selected;
+            widget.onTap();
+          },
+          child: Column(
+            children: [
+              SvgPicture.asset(
+                widget.imageIcon,
+                color: selected
+                    ? null
+                    : const Color(0xFF000000)
+              ),
+              SizedBox(height: MediaQuery.of(context).size.height*0.01),
+              Text(
+                widget.title,
+                style: TextStyle(
+                  color: selected
+                      ? Colors.black
+                      : const Color(0xFF000000).withOpacity(0.4),
+                  fontSize: MediaQuery.of(context).size.height * 0.015,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 0.22,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
