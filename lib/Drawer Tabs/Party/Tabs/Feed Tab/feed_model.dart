@@ -21,7 +21,7 @@ final int? viewCount;
 final int?likeCount;
 final int?commentCount;
 final bool? reacted;
-
+final String?statusOfPublishment;
 FeedModel({
   this.id,
   this.uuid,
@@ -46,6 +46,7 @@ FeedModel({
   this.likeCount,
   this.commentCount,
   this.reacted,
+  this.statusOfPublishment,
 });
 factory FeedModel.fromJson(Map<String, dynamic>json){
   return FeedModel(
@@ -84,6 +85,7 @@ factory FeedModel.fromJson(Map<String, dynamic>json){
     likeCount: json["likeCount"],
     commentCount: json["commentCount"],
     reacted: json["reactedByMe"],
+      statusOfPublishment: json['status'],
   );
 }
 Map<String, dynamic> toJson() {
@@ -129,6 +131,7 @@ FeedModel copyWith({
   int? likeCount,
   int? commentCount,
   bool? reacted,
+  String?statusOfPublishment,
 }) {
   return FeedModel(
     id: id ?? this.id,
@@ -152,6 +155,7 @@ FeedModel copyWith({
     likeCount: likeCount ?? this.likeCount,
     commentCount: commentCount ?? this.commentCount,
     reacted: reacted ?? this.reacted,
+    statusOfPublishment: statusOfPublishment??this.statusOfPublishment,
   );
 }
 }

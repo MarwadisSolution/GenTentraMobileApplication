@@ -314,15 +314,15 @@ class _TaggedPeopleDialogContentState
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              trailing: InkWell(
-                onTap: () {
-                  removePerson(index);
-                },
-                child: const Icon(
-                  Icons.close,
-                  color: Colors.red,
-                ),
-              ),
+              // trailing: InkWell(
+              //   onTap: () {
+              //     removePerson(index);
+              //   },
+              //   child: const Icon(
+              //     Icons.close,
+              //     color: Colors.black,
+              //   ),
+              // ),
             );
           },
         ),
@@ -434,232 +434,6 @@ class _TaggedPeopleDialogContentState
     );
   }
 }
-// class TaggedPeopleDialog {
-//   static Future<void> show({
-//     required BuildContext context,
-//     required List<Tagged> taggedPeople,
-//     required Future<void> Function() onAddMore,
-//   }) async {
-//     await showDialog(
-//       context: context,
-//       builder: (dialogContext) {
-//         return AlertDialog(
-//           backgroundColor: Colors.white,
-//           title: Text(
-//             PartyPageData.taggedPeople,
-//             style: const TextStyle(
-//               fontWeight: FontWeight.w600,
-//             ),
-//           ),
-//           content: SizedBox(
-//             width: MediaQuery
-//                 .of(context)
-//                 .size
-//                 .width * 0.8,
-//             child: ListView.separated(
-//               shrinkWrap: true,
-//               itemCount: taggedPeople.length,
-//               separatorBuilder: (_, __) => const Divider(),
-//               itemBuilder: (_, index) {
-//                 final person = taggedPeople[index];
-//
-//                 return ListTile(
-//                   contentPadding: EdgeInsets.zero,
-//                   leading: CircleAvatar(
-//                     backgroundColor: Colors.grey.shade300,
-//                     child: ClipOval(
-//                       child: SizedBox.expand(
-//                         child: person.photoUrl != null &&
-//                             person.photoUrl!.isNotEmpty
-//                             ? buildImageWidget(
-//                           person.photoUrl!,
-//                           fit: BoxFit.cover,
-//                         )
-//                             : Text(
-//                           person.name?.isNotEmpty == true
-//                               ? person.name![0].toUpperCase()
-//                               : "?",
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                   title: Text(
-//                     person.name ?? "",
-//                     style: const TextStyle(
-//                       fontSize: 14,
-//                       fontWeight: FontWeight.w500,
-//                     ),
-//                   ),
-//                   trailing: InkWell(
-//                     onTap: () {
-//                       taggedPeople.removeAt(index);
-//                       //Navigator.pop(dialogContext);
-//                     },
-//                     child: const Icon(
-//                       Icons.close,
-//                       color: Colors.red,
-//                     ),
-//                   ),
-//                 );
-//               },
-//             ),
-//           ),
-//           actions: [
-//             Row(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: [
-//                 InkWell(
-//                   onTap: () {
-//                     Navigator.pop(dialogContext);
-//                   },
-//                   child: Container(
-//                     height: MediaQuery
-//                         .of(context)
-//                         .size
-//                         .height * 0.05,
-//                     width: MediaQuery
-//                         .of(context)
-//                         .size
-//                         .width * 0.27,
-//                     decoration: BoxDecoration(
-//                       borderRadius: BorderRadius.circular(4),
-//                       border: Border.all(
-//                         color: const Color(0xFFFF2164),
-//                       ),
-//                     ),
-//                     child: Padding(
-//                       padding: EdgeInsets.only(
-//                         left: MediaQuery
-//                             .of(context)
-//                             .size
-//                             .width * 0.015,
-//                         right: MediaQuery
-//                             .of(context)
-//                             .size
-//                             .width * 0.01,
-//                       ),
-//                       child: Row(
-//                         children: [
-//                           SvgPicture.asset(
-//                             PartyPageData.crossIcon,
-//                             color: const Color(0xFFFF2164),
-//                             height:
-//                             MediaQuery
-//                                 .of(context)
-//                                 .size
-//                                 .height * 0.02,
-//                           ),
-//                           SizedBox(
-//                             width: MediaQuery
-//                                 .of(context)
-//                                 .size
-//                                 .width * 0.02,
-//                           ),
-//                           Text(
-//                             'CANCEL',
-//                             textAlign: TextAlign.center,
-//                             style: TextStyle(
-//                               color: const Color(0xFFFF2164),
-//                               fontWeight: FontWeight.w500,
-//                               fontSize:
-//                               (MediaQuery
-//                                   .of(context)
-//                                   .size
-//                                   .width * 0.04)
-//                                   .clamp(14.0, 16.0),
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//                 SizedBox(
-//                   width: MediaQuery
-//                       .of(context)
-//                       .size
-//                       .width * 0.05,
-//                 ),
-//                 InkWell(
-//                   onTap: () async {
-//                     Navigator.pop(dialogContext);
-//                     await onAddMore();
-//                   },
-//                   child: Container(
-//                     height: MediaQuery
-//                         .of(context)
-//                         .size
-//                         .height * 0.05,
-//                     width: MediaQuery
-//                         .of(context)
-//                         .size
-//                         .width * 0.2,
-//                     decoration: BoxDecoration(
-//                       gradient: GradientColors.primaryGradient,
-//                       borderRadius: BorderRadius.circular(4),
-//                       border: Border.all(
-//                         color: const Color(0xFFFF2164),
-//                       ),
-//                     ),
-//                     child: Padding(
-//                       padding: EdgeInsets.only(
-//                         left: MediaQuery
-//                             .of(context)
-//                             .size
-//                             .width * 0.015,
-//                         right: MediaQuery
-//                             .of(context)
-//                             .size
-//                             .width * 0.01,
-//                       ),
-//                       child: Row(
-//                         children: [
-//                           SvgPicture.asset(
-//                             PartyPageData.addIcon,
-//                             color: ColorScheme
-//                                 .of(context)
-//                                 .surface,
-//                             height:
-//                             MediaQuery
-//                                 .of(context)
-//                                 .size
-//                                 .height * 0.02,
-//                           ),
-//                           SizedBox(
-//                             width: MediaQuery
-//                                 .of(context)
-//                                 .size
-//                                 .width * 0.02,
-//                           ),
-//                           Text(
-//                             'ADD',
-//                             textAlign: TextAlign.center,
-//                             style: TextStyle(
-//                               color: ColorScheme
-//                                   .of(context)
-//                                   .surface,
-//                               fontWeight: FontWeight.w500,
-//                               fontSize:
-//                               (MediaQuery
-//                                   .of(context)
-//                                   .size
-//                                   .width * 0.04)
-//                                   .clamp(14.0, 16.0),
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ],
-//         );
-//       },
-//     );
-//   }
-// }
 
 ///----------------------------
 class FeedMediaWidget extends StatelessWidget {
@@ -692,8 +466,6 @@ class FeedMediaWidget extends StatelessWidget {
     return _mediaTile(
       context: context,
       index: 0,
-      height: 280,
-      // borderRadius: BorderRadius.circular(12),
     );
   }
 
@@ -703,7 +475,7 @@ class FeedMediaWidget extends StatelessWidget {
 
   Widget _buildTwoMedia(BuildContext context) {
     return SizedBox(
-      height: 280,
+      height: 300,
       child: Row(
         children: [
           Expanded(
@@ -800,9 +572,12 @@ class FeedMediaWidget extends StatelessWidget {
       onTap: () {
         _openViewer(context, index);
       },
-      child: SizedBox(
+      child: Container(
         height: height,
         width: double.infinity,
+        constraints: const BoxConstraints(
+          maxHeight: 500,
+        ),
         child: ClipRRect(
           borderRadius: borderRadius,
           child: Stack(
@@ -810,45 +585,20 @@ class FeedMediaWidget extends StatelessWidget {
             children: [
               _mediaPreview(media[index]),
 
-              // Dark overlay for "+X more"
               if (overlayCount != null)
                 Container(
                   color: Colors.black.withOpacity(0.55),
                   alignment: Alignment.center,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // const Icon(
-                      //   Icons.collections_outlined,
-                      //   color: Colors.white,
-                      //   size: 28,
-                      // ),
-                      const SizedBox(height: 6),
-
-                      Text(
-                        "+$overlayCount",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      // const SizedBox(height: 2),
-
-                      // const Text(
-                      //   "more",
-                      //   style: TextStyle(
-                      //     color: Colors.white,
-                      //     fontSize: 13,
-                      //     fontWeight: FontWeight.w500,
-                      //   ),
-                      // ),
-                    ],
+                  child: Text(
+                    "+$overlayCount",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
 
-              // Small video indicator
               if (media[index].mediaType == "VIDEO")
                 Positioned(
                   top: 10,
@@ -872,7 +622,6 @@ class FeedMediaWidget extends StatelessWidget {
       ),
     );
   }
-
   // ============================================================
   // MEDIA PREVIEW
   // ============================================================
@@ -1043,21 +792,6 @@ class VideoPreviewState extends State<VideoPreview> {
               ),
             ),
           ),
-
-          // Center play icon
-          // const Center(
-          //   child: Icon(
-          //     Icons.play_circle_fill,
-          //     color: Colors.white,
-          //     size: 48,
-          //     shadows: [
-          //       Shadow(
-          //         color: Colors.black54,
-          //         blurRadius: 8,
-          //       ),
-          //     ],
-          //   ),
-          // ),
         ],
       ),
     );
@@ -1983,25 +1717,99 @@ class _AddScheduleState extends State<AddSchedule> {
                     onTap: () async {
                       final now = DateTime.now();
 
-                      final DateTime? pickedDate = await showDatePicker(
+                      DateTime tempDate = selectedDate ?? now;
+
+                      await showCupertinoModalPopup(
                         context: context,
-                        initialDate: selectedDate ?? now,
-                        firstDate: DateTime(now.year, now.month, now.day),
-                        lastDate: DateTime(2100),
+                        builder: (context) {
+                          return Container(
+                            height: h * 0.35,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20),
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                // Top bar
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: w * 0.04,
+                                    vertical: h * 0.015,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      CupertinoButton(
+                                        padding: EdgeInsets.zero,
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text(
+                                          'Cancel',
+                                          style: TextStyle(
+                                            color: Color(0xFFFF2164),
+                                          ),
+                                        ),
+                                      ),
+                                      //
+                                      // const Text(
+                                      //   'Select Date',
+                                      //   style: TextStyle(
+                                      //     fontWeight: FontWeight.w600,
+                                      //     fontSize: 16,
+                                      //   ),
+                                      // ),
+
+                                      CupertinoButton(
+                                        padding: EdgeInsets.zero,
+                                        onPressed: () {
+                                          setState(() {
+                                            selectedDate = tempDate;
+
+                                            dateController.text =
+                                            "${tempDate.day.toString().padLeft(2, '0')}-"
+                                                "${tempDate.month.toString().padLeft(2, '0')}-"
+                                                "${tempDate.year}";
+
+                                            errorMessage = null;
+                                          });
+
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text(
+                                          'Done',
+                                          style: TextStyle(
+                                            color: Color(0xFFFF2164),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                Expanded(
+                                  child: CupertinoDatePicker(
+                                    mode: CupertinoDatePickerMode.date,
+                                    initialDateTime: tempDate,
+                                    minimumDate: DateTime(
+                                      now.year,
+                                      now.month,
+                                      now.day,
+                                    ),
+                                    maximumDate: DateTime(2100),
+                                    onDateTimeChanged: (DateTime value) {
+                                      tempDate = value;
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       );
-
-                      if (pickedDate != null) {
-                        setState(() {
-                          selectedDate = pickedDate;
-
-                          dateController.text =
-                          "${pickedDate.day.toString().padLeft(2, '0')}-"
-                              "${pickedDate.month.toString().padLeft(2, '0')}-"
-                              "${pickedDate.year}";
-
-                          errorMessage = null;
-                        });
-                      }
                     },
                     child: Padding(
                       padding: EdgeInsets.all(w * 0.045),
@@ -2020,40 +1828,111 @@ class _AddScheduleState extends State<AddSchedule> {
                   readOnly: true,
                   suffixIcons:[
                     InkWell(
-                    onTap: () async {
-                      final now = DateTime.now();
+                      onTap: () async {
+                        final now = DateTime.now();
 
-                      TimeOfDay initialTime = selectedTime ?? TimeOfDay.now();
+                        DateTime tempDateTime;
 
-                      if (selectedDate != null) {
-                        final isToday =
-                            selectedDate!.year == now.year &&
-                                selectedDate!.month == now.month &&
-                                selectedDate!.day == now.day;
-
-                        if (isToday) {
-                          initialTime = TimeOfDay(
-                            hour: now.hour,
-                            minute: now.minute,
+                        if (selectedDate != null && selectedTime != null) {
+                          tempDateTime = DateTime(
+                            selectedDate!.year,
+                            selectedDate!.month,
+                            selectedDate!.day,
+                            selectedTime!.hour,
+                            selectedTime!.minute,
                           );
+                        } else {
+                          tempDateTime = now;
                         }
-                      }
 
-                      final TimeOfDay? pickedTime = await showTimePicker(
-                        context: context,
-                        initialTime: initialTime,
-                      );
+                        await showCupertinoModalPopup(
+                          context: context,
+                          builder: (context) {
+                            return Container(
+                              height: h * 0.35,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(20),
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  // Top bar
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: w * 0.04,
+                                      vertical: h * 0.015,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        CupertinoButton(
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text(
+                                            'Cancel',
+                                            style: TextStyle(
+                                              color: Color(0xFFFF2164),
+                                            ),
+                                          ),
+                                        ),
 
-                      if (pickedTime != null) {
-                        setState(() {
-                          selectedTime = pickedTime;
+                                        // const Text(
+                                        //   'Select Time',
+                                        //   style: TextStyle(
+                                        //     fontWeight: FontWeight.w600,
+                                        //     fontSize: 16,
+                                        //   ),
+                                        // ),
 
-                          timeController.text = pickedTime.format(context);
+                                        CupertinoButton(
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () {
+                                            setState(() {
+                                              selectedTime = TimeOfDay(
+                                                hour: tempDateTime.hour,
+                                                minute: tempDateTime.minute,
+                                              );
 
-                          errorMessage = null;
-                        });
-                      }
-                    },
+                                              timeController.text =
+                                                  formatTime(selectedTime!);
+
+                                              errorMessage = null;
+                                            });
+
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text(
+                                            'Done',
+                                            style: TextStyle(
+                                              color: Color(0xFFFF2164),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  Expanded(
+                                    child: CupertinoDatePicker(
+                                      mode: CupertinoDatePickerMode.time,
+                                      initialDateTime: tempDateTime,
+                                      use24hFormat: false,
+                                      onDateTimeChanged: (DateTime value) {
+                                        tempDateTime = value;
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
                     child: Padding(
                       padding: EdgeInsets.all(w * 0.045),
                       child: SvgPicture.asset(PartyPageData.dateIcon),
