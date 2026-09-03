@@ -7,14 +7,14 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Ta
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_state.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../../../Reusable Functions/reusable_functions.dart';
-import '../../../../../Reusable Functions/sliver_app_bar_reusable.dart';
-import '../../../party_page_data.dart';
-import '../../../reusable_functions.dart';
-import '../feed_bloc.dart';
-import '../feed_event.dart';
-import '../feed_model.dart';
-import '../reusable_functions.dart';
+import '../../../../Reusable Functions/reusable_functions.dart';
+import '../../../../Reusable Functions/sliver_app_bar_reusable.dart';
+import '../../party_page_data.dart';
+import '../../reusable_functions.dart';
+import 'feed_bloc.dart';
+import 'feed_event.dart';
+import 'feed_model.dart';
+import 'reusable_functions.dart';
 
 class AddingQuote extends StatefulWidget {
   final int partyId;
@@ -311,6 +311,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                   title: PartyPageData.feedTitle,
                   automaticallyImplyLeading: false,
                   height: h * 0.06,
+                  isMenuNeeded: false,
                   actions: [
                     InkWell(
                       onTap: () {

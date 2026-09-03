@@ -52,7 +52,7 @@ class _FavouritePageState extends State<FavouritePage> {
         slivers: [
           ReusableSliverAppBar(
             title: "MY FAVOURITE",
-           // automaticallyImplyLeading: false,
+            automaticallyImplyLeading: false,
             height: h*0.06,
             onMenuTap: () {
               widget.scaffoldKey.currentState?.openDrawer();

@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../../../Reusable Functions/reusable_functions.dart';
-import '../feed_model.dart';
-import '../reusable_functions.dart';
+import '../../../../Reusable Functions/reusable_functions.dart';
+import 'feed_model.dart';
+import 'reusable_functions.dart';
 
 class ReusableMediaGrid extends StatefulWidget {
   final List<FeedMedia> existingImages;

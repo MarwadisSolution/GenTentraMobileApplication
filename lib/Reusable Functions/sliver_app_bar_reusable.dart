@@ -12,6 +12,7 @@ class ReusableSliverAppBar extends StatelessWidget {
   final bool? automaticallyImplyLeading;
   final double height;
   final Widget? child;
+  final bool? isMenuNeeded;
   final VoidCallback? onMenuTap;
   final List<Widget>? actions;
   const ReusableSliverAppBar({
@@ -21,6 +22,7 @@ class ReusableSliverAppBar extends StatelessWidget {
     this.automaticallyImplyLeading,
     this.height=200,
     this.child,
+    this.isMenuNeeded,
     this.onMenuTap,
     this.actions,
   });
@@ -32,38 +34,39 @@ class ReusableSliverAppBar extends StatelessWidget {
       backgroundColor: Colors.transparent,
       elevation: 0,
       forceElevated: false,
-
+      automaticallyImplyLeading: false,
       // automaticallyImplyActions:automaticallyImplyLeading,
-      leading: automaticallyImplyLeading == true
-          ? IconButton(
+      leading: isMenuNeeded == false
+    ? null
+        : automaticallyImplyLeading == true
+    ? IconButton(
         onPressed: () => Navigator.pop(context),
-        padding: const EdgeInsets.all(12),
-        constraints: const BoxConstraints(
-          minWidth: 56,
-          minHeight: 56,
-        ),
-        icon: Transform.rotate(
-          angle: 3.14,
-          child: SvgPicture.asset(
-            "Assets/arrow.svg",
-            height: MediaQuery.of(context).size.height * 0.016,
-           // width: MediaQuery.of(context).size.width * 0.008,
-          ),
-        ),
-      )
-          : automaticallyImplyLeading == false
-          ? IconButton(
-        onPressed: onMenuTap,
-        icon: const Icon(
-          Icons.menu,
-          color: Color(0xFFE3E3E3),
-        ),
-      )
-          : null,
+    padding: const EdgeInsets.all(12),
+    constraints: const BoxConstraints(
+    minWidth: 56,
+    minHeight: 56,
+    ),
+    icon: Transform.rotate(
+    angle: 3.14,
+    child: SvgPicture.asset(
+    "Assets/arrow.svg",
+    height: MediaQuery.of(context).size.height * 0.016,
+    ),
+    ),
+    )
+        : automaticallyImplyLeading == false
+    ? IconButton(
+    onPressed: onMenuTap,
+    icon: const Icon(
+    Icons.menu,
+    color: Color(0xFFE3E3E3),
+    ),
+    )
+        : null,
 
       title: Padding(
         padding: EdgeInsets.only(
-          left: automaticallyImplyLeading == null ?
+          left: automaticallyImplyLeading == false ?
            MediaQuery.of(context).size.width*0.04 : 0.0,
         ),
         child: titleWidget ??

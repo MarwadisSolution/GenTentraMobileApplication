@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/Add%20Feed%20With%20Bloc/reusable_media_grid.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/reusable_media_grid.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/apis.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_bloc.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_model.dart';
@@ -13,9 +13,9 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/reusable_funct
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_bar_reusable.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../../../Reusable Functions/reusable_functions.dart';
-import '../../../party_page_data.dart';
-import '../feed_event.dart';
+import '../../../../Reusable Functions/reusable_functions.dart';
+import '../../party_page_data.dart';
+import 'feed_event.dart';
 
 class AddingFeed extends StatefulWidget {
   final int partyId;
@@ -320,6 +320,7 @@ class _AddingFeedState extends State<AddingFeed> {
                 title: PartyPageData.feedTitle,
                 automaticallyImplyLeading: false,
                 height: h * 0.06,
+                isMenuNeeded: false,
                 actions: [
                   InkWell(
                     onTap: () {

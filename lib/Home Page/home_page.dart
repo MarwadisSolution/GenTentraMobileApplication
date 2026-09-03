@@ -39,7 +39,7 @@ class _HomePageState extends State<HomePage> {
         ReusableSliverAppBar(
           titleWidget: SvgPicture.asset(HomePageData.logo),
           height: MediaQuery.of(context).size.height*0.06,
-
+          automaticallyImplyLeading: false,
           onMenuTap: () {
             widget.scaffoldKey.currentState?.openDrawer();
           },
