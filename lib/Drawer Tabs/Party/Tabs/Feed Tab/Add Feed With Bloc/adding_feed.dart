@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -10,9 +9,9 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Ta
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_model.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_state.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/reusable_functions.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/reusable_functions.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_bar_reusable.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:video_player/video_player.dart';
 
 import '../../../../../Reusable Functions/reusable_functions.dart';
 import '../../../party_page_data.dart';
@@ -22,10 +21,7 @@ class AddingFeed extends StatefulWidget {
   final int partyId;
   final FeedModel? editFeed;
 
-  const AddingFeed({super.key,
-    required this.partyId,
-    required this.editFeed,
-  });
+  const AddingFeed({super.key, required this.partyId, required this.editFeed});
 
   bool get isEditMode => editFeed != null;
 
@@ -39,20 +35,18 @@ class _AddingFeedState extends State<AddingFeed> {
   TextEditingController descriptionController = TextEditingController();
   TextEditingController scheduleController = TextEditingController();
 
-  List<Tagged>taggedPeople = [];
+  List<Tagged> taggedPeople = [];
 
   ///-----------Adding Images and videos
   List<XFile> selectedImages = [];
-  List<XFile>selectedVideos = [];
+  List<XFile> selectedVideos = [];
   List<FeedMedia> existingImages = [];
   List<FeedMedia> existingVideos = [];
   List<int> deletedMediaIds = [];
   final ImagePicker imagePicker = ImagePicker();
   final VideoPlayerHelper videoPlayerHelper = VideoPlayerHelper();
-  Future<void> playVideo(
-      int index, {
-        required bool isExisting,
-      }) async {
+
+  Future<void> playVideo(int index, {required bool isExisting}) async {
     if (isExisting) {
       await videoPlayerHelper.playVideo(
         context: context,
@@ -73,6 +67,7 @@ class _AddingFeedState extends State<AddingFeed> {
       setState(() {});
     }
   }
+
   Future<void> showTaggedPeoplesDialog() async {
     await TaggedPeopleDialog.show(
       context: context,
@@ -84,6 +79,7 @@ class _AddingFeedState extends State<AddingFeed> {
       setState(() {});
     }
   }
+
   Future<void> addMoreTaggedPeople() async {
     final result = await LeaderPickerDialog.show(
       context: context,
@@ -96,24 +92,19 @@ class _AddingFeedState extends State<AddingFeed> {
     );
 
     if (result != null) {
-      final List<Tagged> added =
-          (result['added'] as List<Tagged>?) ?? [];
+      final List<Tagged> added = (result['added'] as List<Tagged>?) ?? [];
 
-      final List<dynamic> removed =
-          (result['removed'] as List<dynamic>?) ?? [];
+      final List<dynamic> removed = (result['removed'] as List<dynamic>?) ?? [];
 
       setState(() {
         // Remove previously tagged people
-        taggedPeople.removeWhere(
-              (person) => removed.contains(person.id),
-        );
+        taggedPeople.removeWhere((person) => removed.contains(person.id));
 
         // Add newly selected people
         for (final newPerson in added) {
           final alreadyTagged = taggedPeople.any(
                 (person) =>
-            person.id == newPerson.id &&
-                person.type == newPerson.type,
+            person.id == newPerson.id && person.type == newPerson.type,
           );
 
           if (!alreadyTagged) {
@@ -123,6 +114,7 @@ class _AddingFeedState extends State<AddingFeed> {
       });
     }
   }
+
   DateTime? getScheduleDateTime() {
     final text = scheduleController.text.trim();
 
@@ -159,12 +151,13 @@ class _AddingFeedState extends State<AddingFeed> {
       return null;
     }
   }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     if (widget.editFeed != null) {
-      final data=FeedHelper.initializeEditData("FEED",widget.editFeed!);
+      final data = FeedHelper.initializeEditData("FEED", widget.editFeed!);
 
       descriptionController.text = data.description!;
       taggedPeople = data.taggedPeoples;
@@ -181,26 +174,24 @@ class _AddingFeedState extends State<AddingFeed> {
             "${scheduled.minute.toString().padLeft(2, '0')}";
       }
     }
-    else {
-      final now = DateTime.now();
-      scheduleController.text = "${now.day.toString().padLeft(2, '0')}-"
-          "${now.month.toString().padLeft(2, '0')}-"
-          "${now.year} "
-          "${now.hour.toString().padLeft(2, '0')}:"
-          "${now.minute.toString().padLeft(2, '0')}";
-    }
   }
+
   ///------------Publish
   Future<void> _publishFeed() async {
-
-
-    if (descriptionController.text.trim().isEmpty) {
+    if (descriptionController.text
+        .trim()
+        .isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(
-          backgroundColor: ColorScheme.of(context).error,
-          content: Text("Please enter description",style: TextStyle(
-            color: ColorScheme.of(context).surface
-          ),),
+        SnackBar(
+          backgroundColor: ColorScheme
+              .of(context)
+              .error,
+          content: Text(
+            "Please enter description",
+            style: TextStyle(color: ColorScheme
+                .of(context)
+                .surface),
+          ),
         ),
       );
       return;
@@ -214,7 +205,9 @@ class _AddingFeedState extends State<AddingFeed> {
 
       DateTime? scheduledAt;
 
-      if (scheduleController.text.trim().isNotEmpty) {
+      if (scheduleController.text
+          .trim()
+          .isNotEmpty) {
         final parts = scheduleController.text.trim().split(' ');
 
         if (parts.length == 2) {
@@ -241,22 +234,19 @@ class _AddingFeedState extends State<AddingFeed> {
         scheduledAt: scheduledAt,
 
         // IMPORTANT: preserve existing media that was NOT deleted
-        media: [
-          ...existingImages,
-          ...existingVideos,
-        ],
+        media: [...existingImages, ...existingVideos],
       );
 
       if (widget.isEditMode) {
         context.read<FeedBloc>().add(
-            UpdateFeedEvent(
-              feed: feed,
-              mediaFiles: mediaFiles,
-              deletedMediaIds: deletedMediaIds,
-              partyId: widget.partyId,
-            )
+          UpdateFeedEvent(
+            feed: feed,
+            mediaFiles: mediaFiles,
+            deletedMediaIds: deletedMediaIds,
+            partyId: widget.partyId,
+          ),
         );
-      }else {
+      } else {
         context.read<FeedBloc>().add(
           AddNewFeedEvent(
             feed: feed,
@@ -269,14 +259,13 @@ class _AddingFeedState extends State<AddingFeed> {
       debugPrint("Error creating feed event: $e");
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to publish feed: $e"),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Failed to publish feed: $e")));
       }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery
@@ -288,44 +277,43 @@ class _AddingFeedState extends State<AddingFeed> {
         .size
         .height;
     return BlocListener<FeedBloc, FeedState>(
-        listener: (context,state){
-          if(state
-          .isPostSuccess){
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.green,
-                content: Text(
-                  state.isOfflineQueued
-                      ? "Saved offline. It will be published automatically when internet is restored."
-                      : "Successfully published",
-                  style: const TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
+      listener: (context, state) {
+        if (state.isPostSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.green,
+              content: Text(
+                state.isOfflineQueued
+                    ? "Saved offline. It will be published automatically when internet is restored."
+                    : "Successfully published",
+                style: const TextStyle(color: Colors.white),
               ),
-            );
-            Navigator.pop(context,true);
-          }
-          if (state.isError) {
-            debugPrint("Error in adding feed:- ${state.errorMessage}");
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: ColorScheme.of(context).error,
-                content: Text(
-                   "Failed to publish",
-                  style: TextStyle(
-                    color: ColorScheme.of(context).surface
-                  ),
-                ),
+            ),
+          );
+          Navigator.pop(context, true);
+        }
+        if (state.isError) {
+          debugPrint("Error in adding feed:- ${state.errorMessage}");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: ColorScheme
+                  .of(context)
+                  .error,
+              content: Text(
+                "Failed to publish",
+                style: TextStyle(color: ColorScheme
+                    .of(context)
+                    .surface),
               ),
-            );
-          }
+            ),
+          );
+        }
+      },
+      child: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
         },
-        child: GestureDetector(
-          onTap: (){
-            FocusScope.of(context).unfocus();
-          },
-          child: Scaffold(
+        child: Scaffold(
           body: CustomScrollView(
             slivers: [
               ReusableSliverAppBar(
@@ -357,21 +345,24 @@ class _AddingFeedState extends State<AddingFeed> {
                       height: h * 0.08,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
+                        gradient:
+                        GradientColorsForBellowAppbar.gradientBelowAppbar,
                       ),
                     ),
                     Positioned.fill(
-                        top: h*0.02,
-                        child:Container(
-                          height: h,width: w,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(25),
-                              topRight: Radius.circular(25),
-                            ),
+                      top: h * 0.02,
+                      child: Container(
+                        height: h,
+                        width: w,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(25),
+                            topRight: Radius.circular(25),
                           ),
-                          child: Padding(padding: EdgeInsets.only(
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.only(
                             top: MediaQuery
                                 .of(context)
                                 .size
@@ -385,131 +376,219 @@ class _AddingFeedState extends State<AddingFeed> {
                                 .size
                                 .width * 0.04,
                           ),
-                            child: Column(
-                              children: [
-                            SingleChildScrollView(
-                              scrollDirection:Axis.horizontal,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  FeedQuoteTab(
-                                    title: PartyPageData.addImage,
-                                    isSelected: false,
-                                    onTap: () async {
-                                      final result = await ReusableMediaPicker.pickMedia(context);
+                          child: Column(
+                            children: [
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    FeedQuoteTab(
+                                      title: PartyPageData.addImage,
+                                      isSelected: false,
+                                      onTap: () async {
+                                        final result =
+                                        await ReusableMediaPicker.pickMedia(
+                                          context,
+                                        );
 
-                                      if (!mounted) return;
+                                        if (!mounted) return;
 
-                                      setState(() {
-                                        selectedImages.addAll(result.images);
-                                        selectedVideos.addAll(result.videos);
-                                      });
-                                    },
-                                    iconName: PartyPageData.addImageIcon, height: h*0.05, width: w*0.35,
-
-                                  ),
-                                  SizedBox(width: w*0.03,),
-                                  //-----Tag Peoples
-                                  FeedQuoteTab(
-                                    title: PartyPageData.taggedPeople,
-                                    isSelected: false,
-                                    onTap: () async {
-                                      if (taggedPeople.isEmpty) {
-                                        await addMoreTaggedPeople();
-                                      } else {
-                                        await showTaggedPeoplesDialog();
-                                      }
-                                    },
-                                    iconName: PartyPageData.tagPeopleIcon,
-                                    height: h*0.05, width: w*0.45,
-                                  ),
-                                  SizedBox(width: w*0.03,),
-                                  ///-----Schedule
-                                  FeedQuoteTab(
-                                    title: PartyPageData.schedule,
-                                    isSelected: false,
-                                    onTap: () async {
-                                      // print("Scheduled At:--${getScheduleDateTime}");
-                                      final schedule = await showDialog<Map<String, String>>(
-                                        context: context,
-                                        builder: (_) => AddSchedule(
-                                          initialDateTime:
-                                          getScheduleDateTime() ?? widget.editFeed?.scheduledAt,
-                                        ),
-                                      );
-
-                                      if (schedule != null) {
                                         setState(() {
-                                          scheduleController.text =
-                                          "${schedule['date']} ${schedule['time']}";
+                                          selectedImages.addAll(result.images);
+                                          selectedVideos.addAll(result.videos);
                                         });
-                                      }
-                                    },
-                                    iconName: PartyPageData.scheduleIcon,
-                                    height: h*0.05, width: w*0.35,
-                                  ),
-                                ],
+                                      },
+                                      iconName: PartyPageData.addImageIcon,
+                                      height: h * 0.05,
+                                      width: w * 0.35,
+                                    ),
+                                    SizedBox(width: w * 0.03),
+                                    //-----Tag Peoples
+                                    FeedQuoteTab(
+                                      title: PartyPageData.taggedPeople,
+                                      isSelected: false,
+                                      onTap: () async {
+                                        if (taggedPeople.isEmpty) {
+                                          await addMoreTaggedPeople();
+                                        } else {
+                                          await showTaggedPeoplesDialog();
+                                        }
+                                      },
+                                      iconName: PartyPageData.tagPeopleIcon,
+                                      height: h * 0.05,
+                                      width: w * 0.45,
+                                    ),
+                                    SizedBox(width: w * 0.03),
+
+                                    ///-----Schedule
+                                    FeedQuoteTab(
+                                      title: PartyPageData.schedule,
+                                      isSelected: false,
+                                      onTap: () async {
+                                        // print("Scheduled At:--${getScheduleDateTime}");
+                                        final schedule =
+                                        await showDialog<
+                                            Map<String, String>
+                                        >(
+                                          context: context,
+                                          builder: (_) =>
+                                              AddSchedule(
+                                                initialDateTime:
+                                                getScheduleDateTime() ??
+                                                    widget
+                                                        .editFeed
+                                                        ?.scheduledAt,
+                                              ),
+                                        );
+
+                                        if (schedule != null) {
+                                          setState(() {
+                                            scheduleController.text =
+                                            "${schedule['date']} ${schedule['time']}";
+                                          });
+                                        }
+                                      },
+                                      iconName: PartyPageData.scheduleIcon,
+                                      height: h * 0.05,
+                                      width: w * 0.35,
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                                Expanded(child: SingleChildScrollView(
+                              Expanded(
+                                child: SingleChildScrollView(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
                                     children: [
                                       SizedBox(height: h * 0.035),
                                       TextFormField(
-
                                         keyboardType: TextInputType.multiline,
                                         controller: descriptionController,
                                         minLines: 1,
                                         maxLines: null,
                                         decoration: InputDecoration(
-
                                           hintText: "What's your view?",
                                           border: InputBorder.none,
                                           enabledBorder: InputBorder.none,
                                           focusedBorder: InputBorder.none,
                                           errorBorder: InputBorder.none,
                                           focusedErrorBorder: InputBorder.none,
-
                                         ),
                                       ),
 
                                       SizedBox(height: h * 0.035),
                                       // Show schedule only when user has selected it
-                                      if (scheduleController.text.isNotEmpty) ...[
+                                      if (scheduleController
+                                          .text
+                                          .isNotEmpty) ...[
                                         const SizedBox(height: 10),
 
                                         CustomTextField(
                                           readOnly: true,
                                           controller: scheduleController,
                                           labelText: PartyPageData.scheduledFor,
-                                          suffixIcon: Transform.rotate(
+                                          suffixIcons:[
+                                            InkWell(
+                                              onTap: () async {
+                                                final shouldDelete =
+                                                await showGeneralDialog<
+                                                    bool
+                                                >(
+                                                    context: context,
+                                                    barrierDismissible:
+                                                    true,
+                                                    barrierLabel: 'Delete',
+                                                    barrierColor: Colors
+                                                        .black
+                                                        .withOpacity(0.25),
+                                                    transitionDuration:
+                                                    const Duration(
+                                                      milliseconds: 250,
+                                                    ),
+                                                    pageBuilder:
+                                                        (dialogContext,
+                                                        _,
+                                                        __,) {
+                                                      return popUpMessageForDeleteOrCancel(
+                                                        context,
+                                                        PartyPageData
+                                                            .schedulePostIcon,
+                                                        "Would you like to Delete?",
+                                                        "Once deleted, this post will be permanently removed.",
+                                                            () {},
+                                                      );
+                                                    },
+                                                    transitionBuilder: (
+                                                        context, animation,
+                                                        secondaryAnimation,
+                                                        child) {
+                                                      return SlideTransition(
+                                                        position: Tween<Offset>(
+                                                          begin: const Offset(0,1),
+                                                          end: Offset.zero,
+                                                        ).animate(
+                                                          CurvedAnimation(parent: animation,
+                                                            curve: Curves.easeOutCubic,
+                                                          ) ,
+                                                        ),
+                                                        child: child,
+                                                      );
+                                                    }
+                                                );
+                                                if (shouldDelete == true && mounted) {
+                                                  scheduleController.clear();
+                                                  setState(() {});
+                                                  // print(
+                                                  //     "Scheduled:- ${scheduleController.text}");
+                                                }
+                                              },
+                                              child: SvgPicture.asset(
+                                                PartyPageData.crossIcon,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+
+                                            Transform.rotate(
                                             angle: -1,
                                             child: InkWell(
                                               onTap: () async {
-                                                final schedule = await showDialog<Map<String, String>>(
+                                                final schedule =
+                                                await showDialog<
+                                                    Map<String, String>
+                                                >(
                                                   context: context,
-                                                  builder: (_) => AddSchedule(
-                                                    initialDateTime: getScheduleDateTime(),
-                                                  ),
+                                                  builder: (_) =>
+                                                      AddSchedule(
+                                                        initialDateTime:
+                                                        getScheduleDateTime(),
+                                                      ),
                                                 );
 
                                                 if (schedule != null) {
                                                   setState(() {
-                                                    scheduleController.text =
+                                                    scheduleController
+                                                        .text =
                                                     "${schedule['date']} ${schedule['time']}";
                                                   });
                                                 }
                                               },
                                               child: Padding(
-                                                padding: const EdgeInsets.all(15),
+                                                padding:
+                                                const EdgeInsets.all(
+                                                  15,
+                                                ),
                                                 child: SvgPicture.asset(
                                                   PartyPageData.arrow,
-                                                  color: const Color(0xFFFE3A31),
+                                                  color: const Color(
+                                                    0xFFFE3A31,
+                                                  ),
                                                 ),
                                               ),
                                             ),
                                           ),
+                          ],
                                         ),
                                       ],
                                       SizedBox(height: h * 0.035),
@@ -533,6 +612,7 @@ class _AddingFeedState extends State<AddingFeed> {
                                         ),
                                       ],
                                       SizedBox(height: h * 0.035),
+
                                       ///--------------Publish button
                                       BlocBuilder<FeedBloc, FeedState>(
                                         builder: (context, state) {
@@ -544,15 +624,39 @@ class _AddingFeedState extends State<AddingFeed> {
                                                 await _publishFeed();
                                               },
                                               child: Container(
-                                                height: MediaQuery.of(context).size.height * 0.05,
-                                                width: MediaQuery.of(context).size.width * 0.3,
+                                                height:
+                                                MediaQuery
+                                                    .of(
+                                                  context,
+                                                )
+                                                    .size
+                                                    .height *
+                                                    0.05,
+                                                width:
+                                                MediaQuery
+                                                    .of(
+                                                  context,
+                                                )
+                                                    .size
+                                                    .width *
+                                                    0.3,
                                                 decoration: BoxDecoration(
-                                                  gradient: GradientColors.primaryGradient,
-                                                  borderRadius: BorderRadius.circular(
-                                                    MediaQuery.of(context).size.height * 0.03,
+                                                  gradient: GradientColors
+                                                      .primaryGradient,
+                                                  borderRadius:
+                                                  BorderRadius.circular(
+                                                    MediaQuery
+                                                        .of(
+                                                      context,
+                                                    )
+                                                        .size
+                                                        .height *
+                                                        0.03,
                                                   ),
                                                   border: Border.all(
-                                                    color: const Color(0xFFFF2164),
+                                                    color: const Color(
+                                                      0xFFFF2164,
+                                                    ),
                                                   ),
                                                 ),
                                                 child: Center(
@@ -560,32 +664,77 @@ class _AddingFeedState extends State<AddingFeed> {
                                                       ? const SizedBox(
                                                     height: 22,
                                                     width: 22,
-                                                    child: CircularProgressIndicator(
-                                                      strokeWidth: 2.5,
-                                                      color: Colors.white,
+                                                    child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth:
+                                                      2.5,
+                                                      color: Colors
+                                                          .white,
                                                     ),
                                                   )
                                                       : Row(
-                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .center,
                                                     children: [
                                                       SvgPicture.asset(
-                                                        PartyPageData.addIcon,
-                                                        color: ColorScheme.of(context).surface,
-                                                        height: MediaQuery.of(context).size.height * 0.02,
+                                                        PartyPageData
+                                                            .addIcon,
+                                                        color:
+                                                        ColorScheme
+                                                            .of(
+                                                          context,
+                                                        )
+                                                            .surface,
+                                                        height:
+                                                        MediaQuery
+                                                            .of(
+                                                          context,
+                                                        )
+                                                            .size
+                                                            .height *
+                                                            0.02,
                                                       ),
                                                       SizedBox(
-                                                        width: MediaQuery.of(context).size.width * 0.02,
+                                                        width:
+                                                        MediaQuery
+                                                            .of(
+                                                          context,
+                                                        )
+                                                            .size
+                                                            .width *
+                                                            0.02,
                                                       ),
                                                       Text(
                                                         widget.isEditMode
                                                             ? "UPDATE"
-                                                            : PartyPageData.publish,
-                                                        textAlign: TextAlign.center,
+                                                            : PartyPageData
+                                                            .publish,
+                                                        textAlign:
+                                                        TextAlign
+                                                            .center,
                                                         style: TextStyle(
-                                                          color: ColorScheme.of(context).surface,
-                                                          fontWeight: FontWeight.w500,
-                                                          fontSize: (MediaQuery.of(context).size.width * 0.04)
-                                                              .clamp(14.0, 16.0),
+                                                          color:
+                                                          ColorScheme
+                                                              .of(
+                                                            context,
+                                                          )
+                                                              .surface,
+                                                          fontWeight:
+                                                          FontWeight
+                                                              .w500,
+                                                          fontSize:
+                                                          (MediaQuery
+                                                              .of(
+                                                            context,
+                                                          )
+                                                              .size
+                                                              .width *
+                                                              0.04)
+                                                              .clamp(
+                                                            14.0,
+                                                            16.0,
+                                                          ),
                                                         ),
                                                       ),
                                                     ],
@@ -594,23 +743,24 @@ class _AddingFeedState extends State<AddingFeed> {
                                               ),
                                             ),
                                           );
-                                        },),
+                                        },
+                                      ),
                                     ],
                                   ),
-                                ))
-
-                              ],
-                            ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                    )
+                      ),
+                    ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
-              ),
         ),
+      ),
     );
   }
 }

@@ -154,7 +154,7 @@ class _AddressPageState extends State<AddressPage> {
                        controller: areaController,
                        labelText: LoginPageData.area,
                        isRequired: true,
-                         suffixIcon: Icon(Icons.arrow_drop_down,size: 25,)
+                         suffixIcons:[ Icon(Icons.arrow_drop_down,size: 25,)]
                      ),
                       SizedBox(height: MediaQuery.of(context).size.height*0.02,),
                       CustomTextField(
@@ -166,7 +166,7 @@ class _AddressPageState extends State<AddressPage> {
                         ),
                         controller: cityController, labelText: LoginPageData.city,
                         isRequired: true,
-                          suffixIcon: Icon(Icons.arrow_drop_down,size: 25,)
+                          suffixIcons: [Icon(Icons.arrow_drop_down,size: 25,)]
                       ),
                       SizedBox(height: MediaQuery.of(context).size.height*0.02,),
                       CustomTextField(
@@ -178,7 +178,7 @@ class _AddressPageState extends State<AddressPage> {
                         ),
                         controller: stateController, labelText: LoginPageData.state,
                         isRequired: true,
-                        suffixIcon: Icon(Icons.arrow_drop_down,size: 25,)
+                        suffixIcons:[ Icon(Icons.arrow_drop_down,size: 25,)]
                       ),
                       SizedBox(height: MediaQuery.of(context).size.height*0.02,),
                       CustomTextField(
@@ -190,7 +190,7 @@ class _AddressPageState extends State<AddressPage> {
                         ),
                         controller: countryController, labelText: LoginPageData.country,
                         isRequired: true,
-                          suffixIcon: Icon(Icons.arrow_drop_down,size: 25,)
+                          suffixIcons: [Icon(Icons.arrow_drop_down,size: 25,)]
                       ),
                       SizedBox(height: MediaQuery.of(context).size.height*0.05,),
 

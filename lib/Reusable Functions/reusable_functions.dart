@@ -121,7 +121,7 @@ class CustomTextField extends StatelessWidget {
   final TextStyle? textStyle;
   final int? maxLength;
   final Widget? prefixIcon;
-  final Widget? suffixIcon;
+  final List<Widget>? suffixIcons;
   final double? height;
   final int?maxLines;
 final bool readOnly;
@@ -135,7 +135,7 @@ final bool readOnly;
     this.textStyle,
     this.maxLength,
     this.prefixIcon,
-    this.suffixIcon,
+    this.suffixIcons,
     this.height,
     this.maxLines=1,
     this.readOnly=false,
@@ -182,7 +182,12 @@ final bool readOnly;
             ),
           ),
           prefixIcon: prefixIcon,
-          suffixIcon: suffixIcon,
+          suffixIcon: suffixIcons == null
+              ? null
+              : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: suffixIcons!,
+          ),
           labelStyle: TextStyle(
             color: ColorScheme.of(context).onSurface.withOpacity(0.3),
           ),

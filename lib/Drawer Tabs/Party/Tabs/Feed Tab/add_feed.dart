@@ -864,7 +864,7 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
                                       readOnly: true,
                                         controller: scheduleController,
                                         labelText: PartyPageData.scheduledFor,
-                                      suffixIcon:  Transform.rotate(
+                                      suffixIcons:[  Transform.rotate(
                                         angle: -1,
                                         child: InkWell(
                                           onTap: () async {
@@ -889,6 +889,7 @@ SizedBox(width: MediaQuery.of(context).size.width*0.05,),
                                           ),
                                         ),
                                       ),
+                                ],
                                     ),
                                     SizedBox(height: h * 0.035),
                                     ///--------------Add image

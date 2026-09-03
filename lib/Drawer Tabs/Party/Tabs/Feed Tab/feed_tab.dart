@@ -277,7 +277,7 @@ class _FeedTabState extends State<FeedTab> {
                               return popUpMessageForDeleteOrCancel(
                                 dialogContext,
                                feed.kind=="POST"? PartyPageData.addFeedIcon:PartyPageData.coloredQuoteIcon,
-                                "Would you like to Delete? ",
+                                "Would you like to Delete?",
                                 "Once deleted, this post will be permanently removed.",
                                     () {},
                               );

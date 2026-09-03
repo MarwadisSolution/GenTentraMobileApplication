@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../../Reusable Functions/reusable_functions.dart';
 import '../../../../../Reusable Functions/sliver_app_bar_reusable.dart';
 import '../../../party_page_data.dart';
+import '../../../reusable_functions.dart';
 import '../feed_bloc.dart';
 import '../feed_event.dart';
 import '../feed_model.dart';
@@ -627,7 +628,57 @@ class _AddingQuoteState extends State<AddingQuote> {
                                           readOnly: true,
                                           controller: scheduleController,
                                           labelText: PartyPageData.scheduledFor,
-                                          suffixIcon: Transform.rotate(
+                                          suffixIcons:[
+                                            InkWell(
+                                              onTap: ()async{
+                                                final shouldDelete=await showGeneralDialog<bool>(
+                                                    context: context,
+                                                    barrierDismissible: true,
+                                                    barrierLabel: 'Delete',
+                                                    barrierColor: Colors.black.withOpacity(0.25),
+                                                    transitionDuration: const Duration(milliseconds: 250),
+                                                    pageBuilder: (dialogContext,_,__){
+                                                      return popUpMessageForDeleteOrCancel(
+                                                        context,
+                                                        PartyPageData
+                                                            .schedulePostIcon,
+                                                        "Would you like to Delete?",
+                                                        "Once deleted, this post will be permanently removed.",
+                                                            () {},
+                                                      );
+                                                    },
+                                                    transitionBuilder: (
+                                                    context, animation,
+                                                    secondaryAnimation,
+                                                    child) {
+                                                  return SlideTransition(
+                                                    position: Tween<Offset>(
+                                                      begin: const Offset(0,1),
+                                                      end: Offset.zero,
+                                                    ).animate(
+                                                      CurvedAnimation(parent: animation,
+                                                        curve: Curves.easeOutCubic,
+                                                      ) ,
+                                                    ),
+                                                    child: child,
+                                                  );
+
+                                                }
+                                                );
+                                                if (shouldDelete == true && mounted) {
+                                                scheduleController.clear();
+                                                setState(() {});
+                                                // print(
+                                                //     "Scheduled:- ${scheduleController.text}");
+                                                }
+                                              },
+                                              child: SvgPicture.asset(
+                                                PartyPageData.crossIcon,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+
+                                            Transform.rotate(
                                             angle: -1,
                                             child: InkWell(
                                               onTap: () async {
@@ -655,6 +706,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                                               ),
                                             ),
                                           ),
+                              ],
                                         ),
                                       ],
 

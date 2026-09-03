@@ -71,4 +71,5 @@ static final newGroupIcon="Assets/PartyPage/newGroupIcon.svg";
 static final addIconLight="Assets/PartyPage/addIconLight.svg";
 static final crossIconLight="Assets/PartyPage/crossIconLight.svg";
 static final coloredQuoteIcon="Assets/PartyPage/coloredQuoteIcon.svg";
+static final schedulePostIcon="Assets/PartyPage/schedulePostIcon.svg";
 }

@@ -1979,7 +1979,7 @@ class _AddScheduleState extends State<AddSchedule> {
                   labelText: PartyPageData.date,
                   isRequired: true,
                   readOnly: true,
-                  suffixIcon: InkWell(
+                  suffixIcons:[ InkWell(
                     onTap: () async {
                       final now = DateTime.now();
 
@@ -2008,6 +2008,7 @@ class _AddScheduleState extends State<AddSchedule> {
                       child: SvgPicture.asset(PartyPageData.dateIcon),
                     ),
                   ),
+          ],
                 ),
 
                 SizedBox(height: h * 0.025),
@@ -2017,7 +2018,8 @@ class _AddScheduleState extends State<AddSchedule> {
                   labelText: PartyPageData.time,
                   isRequired: true,
                   readOnly: true,
-                  suffixIcon: InkWell(
+                  suffixIcons:[
+                    InkWell(
                     onTap: () async {
                       final now = DateTime.now();
 
@@ -2057,6 +2059,7 @@ class _AddScheduleState extends State<AddSchedule> {
                       child: SvgPicture.asset(PartyPageData.dateIcon),
                     ),
                   ),
+          ],
                 ),
 
                 SizedBox(height: h * 0.03),
