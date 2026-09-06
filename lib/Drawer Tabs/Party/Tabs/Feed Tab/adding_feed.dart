@@ -15,6 +15,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../party_page_data.dart';
+import '../tagged_people_helper.dart';
 import 'feed_event.dart';
 
 class AddingFeed extends StatefulWidget {
@@ -31,7 +32,7 @@ class AddingFeed extends StatefulWidget {
 
 class _AddingFeedState extends State<AddingFeed> {
   final FeedApis api = FeedApis();
-
+  late TaggedPeopleHandler taggedPeopleHandler;
   TextEditingController descriptionController = TextEditingController();
   TextEditingController scheduleController = TextEditingController();
 
@@ -67,54 +68,6 @@ class _AddingFeedState extends State<AddingFeed> {
       setState(() {});
     }
   }
-
-  Future<void> showTaggedPeoplesDialog() async {
-    await TaggedPeopleDialog.show(
-      context: context,
-      taggedPeople: taggedPeople,
-      onAddMore: addMoreTaggedPeople,
-    );
-
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  Future<void> addMoreTaggedPeople() async {
-    final result = await LeaderPickerDialog.show(
-      context: context,
-      searchFunction: (String text) {
-        return api.searchBarData(text, null);
-      },
-      isNew: false,
-      single: false,
-      existingTagged: taggedPeople,
-    );
-
-    if (result != null) {
-      final List<Tagged> added = (result['added'] as List<Tagged>?) ?? [];
-
-      final List<dynamic> removed = (result['removed'] as List<dynamic>?) ?? [];
-
-      setState(() {
-        // Remove previously tagged people
-        taggedPeople.removeWhere((person) => removed.contains(person.id));
-
-        // Add newly selected people
-        for (final newPerson in added) {
-          final alreadyTagged = taggedPeople.any(
-                (person) =>
-            person.id == newPerson.id && person.type == newPerson.type,
-          );
-
-          if (!alreadyTagged) {
-            taggedPeople.add(newPerson);
-          }
-        }
-      });
-    }
-  }
-
   DateTime? getScheduleDateTime() {
     final text = scheduleController.text.trim();
 
@@ -156,6 +109,10 @@ class _AddingFeedState extends State<AddingFeed> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    taggedPeopleHandler = TaggedPeopleHandler(
+      context: context,
+      api: api,
+    );
     if (widget.editFeed != null) {
       final data = FeedHelper.initializeEditData("FEED", widget.editFeed!);
 
@@ -411,9 +368,23 @@ class _AddingFeedState extends State<AddingFeed> {
                                       isSelected: false,
                                       onTap: () async {
                                         if (taggedPeople.isEmpty) {
-                                          await addMoreTaggedPeople();
+                                          await taggedPeopleHandler.addMoreTaggedPeople(
+                                            taggedPeople: taggedPeople,
+                                            onChanged: () {
+                                              if (mounted) {
+                                                setState(() {});
+                                              }
+                                            },
+                                          );
                                         } else {
-                                          await showTaggedPeoplesDialog();
+                                          await taggedPeopleHandler.showTaggedPeopleDialog(
+                                            taggedPeople: taggedPeople,
+                                            onChanged: () {
+                                              if (mounted) {
+                                                setState(() {});
+                                              }
+                                            },
+                                          );
                                         }
                                       },
                                       iconName: PartyPageData.tagPeopleIcon,

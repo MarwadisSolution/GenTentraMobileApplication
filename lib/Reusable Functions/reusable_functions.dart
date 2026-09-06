@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 // String temporarySavingOtp="";
 String api = "https://gentantrabackend-production.up.railway.app";
+// https://gentantrabackend-production.up.railway.app/api/v1/events
+
 
 // class ApiConfig {
 //   static String baseUrl =

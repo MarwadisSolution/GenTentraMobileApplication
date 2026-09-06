@@ -72,4 +72,17 @@ static final addIconLight="Assets/PartyPage/addIconLight.svg";
 static final crossIconLight="Assets/PartyPage/crossIconLight.svg";
 static final coloredQuoteIcon="Assets/PartyPage/coloredQuoteIcon.svg";
 static final schedulePostIcon="Assets/PartyPage/schedulePostIcon.svg";
+static final addEvents = "ADD EVENTS";
+static final public="Public";
+static final private="Private";
+static final selective="Selective";
+static final lockIcon="Assets/PartyPage/lockIcon.svg";
+static final globalIcon="Assets/PartyPage/globalIcon.svg";
+static final eventNameTitle="Event Name/Title";
+static final aboutEvent="About Event";
+static final address="Address";
+static final locationIcon="Assets/PartyPage/locationIcon.svg";
+static final youCannotChange ="You cannot change the date or time once it has passed.";
+static final backgroundImage ="Background Image";
+static final displayJoinButton ="Display Join Button";
 }

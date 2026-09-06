@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/add_event.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/apis.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/event_tab.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/event_tab_bloc.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/adding_feed.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/adding_quote.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_apis.dart';
@@ -63,16 +67,21 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
   }
 
   @override
+  @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+
+    _tabController = TabController(
+      length: 6,
+      vsync: this,
+    );
+
     isAdminChecking();
 
-    // Rebuild when active tab index changes
     _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        setState(() {});
-      }
+      if (!mounted) return;
+
+      setState(() {});
     });
 
     partyFullFuture = apiService.fetchPartySingleWithIdFull(
@@ -113,6 +122,9 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
           partyId: widget.partyData["id"],
           scrollController: scrollController,
         );
+      case 5:
+        return EventTab(partyId: widget.partyData["id"],
+            scrollController: scrollController,);
       default:
         return const SizedBox.shrink();
     }
@@ -132,8 +144,15 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
         ? 0.247
         : (218.0 / screenHeight).clamp(0.1, 0.85);
 
-    return BlocProvider(
-      create: (_) => FeedBloc(FeedApis()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<FeedBloc>(
+          create: (_)=>FeedBloc(FeedApis()),
+        ),
+        BlocProvider<EventsBloc>(
+          create: (_)=>EventsBloc(EventApis()),
+        )
+      ],
       child: Builder(
         builder: (context) {
           return GestureDetector(
@@ -336,6 +355,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                           Tab(text: PartyPageData.journey),
                                           Tab(text: PartyPageData.leadership),
                                           Tab(text: PartyPageData.feed),
+                                          Tab(text: PartyPageData.event,),
                                         ],
                                       ),
                                     ),
@@ -361,7 +381,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                       );
                     },
                   ),
-                  if (_tabController.index == 4 && isAdmin == true)
+                  if ((_tabController.index == 4 || _tabController.index == 5) &&
+                      isAdmin == true)
                     Positioned(
                       bottom: MediaQuery.of(context).size.height * 0.03,
                       left: 0,
@@ -445,7 +466,23 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                   PartyPageData.eventIcon,
                                               title: PartyPageData.event,
                                               onTap: () {
-                                                // Event action
+                                                Navigator.pop(context);
+
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        BlocProvider.value(
+                                                          value: context
+                                                              .read<EventsBloc>(),
+                                                          child: AddEvent(
+                                                            partyId: widget
+                                                                .partyData["id"],
+
+                                                          ),
+                                                        ),
+                                                  ),
+                                                );
                                               },
                                             ),
 
