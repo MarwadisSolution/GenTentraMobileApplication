@@ -7,6 +7,23 @@ import 'package:gen_tentra_mobile_application/Login%20Page/Refresh%20Token/refre
 
 import '../../../../Reusable Functions/reusable_functions.dart';
 
+class EventPaginationResponse {
+  final List<EventModel> items;
+  final int page;
+  final int size;
+  final int totalItems;
+  final int totalPages;
+  final bool hasNext;
+
+  EventPaginationResponse({
+    required this.items,
+    required this.page,
+    required this.size,
+    required this.totalItems,
+    required this.totalPages,
+    required this.hasNext,
+  });
+}
 
 class EventApis{
   final Dio _dio= apiClient;
@@ -91,28 +108,60 @@ class EventApis{
       throw Exception("Failed to create event: $e");
     }
   }
-  Future<EventModel> getTheEvent({
+  ///--------------------------------
+  Future<EventPaginationResponse> getTheEvents({
     required int partyId,
+    required int page,
+    required int size,
   }) async {
     try {
       final response = await _dio.get(
-        "$api/events?partyId=$partyId",
+        "$api/api/v1/events",
+
+        queryParameters: {
+          "partyId": partyId,
+          "page": page,
+          "size": size,
+        },
       );
 
-      return EventModel.fromJson(
-        response.data["data"],
+      final data = response.data["data"];
+
+      final List<EventModel> events =
+      (data["items"] as List)
+          .map(
+            (item) => EventModel.fromJson(item),
+      )
+          .toList();
+
+      return EventPaginationResponse(
+        items: events,
+        page: data["page"],
+        size: data["size"],
+        totalItems: data["totalItems"],
+        totalPages: data["totalPages"],
+        hasNext: data["hasNext"],
       );
     } on DioException catch (e) {
       final message =
           e.response?.data?["message"] ??
               e.message ??
-              "Failed to fetch event";
+              "Failed to fetch events";
 
       throw Exception(message);
     } catch (e) {
       throw Exception(
-        "Failed to fetch event: $e",
+        "Failed to fetch events: $e",
       );
     }
   }
+  Future<String>joinUnJoinEvent(int eventId)async{
+    final response= await _dio.post("$api/api/v1/events/$eventId/join",
+    );
+    if(response.statusCode==200 || response.statusCode==201){
+      return "Successfully joined the event";
+    }
+    return "Unable to join, please try again";
+  }
+
 }

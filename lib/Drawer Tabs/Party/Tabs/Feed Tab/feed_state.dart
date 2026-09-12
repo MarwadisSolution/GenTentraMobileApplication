@@ -38,6 +38,9 @@ class FeedState extends Equatable{
     int? currentPage,
     bool? hasMore,
     bool? isLoadingMore,
+    bool?isErrorInJoining,
+    bool?isSuccessInJoining,
+
 }){
     return FeedState(
       isLoading: isLoading??this.isLoading,
@@ -51,6 +54,7 @@ class FeedState extends Equatable{
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+
     );
   }
   factory FeedState.initial()=> FeedState();

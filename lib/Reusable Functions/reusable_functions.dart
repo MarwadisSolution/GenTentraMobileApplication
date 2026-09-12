@@ -16,6 +16,16 @@ String api = "https://gentantrabackend-production.up.railway.app";
 //   static String baseUrl =
 //
 // }
+class AdminChecking {
+  static Future<bool> isAdmin(int partyId) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final String? adminPartyId = prefs.getString("AdminOfParty");
+
+    return adminPartyId == partyId.toString();
+  }
+}
+
 Future<String?> getAccessToken() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getString("accessToken");

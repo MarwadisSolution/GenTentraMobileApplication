@@ -164,8 +164,6 @@ class _BannerSectionState extends State<BannerSection> {
   @override
   Widget build(BuildContext context) {
     final List banners = widget.partyData["bannerImages"] as List? ?? [];
-    print("Banners:- ");
-    print(banners);
     return Stack(
       children: [
         ///Banner Images

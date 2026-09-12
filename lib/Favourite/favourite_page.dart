@@ -25,7 +25,6 @@ class _FavouritePageState extends State<FavouritePage> {
   void initState() {
     super.initState();
     favouriteFuture = favouriteApi.getDataOfFavourite();
-    print("Data:- ${favouriteFuture.toString()}");
   }
 
   Future<void> refreshFavourite() async {

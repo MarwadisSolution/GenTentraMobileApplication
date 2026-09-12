@@ -1,8 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/event_tab_state.dart';
 
 import 'apis.dart';
-import 'event_tab_event.dart' show RemoveTaggedPeopleEvent, TaggedPeopleEvent, EventsEvent, AddNewEvent, EditEvent, DeleteEvent, ChangeTabEvent, DateEvent, TimeEvent, AddressEvent, AddImageEvent, RemoveImageEvent, JoiningButtonEvent, GetEventEvent, BackgroundImageEvent, BackgroundImageFileEvent, RemoveBackgroundImageEvent;
+import 'event_modal.dart';
+import 'event_tab_event.dart' show RemoveTaggedPeopleEvent, TaggedPeopleEvent, EventsEvent, AddNewEvent, EditEvent, DeleteEvent, ChangeTabEvent, DateEvent, TimeEvent, AddressEvent, AddImageEvent, RemoveImageEvent, JoiningButtonEvent, GetEventEvent, BackgroundImageEvent, BackgroundImageFileEvent, RemoveBackgroundImageEvent, joinUnJoinButtonEvent;
 
 
 class EventsBloc extends Bloc<EventsEvent, EventTabState> {
@@ -28,6 +30,8 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
     on<BackgroundImageFileEvent>(_backgroundImageFile);
     on<TaggedPeopleEvent>(_taggedPeople);
     on<RemoveTaggedPeopleEvent>(_removeTaggedPeople);
+
+    on<joinUnJoinButtonEvent>(_joinUnjoinButton);
   }
 
   // ==========================================================
@@ -38,22 +42,58 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
       GetEventEvent event,
       Emitter<EventTabState> emit,
       ) async {
-    emit(
-      state.copyWith(
-        status: EventStatus.loading,
-        errorMessage: null,
-      ),
-    );
+    final bool isFirstPage = event.page == 0;
+
+    // First page
+    if (isFirstPage) {
+      emit(
+        state.copyWith(
+          status: EventStatus.loading,
+          errorMessage: null,
+        ),
+      );
+    }
+    // Next pages
+    else {
+      emit(
+        state.copyWith(
+          isLoadingMore: true,
+          errorMessage: null,
+        ),
+      );
+    }
 
     try {
-      final eventData = await api.getTheEvent(
+      final response = await api.getTheEvents(
         partyId: event.partyId,
+        page: event.page,
+        size: event.size,
       );
+
+      final List<EventModel> updatedEvents;
+
+      if (isFirstPage) {
+        // First API call
+        updatedEvents = response.items;
+      } else {
+        // Pagination API call
+        updatedEvents = [
+          ...state.events,
+          ...response.items,
+        ];
+      }
 
       emit(
         state.copyWith(
           status: EventStatus.success,
-          event: eventData,
+          events: updatedEvents,
+          currentPage: response.page,
+          pageSize: response.size,
+          totalItems: response.totalItems,
+          totalPages: response.totalPages,
+          hasMore: response.hasNext,
+
+          isLoadingMore: false,
         ),
       );
     } catch (e) {
@@ -61,6 +101,7 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
         state.copyWith(
           status: EventStatus.error,
           errorMessage: e.toString(),
+          isLoadingMore: false,
         ),
       );
     }
@@ -390,5 +431,120 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
         taggedPeople: updatedPeople,
       ),
     );
+  }
+  Future<void> _joinUnjoinButton(
+      joinUnJoinButtonEvent event,
+      Emitter<EventTabState> emit,
+      ) async {
+    // ----------------------------------------------------------
+    // FIND THE EVENT
+    // ----------------------------------------------------------
+    final currentEventIndex = state.events.indexWhere(
+          (eventData) => eventData.id == event.eventId,
+    );
+
+    if (currentEventIndex == -1) {
+      emit(
+        state.copyWith(
+          isSuccessInJoining: false,
+          isErrorInJoining: true,
+          errorMessage: "Event not found",
+        ),
+      );
+      return;
+    }
+
+    final currentEvent = state.events[currentEventIndex];
+
+    // ----------------------------------------------------------
+    // CURRENT JOIN STATUS
+    // ----------------------------------------------------------
+    final bool wasAttending =
+        currentEvent.isRequestorAttending == true;
+
+    // ----------------------------------------------------------
+    // CLEAR PREVIOUS MESSAGE
+    // ----------------------------------------------------------
+    emit(
+      state.copyWith(
+        joiningEventId: event.eventId,
+        isSuccessInJoining: false,
+        isErrorInJoining: false,
+        errorMessage: '',
+      ),
+    );
+
+    try {
+      debugPrint("=================================");
+      debugPrint("JOIN / UNJOIN EVENT");
+      debugPrint("Event ID: ${event.eventId}");
+      debugPrint("Was attending: $wasAttending");
+      debugPrint("=================================");
+
+      // --------------------------------------------------------
+      // CALL API
+      // --------------------------------------------------------
+      await api.joinUnJoinEvent(event.eventId);
+
+      // --------------------------------------------------------
+      // NEW ATTENDANCE STATUS
+      // --------------------------------------------------------
+      final bool newAttendingStatus = !wasAttending;
+
+      // --------------------------------------------------------
+      // UPDATE ATTENDEE COUNT
+      // --------------------------------------------------------
+      final int oldCount = currentEvent.attendeeCount ?? 0;
+
+      final int newCount = newAttendingStatus
+          ? oldCount + 1
+          : (oldCount > 0 ? oldCount - 1 : 0);
+
+      // --------------------------------------------------------
+      // UPDATE EVENT
+      // --------------------------------------------------------
+      final updatedEvent = currentEvent.copyWith(
+        isRequestorAttending: newAttendingStatus,
+        attendeeCount: newCount,
+      );
+
+      // --------------------------------------------------------
+      // UPDATE EVENT LIST
+      // --------------------------------------------------------
+      final updatedEvents = List<EventModel>.from(state.events);
+
+      updatedEvents[currentEventIndex] = updatedEvent;
+
+      // --------------------------------------------------------
+      // SUCCESS
+      // --------------------------------------------------------
+      emit(
+        state.copyWith(
+          clearJoiningEventId: true,
+          events: updatedEvents,
+          isSuccessInJoining: true,
+          isErrorInJoining: false,
+          errorMessage: '',
+          joiningActionMessage: newAttendingStatus
+              ? "Event joined successfully"
+              : "Event unjoined successfully",
+        ),
+      );
+    } catch (e) {
+      debugPrint("Join/Unjoin error: $e");
+
+      // --------------------------------------------------------
+      // ERROR
+      // --------------------------------------------------------
+      emit(
+        state.copyWith(
+          clearJoiningEventId: true,
+          isSuccessInJoining: false,
+          isErrorInJoining: true,
+          errorMessage:
+          'Please try again, failed to join the event',
+        ),
+      );
+    }
   }
 }

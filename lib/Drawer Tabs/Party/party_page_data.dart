@@ -6,8 +6,8 @@ class PartyPageData {
   static final symbol="SYMBOL";
   static final journey="JOURNEY";
   static final leadership="LEADERSHIP";
-  static final feed="Feed";
-  static final event="Events";
+  static final feed="FEED";
+  static final event="EVENTS";
   static final manifesto="MANIFESTO";
   static final founded="FOUNDED";
   static final founder="FOUNDER";
@@ -24,10 +24,11 @@ class PartyPageData {
   static final arrow="Assets/arrow.svg";
   static final threeDots="Assets/PartyPage/threeDots.svg";
   static final deleteIcon="Assets/PartyPage/delete.svg";
-  static final edit="Assets/PartyPage/edit.svg";
+  static final editIcon="Assets/PartyPage/edit.svg";
   static final share="Assets/PartyPage/share.svg";
   static final likeIcon="Assets/PartyPage/likeIcon.svg";
   static final feedTitle ="ADD FEED";
+  static final edit="Edit";
   static final quote="ADD QUOTE";
   static final quoteIcon="Assets/PartyPage/quoteIcon.svg";
   static final crossIcon="Assets/PartyPage/crossIcon.svg";
@@ -85,4 +86,5 @@ static final locationIcon="Assets/PartyPage/locationIcon.svg";
 static final youCannotChange ="You cannot change the date or time once it has passed.";
 static final backgroundImage ="Background Image";
 static final displayJoinButton ="Display Join Button";
+
 }

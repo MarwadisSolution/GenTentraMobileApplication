@@ -395,7 +395,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                               context: context,
                               barrierDismissible: true,
                               barrierLabel: 'Close',
-                              barrierColor: Colors.transparent,
+                              barrierColor: Colors.black.withOpacity(0.4),
                               pageBuilder: (_, __, ___) {
                                 return Stack(
                                   children: [
@@ -526,8 +526,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                             valueListenable: isAddSelected,
                             builder: (context, isSelected, child) {
                               return Container(
-                                height: MediaQuery.of(context).size.width * 0.2,
-                                width: MediaQuery.of(context).size.width * 0.35,
+                                height: MediaQuery.of(context).size.width * 0.18,
                                 decoration: BoxDecoration(
                                   gradient: GradientColors.primaryGradient,
                                   shape: BoxShape.circle,

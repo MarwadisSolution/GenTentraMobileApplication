@@ -51,7 +51,7 @@ class _MyAppState extends State<MyApp> {
           brightness: Brightness.light,
           primary: Color(0xFF666666).withOpacity(0.6),
           onPrimary: Color(0xFFFF5875),
-          secondary: Color(0xFFDDDDDD),
+          secondary: Color(0xFF666666),
           onSecondary: Color(0xFF0C0C0C),
           error: Colors.red,
           onError: Color(0xFF0C0C0C),

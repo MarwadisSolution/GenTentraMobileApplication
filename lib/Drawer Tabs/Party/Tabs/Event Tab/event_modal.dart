@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 class EventModel {
   final int? id;
   final String? uuid;
-
+  final Author? author;
+  final int? authorUserId;
+  final int? authorPartyId;
+  final String? authorType;
   final String kind;
   final String title;
   final String? aboutEvent;
@@ -26,10 +29,18 @@ class EventModel {
   final Address? address;
 
   final String? statusOfPublishment;
+  final bool? isRequestorAttending;
 
+  final List<AttendeePreview>? attendeesPreview;
+  final int? attendeeCount;
   EventModel({
     this.id,
     this.uuid,
+     this.author,
+    this.authorUserId,
+    this.authorPartyId,
+    this.authorType,
+
     required this.kind,
     required this.title,
     this.aboutEvent,
@@ -45,12 +56,26 @@ class EventModel {
     this.scheduledAt,
     this.address,
     this.statusOfPublishment,
+    this.isRequestorAttending,
+    this.attendeesPreview,
+    this.attendeeCount,
   });
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
     return EventModel(
+
       id: json["id"],
       uuid: json["uuid"],
+
+      authorUserId: json["authorUserId"],
+      authorPartyId: json["authorPartyId"],
+      authorType: json["authorType"],
+
+      author: json["author"] != null
+          ? Author.fromJson(
+        json["author"] as Map<String, dynamic>,
+      )
+          : null,
 
       kind: json["kind"] ?? "",
       title: json["eventTitle"] ?? "",
@@ -103,6 +128,18 @@ class EventModel {
           : null,
 
       statusOfPublishment: json["status"],
+        isRequestorAttending:json["isRequestorAttending"],
+      attendeesPreview: json["attendeesPreview"] != null
+          ? (json["attendeesPreview"] as List)
+          .map(
+            (e) => AttendeePreview.fromJson(
+          e as Map<String, dynamic>,
+        ),
+      )
+          .toList()
+          : null,
+
+      attendeeCount: json["attendeeCount"],
     );
   }
 
@@ -145,6 +182,10 @@ class EventModel {
   EventModel copyWith({
     int? id,
     String? uuid,
+    Author? author,
+    int? authorUserId,
+    int? authorPartyId,
+    String? authorType,
     String? kind,
     String? title,
     String? aboutEvent,
@@ -160,10 +201,19 @@ class EventModel {
     DateTime? scheduledAt,
     Address? address,
     String? statusOfPublishment,
+    bool?isRequestorAttending,
+    List<AttendeePreview>? attendeesPreview,
+    int? attendeeCount,
   }) {
     return EventModel(
       id: id ?? this.id,
       uuid: uuid ?? this.uuid,
+
+      author: author ?? this.author,
+      authorUserId: authorUserId ?? this.authorUserId,
+      authorPartyId: authorPartyId ?? this.authorPartyId,
+      authorType: authorType ?? this.authorType,
+
       kind: kind ?? this.kind,
       title: title ?? this.title,
       aboutEvent: aboutEvent ?? this.aboutEvent,
@@ -181,7 +231,14 @@ class EventModel {
       address: address ?? this.address,
       statusOfPublishment:
       statusOfPublishment ?? this.statusOfPublishment,
+        isRequestorAttending: isRequestorAttending??this.isRequestorAttending,
+      attendeesPreview:
+      attendeesPreview ?? this.attendeesPreview,
+
+      attendeeCount:
+      attendeeCount ?? this.attendeeCount,
     );
+
   }
 
   // -------------------------
@@ -330,5 +387,93 @@ class MediaModel {
       "url": url,
       "mediaType": mediaType,
     };
+  }
+}
+//-----------Author
+class Author {
+  final String? kind;
+  final int? id;
+  final String? name;
+  final String? photoUrl;
+  final String? partyInitial;
+
+  Author({
+    this.kind,
+    this.id,
+    this.name,
+    this.photoUrl,
+    this.partyInitial,
+
+  });
+
+  factory Author.fromJson(Map<String, dynamic> json) {
+    return Author(
+      kind: json["kind"],
+      id: json["id"],
+      name: json["name"],
+      photoUrl: json["imageUrl"],
+      partyInitial: json["partyInitial"],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    };
+}
+
+///-----------------Attendence
+class AttendeePreview {
+  final int? eventId;
+  final int? userId;
+  final String? rsvpStatus;
+  final String? createdAt;
+  final AttendeeUser? user;
+
+  AttendeePreview({
+    this.eventId,
+    this.userId,
+    this.rsvpStatus,
+    this.createdAt,
+    this.user,
+  });
+
+  factory AttendeePreview.fromJson(Map<String, dynamic> json) {
+    return AttendeePreview(
+      eventId: json["eventId"],
+      userId: json["userId"],
+      rsvpStatus: json["rsvpStatus"],
+      createdAt: json["createdAt"],
+      user: json["user"] != null
+          ? AttendeeUser.fromJson(
+        json["user"] as Map<String, dynamic>,
+      )
+          : null,
+    );
+  }
+}
+
+class AttendeeUser {
+  final String? kind;
+  final int? id;
+  final String? name;
+  final String? imageUrl;
+  final String? partyInitial;
+
+  AttendeeUser({
+    this.kind,
+    this.id,
+    this.name,
+    this.imageUrl,
+    this.partyInitial,
+  });
+
+  factory AttendeeUser.fromJson(Map<String, dynamic> json) {
+    return AttendeeUser(
+      kind: json["kind"],
+      id: json["id"],
+      name: json["name"],
+      imageUrl: json["imageUrl"],
+      partyInitial: json["partyInitial"],
+    );
   }
 }

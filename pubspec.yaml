@@ -55,6 +55,9 @@ dependencies:
   path: ^1.9.1
   connectivity_plus: ^7.3.1
   workmanager: ^0.10.7
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
+  geocoding: ^5.0.0
 
 dev_dependencies:
   flutter_test:

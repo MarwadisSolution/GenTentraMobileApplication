@@ -2,6 +2,383 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../Reusable Functions/reusable_functions.dart';
+import '../../party_page_data.dart';
+import 'event_modal.dart';
+import 'package:intl/intl.dart';
+
+///----------Media showing
+import 'package:flutter/material.dart';
+
+class ReusableMediaWidget<T> extends StatelessWidget {
+  final List<T> media;
+
+  /// Builds the actual image/video preview.
+  final Widget Function(T item) mediaPreview;
+
+  /// Returns true when the media is a video.
+  final bool Function(T item) isVideo;
+
+  /// Opens the full-screen viewer.
+  final void Function(BuildContext context, int initialIndex)? onMediaTap;
+
+  final double singleMediaHeight;
+  /// Height for 2-media layout.
+  final double twoMediaHeight;
+
+  /// Height for 3+ media layout.
+  final double threeOrMoreMediaHeight;
+
+  /// Gap between media items.
+  final double spacing;
+
+  /// Optional border radius.
+  final BorderRadius borderRadius;
+
+  const ReusableMediaWidget({
+    super.key,
+    required this.media,
+    required this.mediaPreview,
+    required this.isVideo,
+    this.onMediaTap,
+    this.singleMediaHeight=300,
+    this.twoMediaHeight = 300,
+    this.threeOrMoreMediaHeight = 360,
+    this.spacing = 3,
+    this.borderRadius = BorderRadius.zero,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (media.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    switch (media.length) {
+      case 1:
+        return _buildSingleMedia(context);
+
+      case 2:
+        return _buildTwoMedia(context);
+
+      default:
+        return _buildThreeOrMoreMedia(context);
+    }
+  }
+
+  // ============================================================
+  // 1 MEDIA
+  // ============================================================
+
+  Widget _buildSingleMedia(BuildContext context) {
+    return SizedBox(
+      height: singleMediaHeight,
+      width: double.infinity,
+      child: _mediaTile(
+        context: context,
+        index: 0,
+      ),
+    );
+  }
+
+  // ============================================================
+  // 2 MEDIA
+  // ============================================================
+
+  Widget _buildTwoMedia(BuildContext context) {
+    return SizedBox(
+      height: twoMediaHeight,
+      child: Row(
+        children: [
+          Expanded(
+            child: _mediaTile(
+              context: context,
+              index: 0,
+            ),
+          ),
+
+          SizedBox(width: spacing),
+
+          Expanded(
+            child: _mediaTile(
+              context: context,
+              index: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // 3 OR MORE MEDIA
+  // ============================================================
+
+  Widget _buildThreeOrMoreMedia(BuildContext context) {
+    final remaining = media.length - 3;
+
+    return SizedBox(
+      height: threeOrMoreMediaHeight,
+      child: Column(
+        children: [
+          // ------------------------------------------------------
+          // TOP LARGE MEDIA
+          // ------------------------------------------------------
+
+          Expanded(
+            flex: 2,
+            child: _mediaTile(
+              context: context,
+              index: 0,
+            ),
+          ),
+
+          SizedBox(height: spacing),
+
+          // ------------------------------------------------------
+          // BOTTOM TWO MEDIA
+          // ------------------------------------------------------
+
+          Expanded(
+            flex: 1,
+            child: Row(
+              children: [
+                Expanded(
+                  child: _mediaTile(
+                    context: context,
+                    index: 1,
+                  ),
+                ),
+
+                SizedBox(width: spacing),
+
+                Expanded(
+                  child: _mediaTile(
+                    context: context,
+                    index: 2,
+                    overlayCount: remaining > 0 ? remaining : null,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // COMMON MEDIA TILE
+  // ============================================================
+
+  Widget _mediaTile({
+    required BuildContext context,
+    required int index,
+    int? overlayCount,
+  }) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onMediaTap == null
+          ? null
+          : () => onMediaTap!(context, index),
+      child: ClipRRect(
+        borderRadius: borderRadius,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ExcludeSemantics(
+              child: mediaPreview(media[index]),
+            ),
+
+            if (overlayCount != null)
+              IgnorePointer(
+                child: Container(
+                  color: Colors.black.withOpacity(0.55),
+                  alignment: Alignment.center,
+                  child: Text(
+                    "+$overlayCount",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+
+            if (isVideo(media[index]))
+              Positioned(
+                top: 10,
+                right: 10,
+                child: IgnorePointer(
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.55),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class ReusableMediaViewer<T> extends StatefulWidget {
+  final List<T> media;
+  final int initialIndex;
+
+  /// Returns true when the media item is a video.
+  final bool Function(T item) isVideo;
+
+  /// Returns the video widget for the given media item.
+  final Widget Function(T item) videoBuilder;
+
+  /// Returns the image URL for the given media item.
+  final String? Function(T item) imageUrlBuilder;
+
+  const ReusableMediaViewer({
+    super.key,
+    required this.media,
+    required this.initialIndex,
+    required this.isVideo,
+    required this.videoBuilder,
+    required this.imageUrlBuilder,
+  });
+
+  @override
+  State<ReusableMediaViewer<T>> createState() =>
+      _ReusableMediaViewerState<T>();
+}
+
+class _ReusableMediaViewerState<T>
+    extends State<ReusableMediaViewer<T>> {
+  late final PageController pageController;
+  late int currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+
+    currentIndex = widget.initialIndex;
+
+    pageController = PageController(
+      initialPage: widget.initialIndex,
+    );
+  }
+
+  @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+
+        title: Text(
+          "${currentIndex + 1} / ${widget.media.length}",
+          style: const TextStyle(
+            color: Colors.white,
+          ),
+        ),
+      ),
+
+      body: PageView.builder(
+        controller: pageController,
+        itemCount: widget.media.length,
+
+        onPageChanged: (index) {
+          setState(() {
+            currentIndex = index;
+          });
+        },
+
+        itemBuilder: (context, index) {
+          final item = widget.media[index];
+
+          // VIDEO
+          if (widget.isVideo(item)) {
+            return widget.videoBuilder(item);
+          }
+
+          // IMAGE
+          final imageUrl = widget.imageUrlBuilder(item);
+
+          if (imageUrl == null || imageUrl.isEmpty) {
+            return const Center(
+              child: Icon(
+                Icons.image,
+                color: Colors.white,
+                size: 60,
+              ),
+            );
+          }
+
+          return InteractiveViewer(
+            minScale: 1,
+            maxScale: 4,
+
+            child: Center(
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+
+                errorBuilder: (
+                    context,
+                    error,
+                    stackTrace,
+                    ) {
+                  return const Icon(
+                    Icons.image,
+                    color: Colors.white,
+                    size: 60,
+                  );
+                },
+
+                loadingBuilder: (
+                    context,
+                    child,
+                    loadingProgress,
+                    ) {
+                  if (loadingProgress == null) {
+                    return child;
+                  }
+
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
 
 enum EventRangePickerType {
   date,
@@ -912,4 +1289,606 @@ class DashedBorderPainter extends CustomPainter {
     return false;
   }
 }
+///---------------------------------Attendence
+class EventAttendeesPreview extends StatelessWidget {
+  final List<AttendeePreview>? attendees;
+  final int attendeeCount;
+  final double size;
 
+  const EventAttendeesPreview({
+    super.key,
+    required this.attendees,
+    required this.attendeeCount,
+    this.size = 42,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final List<AttendeePreview> preview =
+    (attendees ?? []).take(5).toList();
+
+    if (attendeeCount <= 0 || preview.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final int remainingCount =
+    attendeeCount > preview.length
+        ? attendeeCount - preview.length
+        : 0;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: size,
+          width: preview.length * (size * 0.62) + size * 0.38,
+          child: Stack(
+            children: List.generate(
+              preview.length,
+                  (index) {
+                final attendee = preview[index];
+
+                return Positioned(
+                  left: index * (size * 0.62),
+                  child: Container(
+                    width: size,
+                    height: size,
+                    padding: const EdgeInsets.all(1.5),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: ClipOval(
+                      child: buildImageWidget(
+                        attendee.user?.imageUrl ?? "",
+                        width: size,
+                        height: size,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+
+        if (remainingCount > 0) ...[
+          const SizedBox(width: 6),
+
+          Text(
+            "+${formatAttendeeCount(remainingCount)}",
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  String formatAttendeeCount(int count) {
+    if (count >= 1000000) {
+      return "${(count / 1000000).toStringAsFixed(1)}M";
+    }
+
+    if (count >= 1000) {
+      return "${(count / 1000).toStringAsFixed(1)}K";
+    }
+
+    return count.toString();
+  }
+}
+//---------------------------
+String dateFormating(String date) {
+  DateTime parsedDate = DateTime.parse(date);
+
+  String formatedDate = DateFormat('dd-MM-yyyy').format(parsedDate);
+
+  return formatedDate;
+}
+
+class ReusableEventCard extends StatelessWidget {
+  final dynamic eventData;
+
+  final bool isAdmin;
+  final String fromTime;
+
+  final bool isJoining;
+
+  final VoidCallback? onShare;
+  final VoidCallback? onJoin;
+
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+
+  const ReusableEventCard({
+    super.key,
+    required this.eventData,
+    required this.isAdmin,
+    required this.fromTime,
+    required this.isJoining,
+
+    this.onShare,
+    this.onJoin,
+    this.onEdit,
+    this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    final w = size.width;
+    final h = size.height;
+
+    return Card(
+      key: ValueKey(eventData.id),
+
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+
+      color: ColorScheme.of(context).surface,
+
+      elevation: 0,
+
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(w*0.07),
+      ),
+
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 20),
+
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+
+          children: [
+            // ======================================
+            // AUTHOR + EVENT TITLE
+            // ======================================
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+
+              leading: CircleAvatar(
+                radius: w * 0.07,
+
+                backgroundColor: Colors.white,
+
+                child: ClipOval(
+                  child: SizedBox.expand(
+                    child: buildImageWidget(
+                      eventData.author?.photoUrl ?? "",
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ),
+
+              title: Text(
+                eventData.title,
+
+                maxLines: 2,
+
+                overflow: TextOverflow.ellipsis,
+
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: h * 0.021,
+                  color: ColorScheme.of(context).onSurface,
+                ),
+              ),
+
+              // ======================================
+              // ADMIN THREE DOTS
+              // ======================================
+              trailing: isAdmin
+                  ? InkWell(
+                onTap: () {
+                  _showAdminMenu(context);
+                },
+
+                child: const SizedBox(
+                  width: 30,
+                  height: 30,
+
+                  child: Center(
+                    child: Icon(
+                      Icons.more_vert,
+                    ),
+                  ),
+                ),
+              )
+                  : null,
+            ),
+
+            // ======================================
+            // DATE + TIME
+            // ======================================
+            Padding(
+              padding: EdgeInsets.only(
+                top: h * 0.01,
+                left: w * 0.087,
+                right: w * 0.04,
+              ),
+
+              child: Row(
+                children: [
+                  SvgPicture.asset(
+                    PartyPageData.dateIcon,
+                    color: ColorScheme.of(context).secondary,
+                  ),
+
+                  SizedBox(width: w * 0.04),
+
+                  Text(
+                    dateFormating(
+                      eventData.eventFrom
+                          .toString()
+                          .substring(0, 10),
+                    ),
+
+                    style: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      color: ColorScheme.of(context).secondary,
+                    ),
+                  ),
+
+                  SizedBox(width: w * 0.08),
+
+                  SvgPicture.asset(
+                    PartyPageData.dateIcon,
+                    color: ColorScheme.of(context).secondary,
+                  ),
+
+                  SizedBox(width: w * 0.04),
+
+                  Text(
+                    fromTime,
+
+                    style: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      color: ColorScheme.of(context).secondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ======================================
+            // LOCATION
+            // ======================================
+            Padding(
+              padding: EdgeInsets.only(
+                top: h * 0.02,
+                left: w * 0.087,
+                right: w * 0.04,
+              ),
+
+              child: InkWell(
+                onTap: () => _openLocation(context),
+
+                child: Row(
+                  children: [
+                    SvgPicture.asset(
+                      PartyPageData.headquarterIcon,
+                    ),
+
+                    SizedBox(width: w * 0.04),
+
+                    Expanded(
+                      child: Text(
+                        eventData.address?.addressText ?? "-",
+
+                        style: const TextStyle(
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ======================================
+            // ATTENDEES + SHARE + JOIN
+            // ======================================
+            Padding(
+              padding: EdgeInsets.only(
+                left: w * 0.05,
+                top: h * 0.025,
+              ),
+
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+
+                children: [
+                  // ATTENDEES
+                  EventAttendeesPreview(
+                    attendees: eventData.attendeesPreview,
+                    attendeeCount:
+                    eventData.attendeeCount ?? 0,
+                    size: 40,
+                  ),
+
+                  const Spacer(),
+
+                  // SHARE
+                  InkWell(
+                    onTap: onShare,
+
+                    child: SvgPicture.asset(
+                      PartyPageData.share,
+                      width: w * 0.06,
+                    ),
+                  ),
+
+                  SizedBox(width: w * 0.04),
+
+                  // JOIN
+                  if (eventData.displayJoinButton == true)
+                    _buildJoinButton(
+                      context,
+                      w,
+                      h,
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // JOIN BUTTON
+  // ============================================================
+
+  Widget _buildJoinButton(
+      BuildContext context,
+      double w,
+      double h,
+      ) {
+    final isJoined =
+        eventData.isRequestorAttending == true;
+
+    return InkWell(
+      onTap: isJoining ? null : onJoin,
+
+      child: Container(
+        height: h * 0.05,
+        width: w * 0.20,
+
+        decoration: BoxDecoration(
+          gradient: isJoined
+              ? null
+              : GradientColors.primaryGradient,
+
+          color: isJoined
+              ? Colors.red.withOpacity(0.3)
+              : null,
+
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(w * 0.08),
+            bottomLeft: Radius.circular(w * 0.08),
+          ),
+        ),
+
+        child: Center(
+          child: isJoining
+              ? SizedBox(
+            height: h * 0.025,
+            width: h * 0.025,
+
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+
+              color: isJoined
+                  ? const Color(0xFFFE3A31)
+                  : ColorScheme.of(context).surface,
+            ),
+          )
+
+              : Text(
+            isJoined ? "JOINED" : "JOIN",
+
+            textAlign: TextAlign.center,
+
+            style: TextStyle(
+              color: isJoined
+                  ? const Color(0xFFFE3A31)
+                  : ColorScheme.of(context).surface,
+
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // LOCATION
+  // ============================================================
+
+  Future<void> _openLocation(
+      BuildContext context,
+      ) async {
+    final link =
+        eventData.address?.addressLink ?? "";
+
+    if (link.isEmpty) {
+      return;
+    }
+
+    final url = Uri.parse(link);
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      );
+    } else {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Could not open the map.',
+          ),
+        ),
+      );
+    }
+  }
+
+  // ============================================================
+  // ADMIN MENU
+  // ============================================================
+
+  void _showAdminMenu(
+      BuildContext context,
+      ) {
+    showGeneralDialog(
+      context: context,
+
+      barrierDismissible: true,
+
+      barrierLabel: 'Close',
+
+      barrierColor:
+      Colors.black.withOpacity(0.4),
+
+      pageBuilder: (
+          context,
+          animation,
+          secondaryAnimation,
+          ) {
+        return Stack(
+          children: [
+            Positioned(
+              bottom:
+              MediaQuery.of(context).size.height *
+                  0.03 +
+                  MediaQuery.of(context).size.width *
+                      0.2 +
+                  70,
+
+              left: 0,
+              right: 0,
+
+              child: Center(
+                child: VerticalActionMenu(
+                  height:
+                  MediaQuery.of(context).size.height *
+                      0.35,
+
+                  items: [
+                    ActionMenuItem(
+                      imageIcon:
+                      PartyPageData.editIcon,
+
+                      title:
+                      PartyPageData.edit,
+
+                      onTap: () {
+                        Navigator.of(context).pop();
+
+                        onEdit?.call();
+                      },
+                    ),
+
+                    ActionMenuItem(
+                      imageIcon:
+                      PartyPageData.share,
+
+                      title: "Share",
+
+                      onTap: () {
+                        Navigator.of(context).pop();
+
+                        onShare?.call();
+                      },
+                    ),
+
+                    ActionMenuItem(
+                      imageIcon:
+                      PartyPageData.deleteIcon,
+
+                      title: "Delete",
+
+                      onTap: () {
+                        Navigator.of(context).pop();
+
+                        onDelete?.call();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+
+      transitionDuration:
+      const Duration(milliseconds: 650),
+
+      transitionBuilder: (
+          context,
+          animation,
+          secondaryAnimation,
+          child,
+          ) {
+        return SlideTransition(
+          position:
+          Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(
+              parent: animation,
+              curve:
+              Curves.easeInOutCubic,
+            ),
+          ),
+
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+///---------------------------Timing conversation
+
+String timingConversion(String fromDate) {
+  String x = fromDate.substring(9);
+
+  x = x.substring(1, 6);
+
+  String firstTwo = x.substring(0, 2);
+  String lastTwo = x.substring(3, 5);
+
+  int firstTwoInNumbers = int.parse(firstTwo);
+
+  String finalTime = "";
+
+  if (firstTwoInNumbers > 12) {
+    firstTwoInNumbers = firstTwoInNumbers - 12;
+
+    finalTime = "${firstTwoInNumbers.toString()}:$lastTwo PM";
+  } else if (firstTwoInNumbers == 12) {
+    finalTime = "12 PM";
+  } else if (firstTwoInNumbers == 0) {
+    finalTime = "12 AM";
+  } else {
+    finalTime = "${firstTwoInNumbers.toString()}:$lastTwo AM";
+  }
+
+  return finalTime;
+}

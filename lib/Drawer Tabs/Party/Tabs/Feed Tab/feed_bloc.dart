@@ -255,6 +255,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       );
     }
   }
+
   Future<void> _updateFeed(
       UpdateFeedEvent event,
       Emitter<FeedState> emit,
@@ -436,9 +437,6 @@ bool isNetworkError(Object error) {
     }
   }
 
-  /*
-   * Timeout from Dart
-   */
   if (error is TimeoutException) {
     return true;
   }
@@ -458,6 +456,5 @@ String _getMediaTypeFromFile(File file) {
       path.endsWith('.m4v')) {
     return "VIDEO";
   }
-
   return "IMAGE";
 }

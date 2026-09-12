@@ -40,8 +40,14 @@ class DeleteEvent extends EventsEvent{
 //13. Get Event
 class GetEventEvent extends EventsEvent {
   final int partyId;
+  final int page;
+  final int size;
 
-  GetEventEvent(this.partyId);
+  GetEventEvent({
+    required this.partyId,
+    this.page = 0,
+    this.size = 20,
+  });
 }
 
 //4. ------------tabs (private, public, selective)
@@ -108,3 +114,14 @@ class BackgroundImageFileEvent extends EventsEvent {
   BackgroundImageFileEvent(this.image);
 }
 class RemoveBackgroundImageEvent extends EventsEvent {}
+
+class joinUnJoinButtonEvent extends EventsEvent{
+  final int eventId;
+  joinUnJoinButtonEvent({
+    required this.eventId,
+  });
+  @override
+  List<Object?>get props=>[
+    eventId,
+  ];
+}

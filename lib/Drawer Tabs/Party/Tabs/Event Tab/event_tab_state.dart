@@ -9,8 +9,11 @@ enum EventStatus{
 }
 
  class EventTabState {
+
+
 final EventStatus status;
 final EventModel? event;
+final List<EventModel> events;
 final int selectedTab;
 final DateTime? fromDate;
 final DateTime? toDate;
@@ -26,10 +29,20 @@ final bool hasBackgroundImage;
 final File? bgImage;
 final List<Tagged> taggedPeople;
 final String? errorMessage;
-
+final int currentPage;
+final int pageSize;
+final int totalItems;
+final int totalPages;
+final bool hasMore;
+final bool isLoadingMore;
+final bool isErrorInJoining;
+final bool isSuccessInJoining;
+final String? joiningActionMessage;
+final int? joiningEventId;
  const EventTabState({
   this.status=EventStatus.initial,
    this.event,
+   this.events = const [],
    this.selectedTab=0,
    this.fromDate,
    this.toDate,
@@ -43,11 +56,22 @@ final String? errorMessage;
    this.bgImage,
    this.taggedPeople = const [],
    this.errorMessage,
+   this.currentPage = 0,
+   this.pageSize = 20,
+   this.totalItems = 0,
+   this.totalPages = 0,
+   this.hasMore = false,
+   this.isLoadingMore = false,
+   this.isErrorInJoining=false,
+   this.isSuccessInJoining=false,
+   this.joiningActionMessage,
+   this.joiningEventId,
  });
 
  EventTabState copyWith({
   EventStatus? status,
    EventModel? event,
+   List<EventModel>? events,
    int? selectedTab,
    DateTime? fromDate,
    DateTime? toDate,
@@ -61,10 +85,23 @@ final String? errorMessage;
     bool? hasBackgroundImage,
    List<Tagged>? taggedPeople,
    String? errorMessage,
+
+   int? currentPage,
+   int? pageSize,
+   int? totalItems,
+   int? totalPages,
+   bool? hasMore,
+   bool? isLoadingMore,
+   bool?isErrorInJoining,
+   bool?isSuccessInJoining,
+   String? joiningActionMessage,
+   int? joiningEventId,
+   bool clearJoiningEventId = false,
  }){
    return EventTabState(
      status: status ?? this.status,
      event: event ?? this.event,
+     events: events ?? this.events,
      selectedTab: selectedTab ?? this.selectedTab,
 
      fromDate: fromDate ?? this.fromDate,
@@ -85,9 +122,33 @@ final String? errorMessage;
      bgImage: bgImage ?? this.bgImage,
      taggedPeople:
      taggedPeople ?? this.taggedPeople,
-
      errorMessage:
      errorMessage ?? this.errorMessage,
+
+     currentPage:
+     currentPage ?? this.currentPage,
+
+     pageSize:
+     pageSize ?? this.pageSize,
+
+     totalItems:
+     totalItems ?? this.totalItems,
+
+     totalPages:
+     totalPages ?? this.totalPages,
+
+     hasMore:
+     hasMore ?? this.hasMore,
+
+     isLoadingMore:
+     isLoadingMore ?? this.isLoadingMore,
+     isErrorInJoining: isErrorInJoining??this.isErrorInJoining,
+     isSuccessInJoining: isSuccessInJoining??this.isSuccessInJoining,
+     joiningActionMessage:
+     joiningActionMessage ?? this.joiningActionMessage,
+     joiningEventId: clearJoiningEventId
+         ? null
+         : joiningEventId ?? this.joiningEventId,
    );
  }
 }

@@ -134,10 +134,10 @@ class _FeedTabState extends State<FeedTab> {
           itemCount: state.feeds.length + (state.isLoadingMore ? 1 : 0),
           itemBuilder: (context, index) {
             if(index>=state.feeds.length){
-              return const Padding(padding: EdgeInsets.symmetric(vertical: 20),
+              return  Padding(padding: EdgeInsets.symmetric(vertical: 20),
               child: Center(
                 child: CircularProgressIndicator(
-                  color: Colors.black,
+                  color: ColorScheme.of(context).onSurface,
                 ),
               ),
               );
@@ -147,7 +147,8 @@ class _FeedTabState extends State<FeedTab> {
             return Container(
               key: ValueKey(feed.id ?? index),
               margin: EdgeInsets.only(bottom: h * 0.012),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
 
@@ -313,7 +314,7 @@ class _FeedTabState extends State<FeedTab> {
                           value: 'edit',
                           child: Row(
                             children: [
-                              SvgPicture.asset(PartyPageData.edit, width: 18),
+                              SvgPicture.asset(PartyPageData.editIcon, width: 18),
                               const SizedBox(width: 8),
                               const Text("Edit"),
                             ],
