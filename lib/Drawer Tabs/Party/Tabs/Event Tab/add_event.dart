@@ -11,20 +11,28 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_dat
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_bar_reusable.dart';
 
 import '../../../../Reusable Functions/reusable_functions.dart';
+import '../../reusable_functions.dart';
 import '../Feed Tab/apis.dart';
 import '../Feed Tab/reusable_functions.dart';
 import 'event_modal.dart';
 import 'event_tagged_people_helper.dart';
+import 'full_event_desc.dart';
 
 class AddEvent extends StatefulWidget {
   final int partyId;
-  const AddEvent({super.key, required this.partyId});
+  final EventModel? eventToEdit;
+  const AddEvent({super.key, required this.partyId, this.eventToEdit,});
 
   @override
   State<AddEvent> createState() => _AddEventState();
 }
 
 class _AddEventState extends State<AddEvent> {
+  bool _showLocationLinkField = false;
+  bool get isEditMode => widget.eventToEdit != null;
+
+  int? get editingEventId => widget.eventToEdit?.id;
+
   final FeedApis api = FeedApis();
   late EventTaggedPeopleHandler taggedPeopleHandler;
 
@@ -47,6 +55,139 @@ class _AddEventState extends State<AddEvent> {
   TimeOfDay? fromTime;
   TimeOfDay? toTime;
 
+  List<MediaModel> _getPreviewMedia(EventTabState state) {
+    final List<MediaModel> media = [
+      ...state.existingMedia,
+    ];
+
+    for (final file in state.images) {
+      final extension =
+      file.path.split('.').last.toLowerCase();
+
+      final isVideo = [
+        'mp4',
+        'mov',
+        'avi',
+        'mkv',
+        'webm',
+        '3gp',
+      ].contains(extension);
+
+      media.add(
+        MediaModel(
+          url: file.path,
+          mediaType: isVideo ? "VIDEO" : "IMAGE",
+        ),
+      );
+    }
+
+    return media;
+  }
+  void _previewEvent() {
+    final state = context.read<EventsBloc>().state;
+
+    final previewMedia = _getPreviewMedia(state);
+
+    final event = EventModel(
+      // Existing event information when editing
+      id: widget.eventToEdit?.id,
+      uuid: widget.eventToEdit?.uuid,
+
+      // Current form values
+      kind: getEventKind(state.selectedTab),
+
+      title: titleController.text.trim(),
+
+      aboutEvent: aboutEventController.text.trim(),
+
+      eventFrom: state.fromDate,
+      eventTo: state.toDate,
+
+      timeFrom: state.fromTime,
+      timeTo: state.toTime,
+
+      displayJoinButton:
+      state.displayJoiningButton,
+
+      address: Address(
+        addressText: addressController.text.trim(),
+        addressLink: locationLinkController.text.trim(),
+      ),
+
+      tags: state.taggedPeople,
+
+      schedule: scheduleController.text.trim(),
+
+      // Background image
+      bgImage: state.bgImage != null
+          ? state.bgImage!.path
+          : state.existingBgImage,
+
+      // Existing + newly selected media
+      medias: previewMedia,
+
+      // Keep existing data in edit mode
+      author: widget.eventToEdit?.author,
+      authorUserId: widget.eventToEdit?.authorUserId,
+      authorPartyId: widget.eventToEdit?.authorPartyId,
+      authorType: widget.eventToEdit?.authorType,
+
+      statusOfPublishment:
+      widget.eventToEdit?.statusOfPublishment,
+
+      isRequestorAttending:
+      widget.eventToEdit?.isRequestorAttending,
+
+      attendeesPreview:
+      widget.eventToEdit?.attendeesPreview,
+
+      attendeeCount:
+      widget.eventToEdit?.attendeeCount,
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (previewContext) {
+        return BlocProvider.value(
+          value: context.read<EventsBloc>(),
+          child: FullEventDesc(
+            eventData: event,
+            partyId: widget.partyId,
+          ),
+        );
+      },
+    );
+  }
+
+
+  void _initializeForm() {
+    final event = widget.eventToEdit;
+
+    if (event == null) {
+      return;
+    }
+
+    titleController.text = event.title;
+
+    aboutEventController.text =
+        event.aboutEvent ?? '';
+
+    addressController.text =
+        event.address?.addressText ?? '';
+
+    locationLinkController.text =
+        event.address?.addressLink ?? '';
+
+    scheduleController.text =
+        event.schedule ?? '';
+
+    context.read<EventsBloc>().add(
+      InitializeEditEvent(event),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -55,6 +196,7 @@ class _AddEventState extends State<AddEvent> {
       api: api,
       context: context,
     );
+    _initializeForm();
   }
 
   @override
@@ -80,21 +222,39 @@ class _AddEventState extends State<AddEvent> {
     try {
       final parts = text.split(' ');
 
-      if (parts.length != 2) {
+      if (parts.length < 2) {
         return null;
       }
 
       final dateParts = parts[0].split('-');
-      final timeParts = parts[1].split(':');
 
-      if (dateParts.length != 3 || timeParts.length != 2) {
+      if (dateParts.length != 3) {
+        return null;
+      }
+
+      final timeString = parts[1];
+
+      final timeParts = timeString.split(':');
+
+      if (timeParts.length != 2) {
         return null;
       }
 
       int hour = int.parse(timeParts[0]);
       final minute = int.parse(timeParts[1]);
 
-      // If your controller contains AM/PM, handle it separately.
+      if (parts.length >= 3) {
+        final meridiem = parts[2].toUpperCase();
+
+        if (meridiem == 'PM' && hour != 12) {
+          hour += 12;
+        }
+
+        if (meridiem == 'AM' && hour == 12) {
+          hour = 0;
+        }
+      }
+
       return DateTime(
         int.parse(dateParts[2]),
         int.parse(dateParts[1]),
@@ -102,7 +262,7 @@ class _AddEventState extends State<AddEvent> {
         hour,
         minute,
       );
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
@@ -119,10 +279,17 @@ class _AddEventState extends State<AddEvent> {
     }
   }
   void _publishEvent() {
-    print("hello publish----I came");
-    final eventState = context.read<EventsBloc>().state;
 
+    final eventState = context.read<EventsBloc>().state;
+    debugPrint(
+      "========== EVENT KIND ==========\n"
+          "selectedTab: ${eventState.selectedTab}\n"
+          "kind: ${getEventKind(eventState.selectedTab)}",
+    );
     final event = EventModel(
+      id: widget.eventToEdit?.id,
+      uuid: widget.eventToEdit?.uuid,
+
       kind: getEventKind(eventState.selectedTab),
 
       title: titleController.text.trim(),
@@ -137,31 +304,60 @@ class _AddEventState extends State<AddEvent> {
 
       timeTo: eventState.toTime,
 
-      displayJoinButton: eventState.displayJoiningButton,
+      displayJoinButton:
+      eventState.displayJoiningButton,
 
       address: Address(
         addressText: addressController.text.trim(),
-        addressLink: "",///-------------abhi empty rakhi hai
+        addressLink: locationLinkController.text.trim(),
       ),
 
       tags: eventState.taggedPeople,
 
       schedule: scheduleController.text.trim(),
+      bgImage: eventState.bgImage?.path ?? eventState.existingBgImage,
+      medias: eventState.existingMedia,
 
-      bgImage: null,
+      author: widget.eventToEdit?.author,
+      authorUserId: widget.eventToEdit?.authorUserId,
+      authorPartyId: widget.eventToEdit?.authorPartyId,
+      authorType: widget.eventToEdit?.authorType,
 
-      medias: null,
+      statusOfPublishment:
+      widget.eventToEdit?.statusOfPublishment,
+
+      isRequestorAttending:
+      widget.eventToEdit?.isRequestorAttending,
+
+      attendeesPreview:
+      widget.eventToEdit?.attendeesPreview,
+
+      attendeeCount:
+      widget.eventToEdit?.attendeeCount,
     );
 
-    context.read<EventsBloc>().add(
-      AddNewEvent(
-        eventData: event,
-        mediaFiles: eventState.images,
-        bgImage: eventState.bgImage,
-        partyId: widget.partyId,
-      ),
-    );
-    print("hello publish----I completed");
+    if (isEditMode) {
+      context.read<EventsBloc>().add(
+        EditEvent(
+          eventData: event,
+          mediaFiles: eventState.images,
+          bgImage: eventState.bgImage,
+          partyId: widget.partyId,
+          deletedMediaIds: eventState.deletedMediaIds,
+            removeTags: eventState.removeTags,
+            removeBackgroundImage: eventState.removeBackgroundImage,
+        ),
+      );
+    } else {
+      context.read<EventsBloc>().add(
+        AddNewEvent(
+          eventData: event,
+          mediaFiles: eventState.images,
+          bgImage: eventState.bgImage,
+          partyId: widget.partyId,
+        ),
+      );
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -170,25 +366,69 @@ class _AddEventState extends State<AddEvent> {
 
     return BlocConsumer<EventsBloc, EventTabState>(
       listener: (context, state) {
-        if (state.status == EventStatus.success) {
+        // CREATE SUCCESS
+        if (state.status == EventStatus.success &&
+            state.isEventCreated) {
+          debugPrint(
+            "UPDATE SUCCESSer -> kind=${state.event?.kind}, "
+                "isEventUpdated=${state.isEventUpdated}",
+          );
+          titleController.clear();
+          aboutEventController.clear();
+          dateController.clear();
+          timeController.clear();
+          addressController.clear();
+          locationLinkController.clear();
+          scheduleController.clear();
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: Colors.green,
               content: Text(
                 "Event created successfully",
-                style: TextStyle(color: ColorScheme.of(context).surface),
+                style: TextStyle(
+                  color: ColorScheme.of(context).surface,
+                ),
               ),
             ),
           );
+
           Navigator.pop(context);
         }
+
+        // UPDATE SUCCESS
+        if (state.status == EventStatus.success &&
+            state.isEventUpdated &&
+            isEditMode) {
+          debugPrint(
+            "UPDATE SUCCESS -> kind=${state.event?.kind}, "
+                "isEventUpdated=${state.isEventUpdated}",
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.green,
+              content: Text(
+                "Event updated successfully",
+                style: TextStyle(
+                  color: ColorScheme.of(context).surface,
+                ),
+              ),
+            ),
+          );
+
+          Navigator.pop(context);
+        }
+
+        // ERROR
         if (state.status == EventStatus.error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: ColorScheme.of(context).error,
               content: Text(
-                "Something went wrong ",
-                style: TextStyle(color: ColorScheme.of(context).surface),
+                state.errorMessage ?? "Something went wrong",
+                style: TextStyle(
+                  color: ColorScheme.of(context).surface,
+                ),
               ),
             ),
           );
@@ -203,7 +443,9 @@ class _AddEventState extends State<AddEvent> {
             body: CustomScrollView(
               slivers: [
                 ReusableSliverAppBar(
-                  title: PartyPageData.addEvents,
+                  title: isEditMode
+                      ? "Edit Event"
+                      : PartyPageData.addEvents,
                   automaticallyImplyLeading: false,
                   height: h * 0.06,
                   isMenuNeeded: false,
@@ -211,6 +453,11 @@ class _AddEventState extends State<AddEvent> {
                     ///--------Schedule Button
                     FeedQuoteTab(
                       title: PartyPageData.schedule,
+                      textStyle: TextStyle(
+                        fontSize:   MediaQuery.of(context).size.width * 0.035,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white,
+                      ),
                       isSelected: false,
                       onTap: () async {
                         final schedule = await showDialog<Map<String, String>>(
@@ -228,6 +475,7 @@ class _AddEventState extends State<AddEvent> {
                         }
                       },
                       iconName: PartyPageData.scheduleIcon,
+                      iconColor: Colors.white,
                       height: h * 0.05,
                       width: w * 0.35,
                     ),
@@ -289,13 +537,20 @@ class _AddEventState extends State<AddEvent> {
                                         ///--Public
                                         FeedQuoteTab(
                                           title: PartyPageData.public,
+                                          textStyle: TextStyle(
+                                            fontSize:   MediaQuery.of(context).size.width * 0.04,
+                                            letterSpacing: 0.37,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.white,
+                                          ),
                                           isSelected: state.selectedTab == 0,
                                           onTap: (){
                                             context.read<EventsBloc>().add(
                                               ChangeTabEvent(0),
                                             );
                                           },
-                                          iconName: PartyPageData.lockIcon,
+                                          iconName: PartyPageData.globalIcon,
+                                          iconColor: Colors.white,
                                           height: h * 0.05,
                                           width: w * 0.35,
                                         ),
@@ -303,13 +558,18 @@ class _AddEventState extends State<AddEvent> {
                                         ///---Private
                                         FeedQuoteTab(
                                           title: PartyPageData.private,
+                                          textStyle: TextStyle(
+                                            fontSize:   MediaQuery.of(context).size.width * 0.04,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.white,
+                                          ),
                                           isSelected:  state.selectedTab == 1,
                                           onTap: (){
                                             context.read<EventsBloc>().add(
                                               ChangeTabEvent(1),
                                             );
                                           },
-                                          iconName: PartyPageData.globalIcon,
+                                          iconName: PartyPageData.lockIcon,
                                           height: h * 0.05,
                                           width: w * 0.35,
                                         ),
@@ -317,6 +577,11 @@ class _AddEventState extends State<AddEvent> {
                                         ///--Selective
                                         FeedQuoteTab(
                                           title: PartyPageData.selective,
+                                          textStyle: TextStyle(
+                                            fontSize:   MediaQuery.of(context).size.width * 0.04,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.white,
+                                          ),
                                           isSelected:  state.selectedTab == 2,
                                           onTap: (){
                                             context.read<EventsBloc>().add(
@@ -324,6 +589,8 @@ class _AddEventState extends State<AddEvent> {
                                             );
                                           },
                                           iconName: PartyPageData.tagPeopleIcon,
+                                          iconColor: Colors.white,
+                                          iconHeight: w*0.04,
                                           height: h * 0.05,
                                           width: w * 0.35,
                                         ),
@@ -345,6 +612,9 @@ class _AddEventState extends State<AddEvent> {
                                   SizedBox(height: h*0.04,),
                                   ///----About event
                                   CustomTextField(
+                                    height: MediaQuery.of(context).size.height * 0.15,
+                                    maxLines: 5,
+                                    keyboardType: TextInputType.multiline,
                                     controller:aboutEventController,
                                     labelText: PartyPageData.aboutEvent,
                                     isRequired: true,
@@ -419,26 +689,63 @@ class _AddEventState extends State<AddEvent> {
                                     suffixIcons: [
                                       InkWell(
                                         onTap: () {
-                                          // location link
+                                          FocusScope.of(context).unfocus();
+
+                                          setState(() {
+                                            _showLocationLinkField =
+                                            !_showLocationLinkField;
+                                          });
                                         },
                                         child: SvgPicture.asset(
                                           PartyPageData.locationIcon,
+                                          color: Colors.blue,
                                         ),
                                       ),
                                     ],
                                   ),
+
+                                  if (_showLocationLinkField)
+                                    Padding(
+                                      padding: EdgeInsets.only(top: h * 0.02),
+                                      child: CustomTextField(
+                                        controller: locationLinkController,
+                                        labelText: "Location Link",
+                                        keyboardType: TextInputType.url,
+
+                                        textStyle: TextStyle(
+                                          color: ColorScheme.of(context).onSurface,
+                                        ),
+
+                                        onChanged: (value) {
+                                          context.read<EventsBloc>().add(
+                                            AddressEvent(
+                                              addressController.text.trim(),
+                                              value.trim(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
                                   SizedBox(height: h*0.04,),
+
+// ==========================================================
+// BACKGROUND IMAGE
+// ==========================================================
+
                                   Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
-                                      Text(PartyPageData.backgroundImage,
-                                      style: TextStyle(
-                                        fontSize: h*0.02,
-                                        fontWeight: FontWeight.w400,
-                                        color: Color(0xFF656579),
+                                      Text(
+                                        PartyPageData.backgroundImage,
+                                        style: TextStyle(
+                                          fontSize: h * 0.02,
+                                          fontWeight: FontWeight.w400,
+                                          color: const Color(0xFF656579),
+                                        ),
                                       ),
-                                      ),
-                                      Spacer(),
+
+                                      const Spacer(),
+
                                       radioButtons(
                                         "Yes",
                                         true,
@@ -468,42 +775,126 @@ class _AddEventState extends State<AddEvent> {
                                       ),
                                     ],
                                   ),
+                                  SizedBox(height: h*0.04,),
+// ==========================================================
+// ONE BACKGROUND IMAGE ONLY
+// ==========================================================
+
                                   if (state.hasBackgroundImage) ...[
-                                    SizedBox(height: h * 0.02),
+                                    // SizedBox(height: h * 0.02),
 
-                                    ReusableImagePicker(
-                                      height: h * 0.18,
-                                      mediaFiles: state.bgImage != null
-                                          ? [state.bgImage!]
-                                          : [],
+                                    // --------------------------------------------------------
+                                    // EXISTING SERVER BACKGROUND
+                                    // --------------------------------------------------------
 
-                                      onAddMedia: () async {
-                                        final PickedMedia pickedMedia =
-                                        await ReusableMediaPicker.pickMedia(context);
+                                    if (state.existingBgImage != null &&
+                                        state.existingBgImage!.isNotEmpty &&
+                                        state.bgImage == null)
+                                      Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(16),
+                                            child: buildImageWidget(
+                                              state.existingBgImage!,
+                                              width: double.infinity,
+                                              height: h * 0.18,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
 
-                                        if (pickedMedia.images.isNotEmpty) {
-                                          final File imageFile = File(
-                                            pickedMedia.images.first.path,
-                                          );
+                                          Positioned(
+                                            top: 8,
+                                            right: 8,
+                                            child: InkWell(
+                                              onTap: () {
+                                                context.read<EventsBloc>().add(
+                                                  RemoveBackgroundImageEvent(),
+                                                );
+                                              },
+                                              child: Container(
+                                                padding: const EdgeInsets.all(6),
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.black54,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(
+                                                  Icons.close,
+                                                  color: Colors.white,
+                                                  size: 18,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      )
 
+                                    // --------------------------------------------------------
+                                    // NEWLY SELECTED BACKGROUND
+                                    // --------------------------------------------------------
+
+                                    else if (state.bgImage != null)
+                                      ReusableImagePicker(
+                                        height: h * 0.18,
+                                        mediaFiles: [
+                                          state.bgImage!,
+                                        ],
+
+                                        // IMPORTANT:
+                                        // Only ONE background can exist.
+                                        onAddMedia: () async {
+                                          final PickedMedia pickedMedia =
+                                          await ReusableMediaPicker.pickMedia(context);
+
+                                          if (pickedMedia.images.isNotEmpty) {
+                                            final imageFile = File(
+                                              pickedMedia.images.first.path,
+                                            );
+
+                                            context.read<EventsBloc>().add(
+                                              BackgroundImageFileEvent(imageFile),
+                                            );
+                                          }
+                                        },
+
+                                        onRemoveMedia: (index) {
                                           context.read<EventsBloc>().add(
-                                            BackgroundImageFileEvent(imageFile),
+                                            RemoveBackgroundImageEvent(),
                                           );
-                                        }
-                                      },
+                                        },
+                                      )
 
-                                      onRemoveMedia: (index) {
-                                        context.read<EventsBloc>().add(
-                                          RemoveBackgroundImageEvent(),
-                                        );
-                                      },
-                                    ),
+                                    // --------------------------------------------------------
+                                    // EMPTY BACKGROUND PICKER
+                                    // --------------------------------------------------------
+
+                                    else
+                                      ReusableImagePicker(
+                                        height: h * 0.18,
+                                        mediaFiles: const [],
+
+                                        onAddMedia: () async {
+                                          final PickedMedia pickedMedia =
+                                          await ReusableMediaPicker.pickMedia(context);
+
+                                          // Background = IMAGE ONLY
+                                          if (pickedMedia.images.isNotEmpty) {
+                                            final imageFile = File(
+                                              pickedMedia.images.first.path,
+                                            );
+
+                                            context.read<EventsBloc>().add(
+                                              BackgroundImageFileEvent(imageFile),
+                                            );
+                                          }
+                                        },
+
+                                        onRemoveMedia: (index) {},
+                                      ),
                                   ],
                                   SizedBox(height: h*0.04,),
-
                                   ///----------Display join button
                                   Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
                                       Text(PartyPageData.displayJoinButton,
                                         style: TextStyle(
@@ -542,44 +933,103 @@ class _AddEventState extends State<AddEvent> {
                                       ),
                                     ],
                                   ),
-                                  ///--------------Tag People
-                                  ///--------------Tag People
+
+                                  // ==========================================================
+// TAG PEOPLE
+// ==========================================================
+
                                   FeedQuoteTab(
-                                    title: PartyPageData.taggedPeople,
+                                    title: PartyPageData.tagPeople,
+                                    textStyle: TextStyle(
+                                      fontSize: MediaQuery.of(context).size.width * 0.035,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.black,
+                                    ),
                                     isSelected: false,
                                     onTap: () async {
                                       final currentTaggedPeople =
                                       List<Tagged>.from(state.taggedPeople);
 
-                                      final updatedTaggedPeople =
+                                      final result =
                                       await taggedPeopleHandler.addMoreTaggedPeople(
                                         taggedPeople: currentTaggedPeople,
                                       );
 
-                                      if (!mounted || updatedTaggedPeople == null) return;
+                                      if (!mounted || result == null) {
+                                        return;
+                                      }
 
+                                      final updatedTaggedPeople =
+                                      List<Tagged>.from(
+                                        result['taggedPeople'] as List<Tagged>,
+                                      );
+
+                                      final removedTags =
+                                      List<Tagged>.from(
+                                        result['removed'] as List<Tagged>,
+                                      );
+
+// Update currently visible tags.
                                       context.read<EventsBloc>().add(
                                         TaggedPeopleEvent(
                                           updatedTaggedPeople,
                                         ),
                                       );
+
+// Store removed existing tags for PATCH.
+                                      context.read<EventsBloc>().add(
+                                        RemovedTaggedPeopleEvent(
+                                          removedTags,
+                                        ),
+                                      );
                                     },
                                     iconName: PartyPageData.tagPeopleIcon,
+                                    iconHeight: w * 0.045,
                                     height: h * 0.05,
-                                    width: w * 0.45,
+                                    width: w * 0.4,
                                   ),
-                                  ///--------------baki hai
+
+                                  SizedBox(height: h * 0.02),
+
+// ==========================================================
+// EXISTING EVENT MEDIA — EDIT MODE
+// ==========================================================
+
+                                  if (state.existingMedia.isNotEmpty) ...[
+                                    ExistingEventMediaGrid(
+                                      media: state.existingMedia,
+                                      onRemove: (index) {
+                                        context.read<EventsBloc>().add(
+                                          RemoveExistingMediaEvent(index),
+                                        );
+                                      },
+                                    ),
+
+                                    SizedBox(height: h * 0.02),
+                                  ],
+
+// ==========================================================
+// NEW EVENT MEDIA — MANY
+// ==========================================================
+
                                   ReusableImagePicker(
                                     height: h * 0.18,
 
+                                    // IMPORTANT:
+                                    // This is ONLY normal event media.
                                     mediaFiles: state.images,
+
                                     onAddMedia: () async {
                                       final PickedMedia pickedMedia =
                                       await ReusableMediaPicker.pickMedia(context);
 
                                       final List<File> selectedMedia = [
-                                        ...pickedMedia.images.map((image) => File(image.path)),
-                                        ...pickedMedia.videos.map((video) => File(video.path)),
+                                        ...pickedMedia.images.map(
+                                              (image) => File(image.path),
+                                        ),
+                                        ...pickedMedia.videos.map(
+                                              (video) => File(video.path),
+                                        ),
                                       ];
 
                                       if (selectedMedia.isNotEmpty) {
@@ -587,125 +1037,191 @@ class _AddEventState extends State<AddEvent> {
                                           AddImageEvent(selectedMedia),
                                         );
                                       }
-                                    },onRemoveMedia: (index) {
-                                    context.read<EventsBloc>().add(
-                                      RemoveImageEvent(index),
-                                    );
-                                  },
+                                    },
+
+                                    onRemoveMedia: (index) {
+                                      context.read<EventsBloc>().add(
+                                        RemoveImageEvent(index),
+                                      );
+                                    },
                                   ),
                                   SizedBox(height: h*0.04,),
                                   ///-----------Publish button
-                                  InkWell(
-                                    onTap: (){
-                                      print("hello publish");
-                                      _publishEvent();
-                                    },
-                                    child: Center(
-                                      child: Container(
-                                        height:
-                                        MediaQuery
-                                            .of(
-                                          context,
-                                        )
-                                            .size
-                                            .height *
-                                            0.05,
-                                        width:
-                                        MediaQuery
-                                            .of(
-                                          context,
-                                        )
-                                            .size
-                                            .width *
-                                            0.3,
-                                        decoration: BoxDecoration(
-                                          gradient: GradientColors
-                                              .primaryGradient,
-                                          borderRadius:
-                                          BorderRadius.circular(
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      InkWell(
+                                        onTap: state.status == EventStatus.loading
+                                            ? null
+                                            : () {
+                                          _previewEvent();
+                                        },
+                                        child: Center(
+                                          child: Container(
+                                            height:
                                             MediaQuery
                                                 .of(
                                               context,
                                             )
                                                 .size
                                                 .height *
-                                                0.03,
-                                          ),
-                                          border: Border.all(
-                                            color: const Color(
-                                              0xFFFF2164,
-                                            ),
-                                          ),
-                                        ),
-                                        child: Center(
-                                          child: Row(
-                                            mainAxisAlignment:
-                                            MainAxisAlignment
-                                                .center,
-                                            children: [
-                                              SvgPicture.asset(
-                                                PartyPageData
-                                                    .addIcon,
-                                                color:
-                                                ColorScheme
-                                                    .of(
-                                                  context,
-                                                )
-                                                    .surface,
-                                                height:
+                                                0.05,
+                                            width:
+                                            MediaQuery
+                                                .of(
+                                              context,
+                                            )
+                                                .size
+                                                .width *
+                                                0.3,
+                                            decoration: BoxDecoration(
+                                              gradient: GradientColors
+                                                  .primaryGradient,
+                                              borderRadius:
+                                              BorderRadius.circular(
                                                 MediaQuery
                                                     .of(
                                                   context,
                                                 )
                                                     .size
                                                     .height *
-                                                    0.02,
+                                                    0.03,
                                               ),
-                                              SizedBox(
-                                                width:
-                                                MediaQuery
-                                                    .of(
-                                                  context,
-                                                )
-                                                    .size
-                                                    .width *
-                                                    0.02,
-                                              ),
-                                              Text(
-                                               PartyPageData
-                                                    .publish,
-                                                textAlign:
-                                                TextAlign
-                                                    .center,
-                                                style: TextStyle(
-                                                  color:
-                                                  ColorScheme
-                                                      .of(
-                                                    context,
-                                                  )
-                                                      .surface,
-                                                  fontWeight:
-                                                  FontWeight
-                                                      .w500,
-                                                  fontSize:
-                                                  (MediaQuery
-                                                      .of(
-                                                    context,
-                                                  )
-                                                      .size
-                                                      .width *
-                                                      0.04)
-                                                      .clamp(
-                                                    14.0,
-                                                    16.0,
-                                                  ),
+                                              border: Border.all(
+                                                color: const Color(
+                                                  0xFFFF2164,
                                                 ),
                                               ),
-                                            ],
+                                            ),
+                                            child: Center(
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                MainAxisAlignment
+                                                    .center,
+                                                children: [
+                                                  SvgPicture.asset(
+                                                    PartyPageData
+                                                        .addIcon,
+                                                    color:
+                                                    ColorScheme
+                                                        .of(
+                                                      context,
+                                                    )
+                                                        .surface,
+                                                    height:
+                                                    MediaQuery
+                                                        .of(
+                                                      context,
+                                                    )
+                                                        .size
+                                                        .height *
+                                                        0.02,
+                                                  ),
+                                                  SizedBox(
+                                                    width:
+                                                    MediaQuery
+                                                        .of(
+                                                      context,
+                                                    )
+                                                        .size
+                                                        .width *
+                                                        0.02,
+                                                  ),
+                                                  Text(
+                                                   "PREVIEW",
+                                                    textAlign:
+                                                    TextAlign
+                                                        .center,
+                                                    style: TextStyle(
+                                                      color:
+                                                      ColorScheme
+                                                          .of(
+                                                        context,
+                                                      )
+                                                          .surface,
+                                                      fontWeight:
+                                                      FontWeight
+                                                          .w500,
+                                                      fontSize:
+                                                      (MediaQuery
+                                                          .of(
+                                                        context,
+                                                      )
+                                                          .size
+                                                          .width *
+                                                          0.04)
+                                                          .clamp(
+                                                        14.0,
+                                                        16.0,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
+                                      SizedBox(width: w*0.03,),
+                                      InkWell(
+                                        onTap: state.status == EventStatus.loading
+                                            ? null
+                                            : () {
+                                          _publishEvent();
+                                        },
+                                        child: Center(
+                                          child: Container(
+                                            height: MediaQuery.of(context).size.height * 0.05,
+                                            width: MediaQuery.of(context).size.width * 0.3,
+                                            decoration: BoxDecoration(
+                                              gradient: GradientColors.primaryGradient,
+                                              borderRadius: BorderRadius.circular(
+                                                MediaQuery.of(context).size.height * 0.03,
+                                              ),
+                                              border: Border.all(
+                                                color: const Color(0xFFFF2164),
+                                              ),
+                                            ),
+                                            child: Center(
+                                              child: state.status == EventStatus.loading
+                                                  ? const SizedBox(
+                                                height: 22,
+                                                width: 22,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2.5,
+                                                  color: Colors.white,
+                                                ),
+                                              )
+                                                  : Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  SvgPicture.asset(
+                                                    PartyPageData.addIcon,
+                                                    color: ColorScheme.of(context).surface,
+                                                    height: MediaQuery.of(context).size.height * 0.02,
+                                                  ),
+                                                  SizedBox(
+                                                    width: MediaQuery.of(context).size.width * 0.02,
+                                                  ),
+                                                  Text(
+                                                    isEditMode
+                                                        ? "Update"
+                                                        : PartyPageData.publish,
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                      color: ColorScheme.of(context).surface,
+                                                      fontWeight: FontWeight.w500,
+                                                      fontSize: (MediaQuery.of(context).size.width * 0.04)
+                                                          .clamp(14.0, 16.0),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   SizedBox(height: h*0.04,),
                                 ],

@@ -19,18 +19,28 @@ class AddNewEvent extends EventsEvent{
 });
 }
 //2.  Edit Event
-class EditEvent extends EventsEvent{
+class EditEvent extends EventsEvent {
   final EventModel eventData;
-  final List<File>mediaFiles;
+  final List<File> mediaFiles;
   final File? bgImage;
   final int partyId;
 
+  final List<int> deletedMediaIds;
+
+  // NEW
+  final List<Tagged> removeTags;
+  final bool removeBackgroundImage;
   EditEvent({
     required this.eventData,
     required this.mediaFiles,
     this.bgImage,
     required this.partyId,
-});
+    this.deletedMediaIds = const [],
+
+    // NEW
+    this.removeTags = const [],
+    this.removeBackgroundImage = false,
+  });
 }
 //3. Delete Event
 class DeleteEvent extends EventsEvent{
@@ -103,9 +113,10 @@ class TaggedPeopleEvent extends EventsEvent{
   TaggedPeopleEvent(this.taggedPeople);
 }
 //12 Remove tagged person
-class RemoveTaggedPeopleEvent extends EventsEvent{
-  final int index;
-  RemoveTaggedPeopleEvent(this.index);
+class RemovedTaggedPeopleEvent extends EventsEvent {
+  final List<Tagged> removedTags;
+
+  RemovedTaggedPeopleEvent(this.removedTags);
 }
 
 class BackgroundImageFileEvent extends EventsEvent {
@@ -125,3 +136,53 @@ class joinUnJoinButtonEvent extends EventsEvent{
     eventId,
   ];
 }
+class ResetEventForm extends EventsEvent {}
+
+
+// ============================================================
+// ATTENDANCE
+// ============================================================
+
+// ============================================================
+// GET ATTENDANCE PAGE
+// ============================================================
+
+class GetAttendanceEvent extends EventsEvent {
+  final int eventId;
+  final int page;
+  final int size;
+
+  GetAttendanceEvent({
+    required this.eventId,
+    this.page = 0,
+    this.size = 20,
+  });
+}
+
+
+// ============================================================
+// LOCAL SEARCH ATTENDANCE
+// ============================================================
+
+class SearchAttendanceEvent extends EventsEvent {
+  final int eventId;
+  final String search;
+
+  SearchAttendanceEvent({
+    required this.eventId,
+    required this.search,
+  });
+}
+
+class InitializeEditEvent extends EventsEvent {
+  final EventModel event;
+
+  InitializeEditEvent(this.event);
+}
+class RemoveExistingMediaEvent extends EventsEvent {
+  final int index;
+
+  RemoveExistingMediaEvent(this.index);
+}
+
+class ClearJoinMessageEvent extends EventsEvent {}

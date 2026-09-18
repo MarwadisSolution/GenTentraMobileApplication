@@ -67,7 +67,6 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
   }
 
   @override
-  @override
   void initState() {
     super.initState();
 

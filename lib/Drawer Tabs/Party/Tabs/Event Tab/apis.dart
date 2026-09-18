@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/event_modal.dart';
@@ -38,7 +39,7 @@ class EventApis{
       FormData formData=FormData();
       final eventJson = event.toJson();
 
-      eventJson["partyId"] = partyId;
+      eventJson["authorPartyId"] = partyId;
 
       formData.fields.add(
         MapEntry(
@@ -76,7 +77,7 @@ class EventApis{
       }
       print("========== ABOUT TO SEND POST REQUEST ==========");
       print("URL: $api/events");
-      print("DATA: ${jsonEncode(eventJson)}");
+      print("DATA: ${formData}");
       print("Media files: ${mediaFiles?.length}");
       print("BG image: ${bgImage?.path}");
 
@@ -85,7 +86,7 @@ class EventApis{
         data: formData,
       );
       print("----------------------");
-      print(response);
+      print(response.statusCode);
       return EventModel.fromJson(response.data["data"]);
     }
     on DioException catch (e) {
@@ -163,5 +164,278 @@ class EventApis{
     }
     return "Unable to join, please try again";
   }
+  Future<AttendeePaginationResponse> attendanceData(
+      int eventId,
+      int page,
+      int size,
+      ) async {
+    try {
+      final response = await _dio.get(
+        "$api/api/v1/events/$eventId/attendees",
+        queryParameters: {
+          "page": page,
+          "size": size,
+        },
+      );
 
+      final responseData = response.data;
+
+      final data = responseData["data"] as Map<String, dynamic>;
+
+      // ----------------------------------------------------------
+      // ITEMS
+      // ----------------------------------------------------------
+
+      final List<AttendeePreview> attendees =
+      (data["items"] as List? ?? [])
+          .map(
+            (item) => AttendeePreview.fromJson(
+          item as Map<String, dynamic>,
+        ),
+      )
+          .toList();
+
+      // ----------------------------------------------------------
+      // COUNTS
+      // ----------------------------------------------------------
+
+      final counts =
+          data["counts"] as Map<String, dynamic>? ?? {};
+
+      final int goingCount =
+          (counts["GOING"] as num?)?.toInt() ?? 0;
+
+      final int interestedCount =
+          (counts["INTERESTED"] as num?)?.toInt() ?? 0;
+
+      final int declinedCount =
+          (counts["DECLINED"] as num?)?.toInt() ?? 0;
+
+      // ----------------------------------------------------------
+      // META
+      // ----------------------------------------------------------
+
+      final meta =
+          data["meta"] as Map<String, dynamic>? ?? {};
+
+      final int currentPage =
+          (meta["page"] as num?)?.toInt() ?? page;
+
+      final int currentSize =
+          (meta["size"] as num?)?.toInt() ?? size;
+
+      final int totalElements =
+          (meta["totalElements"] as num?)?.toInt() ?? 0;
+
+      final int totalPages =
+          (meta["totalPages"] as num?)?.toInt() ?? 0;
+
+      // ----------------------------------------------------------
+      // HAS NEXT
+      // ----------------------------------------------------------
+
+      final bool hasNext =
+          currentPage + 1 < totalPages;
+
+      return AttendeePaginationResponse(
+        items: attendees,
+        page: currentPage,
+        size: currentSize,
+        totalItems: totalElements,
+        totalPages: totalPages,
+        hasNext: hasNext,
+        goingCount: goingCount,
+        interestedCount: interestedCount,
+        declinedCount: declinedCount,
+      );
+    } on DioException catch (e) {
+      final message =
+          e.response?.data?["message"] ??
+              e.message ??
+              "Failed to fetch attendees";
+
+      throw Exception(message);
+    } catch (e) {
+      throw Exception(
+        "Failed to fetch attendees: $e",
+      );
+    }
+  }
+  Future<String> deleteEvent(int eventId) async {
+    try {
+      final response = await _dio.delete(
+        "$api/api/v1/events/$eventId",
+      );
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 204) {
+        return response.data?["message"] ??
+            "Event deleted successfully";
+      }
+
+      return "Unable to delete event, please try again";
+    } on DioException catch (e) {
+      print("========== DELETE EVENT ERROR ==========");
+      print("STATUS CODE: ${e.response?.statusCode}");
+      print("RESPONSE DATA: ${e.response?.data}");
+      print("REQUEST URL: ${e.requestOptions.uri}");
+
+      final message =
+          e.response?.data?["message"] ??
+              e.message ??
+              "Failed to delete event";
+
+      throw Exception(message);
+    } catch (e) {
+      throw Exception("Failed to delete event: $e");
+    }
+  }
+  Future<EventModel> updateTheEvent({
+    required int eventId,
+    required EventModel event,
+    List<File>? mediaFiles,
+    File? bgImage,
+    List<int>? deletedMediaIds,
+    List<Tagged>? removeTags,
+    bool removeBackgroundImage = false,
+  }) async {
+    print("========== updateTheEvent() HIT ==========");
+
+    try {
+      final FormData formData = FormData();
+
+      // ----------------------------------------------------------
+      // EVENT JSON
+      // ----------------------------------------------------------
+
+      final Map<String, dynamic> eventJson = event.toJson();
+
+      // ----------------------------------------------------------
+      // REMOVED MEDIA
+      // ----------------------------------------------------------
+
+      eventJson["removeMediaIds"] = deletedMediaIds ?? [];
+
+      // ----------------------------------------------------------
+      // REMOVED TAGS
+      // ----------------------------------------------------------
+
+      eventJson["removeTags"] =
+          removeTags?.map((tag) => tag.toJson()).toList() ?? [];
+
+      // ----------------------------------------------------------
+      // REMOVED BACKGROUND IMAGE
+      // ----------------------------------------------------------
+
+      eventJson["removeBackgroundImage"] = removeBackgroundImage;
+
+      // ----------------------------------------------------------
+      // DEBUG
+      // ----------------------------------------------------------
+
+      print("========== UPDATE EVENT DATA ==========");
+      print("Event ID: $eventId");
+      print("removeMediaIds: ${eventJson["removeMediaIds"]}");
+      print("removeTags: ${eventJson["removeTags"]}");
+      print(
+        "removeBackgroundImage: "
+            "${eventJson["removeBackgroundImage"]}",
+      );
+      print("======================================");
+
+      // ----------------------------------------------------------
+      // DATA FIELD
+      // ----------------------------------------------------------
+
+      formData.fields.add(
+        MapEntry(
+          "data",
+          jsonEncode(eventJson),
+        ),
+      );
+
+      // ----------------------------------------------------------
+      // NEW MEDIA
+      // ----------------------------------------------------------
+
+      if (mediaFiles != null && mediaFiles.isNotEmpty) {
+        for (final File file in mediaFiles) {
+          formData.files.add(
+            MapEntry(
+              "media",
+              await MultipartFile.fromFile(
+                file.path,
+                filename: file.path.split('/').last,
+              ),
+            ),
+          );
+        }
+      }
+
+      // ----------------------------------------------------------
+      // NEW BACKGROUND IMAGE
+      // ----------------------------------------------------------
+
+      if (bgImage != null) {
+        formData.files.add(
+          MapEntry(
+            "bgImage",
+            await MultipartFile.fromFile(
+              bgImage.path,
+              filename: bgImage.path.split('/').last,
+            ),
+          ),
+        );
+      }
+
+      print("New media count: ${mediaFiles?.length ?? 0}");
+      print("Deleted media IDs: ${deletedMediaIds ?? []}");
+      print("New background: ${bgImage?.path}");
+      print("Remove background: $removeBackgroundImage");
+
+      // ----------------------------------------------------------
+      // PATCH REQUEST
+      // ----------------------------------------------------------
+
+      final response = await _dio.patch(
+        "$api/api/v1/events/$eventId",
+        data: formData,
+      );
+
+      print("Update status: ${response.statusCode}");
+      print("Update response: ${response.data}");
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 201) {
+        return EventModel.fromJson(
+          response.data["data"],
+        );
+      }
+
+      throw Exception(
+        response.data?["message"] ??
+            "Failed to update event",
+      );
+    } on DioException catch (e) {
+      print("========== UPDATE EVENT DIO ERROR ==========");
+      print("STATUS CODE: ${e.response?.statusCode}");
+      print("RESPONSE DATA: ${e.response?.data}");
+      print("REQUEST URL: ${e.requestOptions.uri}");
+      print("REQUEST DATA: ${e.requestOptions.data}");
+
+      final message =
+          e.response?.data?["message"] ??
+              e.message ??
+              "Failed to update event";
+
+      throw Exception(message);
+    } catch (e) {
+      print("========== UPDATE EVENT ERROR ==========");
+      print(e);
+
+      throw Exception(
+        e.toString().replaceFirst("Exception: ", ""),
+      );
+    }
+  }
 }

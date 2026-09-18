@@ -66,7 +66,9 @@ static final quoteDiffIcon="Assets/PartyPage/quoteDiffIcon.svg";
 static final feedIcon="Assets/PartyPage/feedIcon.svg";
 static final addFeedIcon="Assets/PartyPage/addFeedIcon.svg";
 static final addQuoteIcon="Assets/PartyPage/addQuoteIcon.svg";
-
+static final clockIcon="Assets/PartyPage/clockIcon.svg";
+static final personSearchIcon="Assets/PartyPage/personSearchIcon.svg";
+static final clock="Assets/PartyPage/clock.svg";
 static final eventIcon="Assets/PartyPage/eventIcon.svg";
 static final newGroupIcon="Assets/PartyPage/newGroupIcon.svg";
 static final addIconLight="Assets/PartyPage/addIconLight.svg";
@@ -86,5 +88,11 @@ static final locationIcon="Assets/PartyPage/locationIcon.svg";
 static final youCannotChange ="You cannot change the date or time once it has passed.";
 static final backgroundImage ="Background Image";
 static final displayJoinButton ="Display Join Button";
-
+static final menifesto = "MENIFESTO";
+static final eventName ="Event Name/Title";
+static final year="Year";
+static final uploadMenifesto="Upload Manifesto";
+static final docAddIcon ="Assets/PartyPage/docAddIcon.svg";
+static final calenderIcon="Assets/PartyPage/calenderIcon.svg";
+static final addressIcon ="Assets/PartyPage/addressIcon.svg";
 }

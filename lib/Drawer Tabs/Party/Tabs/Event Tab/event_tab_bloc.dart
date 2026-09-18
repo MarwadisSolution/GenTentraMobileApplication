@@ -4,10 +4,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20T
 
 import 'apis.dart';
 import 'event_modal.dart';
-import 'event_tab_event.dart' show RemoveTaggedPeopleEvent, TaggedPeopleEvent, EventsEvent, AddNewEvent, EditEvent, DeleteEvent, ChangeTabEvent, DateEvent, TimeEvent, AddressEvent, AddImageEvent, RemoveImageEvent, JoiningButtonEvent, GetEventEvent, BackgroundImageEvent, BackgroundImageFileEvent, RemoveBackgroundImageEvent, joinUnJoinButtonEvent;
-
-
-class EventsBloc extends Bloc<EventsEvent, EventTabState> {
+import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTabState> {
   final EventApis api;
 
   EventsBloc(this.api) : super(const EventTabState()) {
@@ -15,7 +12,7 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
     on<AddNewEvent>(_addNewEvent);
     on<EditEvent>(_editEvent);
     on<DeleteEvent>(_deleteEvent);
-
+    on<InitializeEditEvent>(_initializeEditEvent);
     on<ChangeTabEvent>(_changeTab);
     on<DateEvent>(_dateEvent);
     on<TimeEvent>(_timeEvent);
@@ -29,9 +26,16 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
     on<RemoveBackgroundImageEvent>(_removeBackgroundImage);
     on<BackgroundImageFileEvent>(_backgroundImageFile);
     on<TaggedPeopleEvent>(_taggedPeople);
-    on<RemoveTaggedPeopleEvent>(_removeTaggedPeople);
 
     on<joinUnJoinButtonEvent>(_joinUnjoinButton);
+    on<ResetEventForm>(_onResetEventForm);
+
+    on<GetAttendanceEvent>(_getAttendance);
+
+    on<SearchAttendanceEvent>(_searchAttendance);
+    on<RemovedTaggedPeopleEvent>(_removedTaggedPeople);
+    on<RemoveExistingMediaEvent>(_removeExistingMedia);
+    on<ClearJoinMessageEvent>(_clearJoinMessage);
   }
 
   // ==========================================================
@@ -147,9 +151,12 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
         state.copyWith(
           status: EventStatus.success,
           event: createdEvent,
+          isEventCreated: true,
         ),
       );
 
+// Reset the Add Event form after successful creation.
+      add(ResetEventForm());
     } catch (e) {
 
       print("========== ADD EVENT ERROR ==========");
@@ -172,33 +179,90 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
       EditEvent event,
       Emitter<EventTabState> emit,
       ) async {
+
     emit(
       state.copyWith(
         status: EventStatus.loading,
         errorMessage: null,
+        isEventUpdated: false,
       ),
     );
 
     try {
-      // Add your actual update API here.
-      //
-      // final updatedEvent = await api.updateTheEvent(
-      //   event: event.eventData,
-      //   mediaFiles: event.mediaFiles,
-      //   bgImage: event.bgImage,
-      // );
+      print("========== EDIT EVENT HANDLER HIT ==========");
+      print("Event ID: ${event.eventData.id}");
+      print("Party ID: ${event.partyId}");
+      print("New media count: ${event.mediaFiles.length}");
+      print("New BG image: ${event.bgImage?.path}");
+      print("Deleted media IDs: ${event.deletedMediaIds}");
+
+      // ----------------------------------------------------------
+      // EVENT ID CHECK
+      // ----------------------------------------------------------
+
+      final int? eventId = event.eventData.id;
+
+      if (eventId == null) {
+        throw Exception("Event ID is missing");
+      }
+
+      // ----------------------------------------------------------
+      // CALL UPDATE API
+      // ----------------------------------------------------------
+      print("Remove tags: ${event.removeTags.map((tag) => tag.toJson()).toList()}");
+
+      final updatedEvent = await api.updateTheEvent(
+        eventId: eventId,
+        event: event.eventData,
+        mediaFiles: event.mediaFiles,
+        bgImage: event.bgImage,
+        deletedMediaIds: event.deletedMediaIds,
+        removeTags: event.removeTags,
+        removeBackgroundImage: event.removeBackgroundImage,
+      );
+      print("========== EVENT UPDATED SUCCESSFULLY ==========");
+
+      // ----------------------------------------------------------
+      // UPDATE EVENT IN LOCAL LIST
+      // ----------------------------------------------------------
+
+      final updatedEvents =
+      List<EventModel>.from(state.events);
+
+      final eventIndex = updatedEvents.indexWhere(
+            (eventData) => eventData.id == eventId,
+      );
+
+      if (eventIndex != -1) {
+        updatedEvents[eventIndex] = updatedEvent;
+      }
+
+      // ----------------------------------------------------------
+      // SUCCESS
+      // ----------------------------------------------------------
 
       emit(
         state.copyWith(
           status: EventStatus.success,
-          event: event.eventData,
+          event: updatedEvent,
+          events: updatedEvents,
+          isEventUpdated: true,
+          errorMessage: null,
         ),
       );
+
     } catch (e) {
+
+      print("========== EDIT EVENT ERROR ==========");
+      print(e);
+
       emit(
         state.copyWith(
           status: EventStatus.error,
-          errorMessage: e.toString(),
+          isEventUpdated: false,
+          errorMessage: e
+              .toString()
+              .replaceFirst('Exception: ', ''),
         ),
       );
     }
@@ -216,27 +280,35 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
       state.copyWith(
         status: EventStatus.loading,
         errorMessage: null,
+        isEventDeleted: false,
       ),
     );
 
     try {
-      // Add your actual delete API here.
-      //
-      // await api.deleteTheEvent(
-      //   eventId: event.eventId,
-      // );
+      await api.deleteEvent(event.eventId);
+
+      // Remove deleted event locally
+      final updatedEvents = List<EventModel>.from(state.events)
+        ..removeWhere(
+              (eventData) => eventData.id == event.eventId,
+        );
 
       emit(
         state.copyWith(
           status: EventStatus.success,
-          event: null,
+          events: updatedEvents,
+          isEventDeleted: true,
+          errorMessage: null,
         ),
       );
     } catch (e) {
       emit(
         state.copyWith(
           status: EventStatus.error,
-          errorMessage: e.toString(),
+          isEventDeleted: false,
+          errorMessage: e
+              .toString()
+              .replaceFirst('Exception: ', ''),
         ),
       );
     }
@@ -368,9 +440,20 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
       BackgroundImageEvent event,
       Emitter<EventTabState> emit,
       ) {
+    if (!event.hasBackgroundImage) {
+      emit(
+        state.copyWith(
+          hasBackgroundImage: false,
+          bgImage: null,
+          existingBgImage: null,
+        ),
+      );
+      return;
+    }
+
     emit(
       state.copyWith(
-        hasBackgroundImage: event.hasBackgroundImage,
+        hasBackgroundImage: true,
       ),
     );
   }
@@ -381,6 +464,11 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
     emit(
       state.copyWith(
         bgImage: event.image,
+
+        // A newly selected image replaces the old server background.
+        existingBgImage: null,
+
+        hasBackgroundImage: true,
       ),
     );
   }
@@ -391,6 +479,9 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
     emit(
       state.copyWith(
         bgImage: null,
+        existingBgImage: null,
+        hasBackgroundImage: false,
+        removeBackgroundImage: true,
       ),
     );
   }
@@ -413,25 +504,6 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
   // REMOVE TAGGED PERSON
   // ==========================================================
 
-  void _removeTaggedPeople(
-      RemoveTaggedPeopleEvent event,
-      Emitter<EventTabState> emit,
-      ) {
-    final updatedPeople = [
-      ...state.taggedPeople,
-    ];
-
-    if (event.index >= 0 &&
-        event.index < updatedPeople.length) {
-      updatedPeople.removeAt(event.index);
-    }
-
-    emit(
-      state.copyWith(
-        taggedPeople: updatedPeople,
-      ),
-    );
-  }
   Future<void> _joinUnjoinButton(
       joinUnJoinButtonEvent event,
       Emitter<EventTabState> emit,
@@ -546,5 +618,387 @@ class EventsBloc extends Bloc<EventsEvent, EventTabState> {
         ),
       );
     }
+  }
+  void _onResetEventForm(
+      ResetEventForm event,
+      Emitter<EventTabState> emit,
+      ) {
+    emit(
+      state.copyWith(
+        selectedTab: 0,
+
+        fromDate: null,
+        toDate: null,
+
+        fromTime: null,
+        toTime: null,
+
+        hasBackgroundImage: false,
+        bgImage: null,
+
+        displayJoiningButton: false,
+
+        taggedPeople: [],
+
+        images: [],
+
+        // Reset other temporary form values if you have them
+        address: '',
+        locationLink: '',
+
+        status: EventStatus.initial,
+      ),
+    );
+  }
+  // ==========================================================
+// GET ATTENDANCE
+// ==========================================================
+
+  Future<void> _getAttendance(
+      GetAttendanceEvent event,
+      Emitter<EventTabState> emit,
+      ) async {
+    final bool isFirstPage = event.page == 0;
+
+    if (isFirstPage) {
+      emit(
+        state.copyWith(
+          isLoadingAttendance: true,
+          isLoadingMoreAttendance: false,
+          attendanceError: null,
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(
+          isLoadingMoreAttendance: true,
+          attendanceError: null,
+        ),
+      );
+    }
+
+    try {
+      final response = await api.attendanceData(
+        event.eventId,
+        event.page,
+        event.size,
+      );
+
+      final List<AttendeePreview> updatedAllAttendees;
+
+      if (isFirstPage) {
+        updatedAllAttendees = [
+          ...response.items,
+        ];
+      } else {
+        updatedAllAttendees = [
+          ...state.allAttendees,
+          ...response.items,
+        ];
+      }
+
+      emit(
+        state.copyWith(
+          allAttendees: updatedAllAttendees,
+
+          // If there is no active search,
+          // visible attendees = all loaded attendees.
+          attendees: state.attendanceSearch.isEmpty
+              ? updatedAllAttendees
+              : _filterAttendees(
+            updatedAllAttendees,
+            state.attendanceSearch,
+          ),
+
+          attendanceCurrentPage: response.page,
+          attendancePageSize: response.size,
+
+          attendanceTotalItems: response.totalItems,
+          attendanceTotalPages: response.totalPages,
+
+          attendanceHasMore: response.hasNext,
+
+          isLoadingAttendance: false,
+          isLoadingMoreAttendance: false,
+
+          attendanceError: null,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          isLoadingAttendance: false,
+          isLoadingMoreAttendance: false,
+          attendanceError: e
+              .toString()
+              .replaceFirst('Exception: ', ''),
+        ),
+      );
+    }
+  }
+  List<AttendeePreview> _filterAttendees(
+      List<AttendeePreview> attendees,
+      String search,
+      ) {
+    final query = search.trim().toLowerCase();
+
+    if (query.isEmpty) {
+      return attendees;
+    }
+
+    return attendees.where((attendee) {
+      final user = attendee.user;
+
+      final name =
+          user?.name?.toLowerCase() ?? '';
+
+      return name.contains(query);
+    }).toList();
+  }
+  // ==========================================================
+// SEARCH ATTENDANCE
+// ==========================================================
+  Future<void> _searchAttendance(
+      SearchAttendanceEvent event,
+      Emitter<EventTabState> emit,
+      ) async {
+    final String query = event.search.trim();
+
+    // ----------------------------------------------------------
+    // CLEAR SEARCH
+    // ----------------------------------------------------------
+
+    if (query.isEmpty) {
+      emit(
+        state.copyWith(
+          attendees: state.allAttendees,
+          attendanceSearch: '',
+          isSearchingAttendance: false,
+        ),
+      );
+
+      return;
+    }
+
+    // ----------------------------------------------------------
+    // START SEARCH
+    // ----------------------------------------------------------
+
+    emit(
+      state.copyWith(
+        isSearchingAttendance: true,
+        attendanceSearch: query,
+        attendanceError: null,
+      ),
+    );
+
+    try {
+      List<AttendeePreview> allData = [
+        ...state.allAttendees,
+      ];
+
+      int nextPage = state.attendanceCurrentPage + 1;
+
+      bool hasMore = state.attendanceHasMore;
+
+      // --------------------------------------------------------
+      // LOAD EVERY REMAINING PAGE
+      // --------------------------------------------------------
+
+      while (hasMore) {
+        final response = await api.attendanceData(
+          event.eventId,
+          nextPage,
+          state.attendancePageSize,
+        );
+
+        allData.addAll(response.items);
+
+        hasMore = response.hasNext;
+
+        nextPage = response.page + 1;
+      }
+
+      // --------------------------------------------------------
+      // LOCAL SEARCH
+      // --------------------------------------------------------
+
+      final filteredData = _filterAttendees(
+        allData,
+        query,
+      );
+
+      // --------------------------------------------------------
+      // UPDATE STATE
+      // --------------------------------------------------------
+
+      emit(
+        state.copyWith(
+          allAttendees: allData,
+
+          attendees: filteredData,
+
+          attendanceSearch: query,
+
+          attendanceCurrentPage:
+          hasMore
+              ? state.attendanceCurrentPage
+              : nextPage - 1,
+
+          attendanceHasMore: false,
+
+          isSearchingAttendance: false,
+
+          isLoadingAttendance: false,
+
+          isLoadingMoreAttendance: false,
+
+          attendanceError: null,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          isSearchingAttendance: false,
+
+          attendanceError: e
+              .toString()
+              .replaceFirst('Exception: ', ''),
+        ),
+      );
+    }
+  }
+  void _initializeEditEvent(
+      InitializeEditEvent event,
+      Emitter<EventTabState> emit,
+      ) {
+    final existingEvent = event.event;
+
+    int selectedTab = 0;
+
+    switch (existingEvent.kind.toUpperCase()) {
+      case 'PRIVATE':
+        selectedTab = 1;
+        break;
+
+      case 'SELECTIVE':
+        selectedTab = 2;
+        break;
+
+      case 'PUBLIC':
+      default:
+        selectedTab = 0;
+        break;
+    }
+
+    emit(
+      state.copyWith(
+        selectedTab: selectedTab,
+
+        fromDate: existingEvent.eventFrom,
+        toDate: existingEvent.eventTo,
+
+        fromTime: existingEvent.timeFrom,
+        toTime: existingEvent.timeTo,
+
+        address: existingEvent.address?.addressText ?? '',
+        locationLink: existingEvent.address?.addressLink ?? '',
+
+        displayJoiningButton:
+        existingEvent.displayJoinButton ?? false,
+
+        hasBackgroundImage:
+        existingEvent.bgImage != null &&
+            existingEvent.bgImage!.isNotEmpty,
+
+        existingBgImage: existingEvent.bgImage,
+
+        bgImage: null,
+
+        existingMedia:
+        List<MediaModel>.from(existingEvent.medias ?? const []),
+
+        images: const [],
+
+        deletedMediaIds: const [],
+        removeTags: const [],
+        removeBackgroundImage: false,
+
+        taggedPeople:
+        List<Tagged>.from(existingEvent.tags ?? const []),
+
+        isEventUpdated: false,
+        isEventCreated: false,
+        errorMessage: null,
+      ),
+    );
+  }
+  void _removedTaggedPeople(
+      RemovedTaggedPeopleEvent event,
+      Emitter<EventTabState> emit,
+      ) {
+    final updatedRemoveTags = [
+      ...state.removeTags,
+    ];
+
+    for (final removedTag in event.removedTags) {
+      final alreadyInRemoveTags = updatedRemoveTags.any(
+            (tag) =>
+        tag.id == removedTag.id &&
+            tag.type == removedTag.type,
+      );
+
+      if (!alreadyInRemoveTags) {
+        updatedRemoveTags.add(removedTag);
+      }
+    }
+
+    emit(
+      state.copyWith(
+        removeTags: updatedRemoveTags,
+      ),
+    );
+  }
+  void _removeExistingMedia(
+      RemoveExistingMediaEvent event,
+      Emitter<EventTabState> emit,
+      ) {
+    final updatedMedia = [
+      ...state.existingMedia,
+    ];
+
+    final updatedDeletedIds = [
+      ...state.deletedMediaIds,
+    ];
+
+    if (event.index >= 0 &&
+        event.index < updatedMedia.length) {
+      final removedMedia = updatedMedia.removeAt(event.index);
+
+      if (removedMedia.id != null &&
+          !updatedDeletedIds.contains(removedMedia.id)) {
+        updatedDeletedIds.add(removedMedia.id!);
+      }
+    }
+
+    emit(
+      state.copyWith(
+        existingMedia: updatedMedia,
+        deletedMediaIds: updatedDeletedIds,
+      ),
+    );
+  }
+  void _clearJoinMessage(
+      ClearJoinMessageEvent event,
+      Emitter<EventTabState> emit,
+      ) {
+    emit(
+      state.copyWith(
+        isSuccessInJoining: false,
+        isErrorInJoining: false,
+        joiningActionMessage: null,
+        errorMessage: null,
+      ),
+    );
   }
 }

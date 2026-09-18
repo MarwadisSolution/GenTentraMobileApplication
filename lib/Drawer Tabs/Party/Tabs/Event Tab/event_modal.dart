@@ -477,3 +477,32 @@ class AttendeeUser {
     );
   }
 }
+// ============================================================
+// ATTENDEE PAGINATION RESPONSE
+// ============================================================
+
+class AttendeePaginationResponse {
+  final List<AttendeePreview> items;
+
+  final int page;
+  final int size;
+  final int totalItems;
+  final int totalPages;
+  final bool hasNext;
+
+  final int goingCount;
+  final int interestedCount;
+  final int declinedCount;
+
+  AttendeePaginationResponse({
+    required this.items,
+    required this.page,
+    required this.size,
+    required this.totalItems,
+    required this.totalPages,
+    required this.hasNext,
+    required this.goingCount,
+    required this.interestedCount,
+    required this.declinedCount,
+  });
+}

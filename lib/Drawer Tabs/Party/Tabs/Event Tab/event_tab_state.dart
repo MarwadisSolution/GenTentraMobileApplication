@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import 'event_modal.dart' show Tagged, EventModel;
+import 'event_modal.dart' show Tagged, EventModel, AttendeePreview, MediaModel;
 
 enum EventStatus{
   initial,loading, success, error,
@@ -10,6 +10,7 @@ enum EventStatus{
 
  class EventTabState {
 
+   static const Object _unset = Object();
 
 final EventStatus status;
 final EventModel? event;
@@ -39,6 +40,32 @@ final bool isErrorInJoining;
 final bool isSuccessInJoining;
 final String? joiningActionMessage;
 final int? joiningEventId;
+   final bool isEventCreated;
+   final bool isEventDeleted;
+   ///--------------Attendence
+   final List<AttendeePreview> allAttendees;
+   final List<AttendeePreview> attendees;
+
+   final int attendanceCurrentPage;
+   final int attendancePageSize;
+   final int attendanceTotalItems;
+   final int attendanceTotalPages;
+
+   final bool attendanceHasMore;
+   final bool isLoadingAttendance;
+   final bool isLoadingMoreAttendance;
+
+   final bool isSearchingAttendance;
+   final String attendanceSearch;
+   final String? attendanceError;
+
+
+   final String? existingBgImage;
+   final List<MediaModel> existingMedia;
+   final List<int> deletedMediaIds;
+   final bool isEventUpdated;
+   final List<Tagged> removeTags;
+   final bool removeBackgroundImage;
  const EventTabState({
   this.status=EventStatus.initial,
    this.event,
@@ -66,90 +93,228 @@ final int? joiningEventId;
    this.isSuccessInJoining=false,
    this.joiningActionMessage,
    this.joiningEventId,
+   this.isEventCreated = false,
+   this.isEventDeleted = false,
+   // ==========================================================
+   // ATTENDANCE
+   // ==========================================================
+   this.allAttendees = const [],
+   this.attendees = const [],
+
+   this.attendanceCurrentPage = 0,
+   this.attendancePageSize = 20,
+   this.attendanceTotalItems = 0,
+   this.attendanceTotalPages = 0,
+
+   this.attendanceHasMore = false,
+   this.isLoadingAttendance = false,
+   this.isLoadingMoreAttendance = false,
+
+   this.isSearchingAttendance = false,
+   this.attendanceSearch = '',
+   this.attendanceError,
+   this.existingBgImage,
+   this.existingMedia = const [],
+   this.deletedMediaIds = const [],
+   this.isEventUpdated = false,
+   this.removeTags = const [],
+   this.removeBackgroundImage = false,
  });
 
- EventTabState copyWith({
+EventTabState copyWith({
   EventStatus? status,
-   EventModel? event,
-   List<EventModel>? events,
-   int? selectedTab,
-   DateTime? fromDate,
-   DateTime? toDate,
-   TimeOfDay? fromTime,
-   TimeOfDay? toTime,
-   String? address,
-   String? locationLink,
-   List<File>? images,
-   bool? displayJoiningButton,
-   File? bgImage,
-    bool? hasBackgroundImage,
-   List<Tagged>? taggedPeople,
-   String? errorMessage,
+  EventModel? event,
+  List<EventModel>? events,
+  int? selectedTab,
 
-   int? currentPage,
-   int? pageSize,
-   int? totalItems,
-   int? totalPages,
-   bool? hasMore,
-   bool? isLoadingMore,
-   bool?isErrorInJoining,
-   bool?isSuccessInJoining,
-   String? joiningActionMessage,
-   int? joiningEventId,
-   bool clearJoiningEventId = false,
- }){
-   return EventTabState(
-     status: status ?? this.status,
-     event: event ?? this.event,
-     events: events ?? this.events,
-     selectedTab: selectedTab ?? this.selectedTab,
+  Object? fromDate = _unset,
+  Object? toDate = _unset,
+  Object? fromTime = _unset,
+  Object? toTime = _unset,
 
-     fromDate: fromDate ?? this.fromDate,
-     toDate: toDate ?? this.toDate,
+  String? address,
+  String? locationLink,
+  List<File>? images,
+  bool? displayJoiningButton,
 
-     fromTime: fromTime ?? this.fromTime,
-     toTime: toTime ?? this.toTime,
+  bool? hasBackgroundImage,
 
-     address: address ?? this.address,
-     locationLink: locationLink ?? this.locationLink,
+  Object? bgImage = _unset,
 
-     images: images ?? this.images,
+  List<Tagged>? taggedPeople,
+  String? errorMessage,
 
-     displayJoiningButton:
-     displayJoiningButton ?? this.displayJoiningButton,
-     hasBackgroundImage:
-     hasBackgroundImage ?? this.hasBackgroundImage,
-     bgImage: bgImage ?? this.bgImage,
-     taggedPeople:
-     taggedPeople ?? this.taggedPeople,
-     errorMessage:
-     errorMessage ?? this.errorMessage,
+  int? currentPage,
+  int? pageSize,
+  int? totalItems,
+  int? totalPages,
+  bool? hasMore,
+  bool? isLoadingMore,
 
-     currentPage:
-     currentPage ?? this.currentPage,
+  bool? isErrorInJoining,
+  bool? isSuccessInJoining,
+  String? joiningActionMessage,
+  int? joiningEventId,
 
-     pageSize:
-     pageSize ?? this.pageSize,
+  bool clearJoiningEventId = false,
 
-     totalItems:
-     totalItems ?? this.totalItems,
+  bool? isEventCreated,
+  bool? isEventDeleted,
+  List<AttendeePreview>? allAttendees,
+  List<AttendeePreview>? attendees,
 
-     totalPages:
-     totalPages ?? this.totalPages,
+  int? attendanceCurrentPage,
+  int? attendancePageSize,
+  int? attendanceTotalItems,
+  int? attendanceTotalPages,
 
-     hasMore:
-     hasMore ?? this.hasMore,
+  bool? attendanceHasMore,
+  bool? isLoadingAttendance,
+  bool? isLoadingMoreAttendance,
 
-     isLoadingMore:
-     isLoadingMore ?? this.isLoadingMore,
-     isErrorInJoining: isErrorInJoining??this.isErrorInJoining,
-     isSuccessInJoining: isSuccessInJoining??this.isSuccessInJoining,
-     joiningActionMessage:
-     joiningActionMessage ?? this.joiningActionMessage,
-     joiningEventId: clearJoiningEventId
-         ? null
-         : joiningEventId ?? this.joiningEventId,
-   );
- }
+  bool? isSearchingAttendance,
+  String? attendanceSearch,
+  String? attendanceError,
+
+  Object? existingBgImage = _unset,
+  List<MediaModel>? existingMedia,
+  List<int>? deletedMediaIds,
+  bool? isEventUpdated,
+  List<Tagged>? removeTags,
+  bool? removeBackgroundImage,
+
+}) {
+  return EventTabState(
+    status: status ?? this.status,
+    event: event ?? this.event,
+    events: events ?? this.events,
+
+    selectedTab: selectedTab ?? this.selectedTab,
+
+    fromDate: identical(fromDate, _unset)
+        ? this.fromDate
+        : fromDate as DateTime?,
+
+    toDate: identical(toDate, _unset)
+        ? this.toDate
+        : toDate as DateTime?,
+
+    fromTime: identical(fromTime, _unset)
+        ? this.fromTime
+        : fromTime as TimeOfDay?,
+
+    toTime: identical(toTime, _unset)
+        ? this.toTime
+        : toTime as TimeOfDay?,
+
+    address: address ?? this.address,
+    locationLink: locationLink ?? this.locationLink,
+
+    images: images ?? this.images,
+
+    displayJoiningButton:
+    displayJoiningButton ?? this.displayJoiningButton,
+
+    hasBackgroundImage:
+    hasBackgroundImage ?? this.hasBackgroundImage,
+
+    bgImage: identical(bgImage, _unset)
+        ? this.bgImage
+        : bgImage as File?,
+
+    taggedPeople:
+    taggedPeople ?? this.taggedPeople,
+
+    errorMessage:
+    errorMessage ?? this.errorMessage,
+
+    currentPage:
+    currentPage ?? this.currentPage,
+
+    pageSize:
+    pageSize ?? this.pageSize,
+
+    totalItems:
+    totalItems ?? this.totalItems,
+
+    totalPages:
+    totalPages ?? this.totalPages,
+
+    hasMore:
+    hasMore ?? this.hasMore,
+
+    isLoadingMore:
+    isLoadingMore ?? this.isLoadingMore,
+
+    isErrorInJoining:
+    isErrorInJoining ?? this.isErrorInJoining,
+
+    isSuccessInJoining:
+    isSuccessInJoining ?? this.isSuccessInJoining,
+
+    joiningActionMessage:
+    joiningActionMessage ?? this.joiningActionMessage,
+
+    joiningEventId:
+    clearJoiningEventId
+        ? null
+        : joiningEventId ?? this.joiningEventId,
+
+    isEventCreated:
+    isEventCreated ?? this.isEventCreated,
+    isEventDeleted:
+    isEventDeleted ?? this.isEventDeleted,
+    allAttendees:
+    allAttendees ?? this.allAttendees,
+
+    attendees:
+    attendees ?? this.attendees,
+
+    attendanceCurrentPage:
+    attendanceCurrentPage ?? this.attendanceCurrentPage,
+
+    attendancePageSize:
+    attendancePageSize ?? this.attendancePageSize,
+
+    attendanceTotalItems:
+    attendanceTotalItems ?? this.attendanceTotalItems,
+
+    attendanceTotalPages:
+    attendanceTotalPages ?? this.attendanceTotalPages,
+
+    attendanceHasMore:
+    attendanceHasMore ?? this.attendanceHasMore,
+
+    isLoadingAttendance:
+    isLoadingAttendance ?? this.isLoadingAttendance,
+
+    isLoadingMoreAttendance:
+    isLoadingMoreAttendance ??
+        this.isLoadingMoreAttendance,
+
+    isSearchingAttendance:
+    isSearchingAttendance ??
+        this.isSearchingAttendance,
+
+    attendanceSearch:
+    attendanceSearch ?? this.attendanceSearch,
+
+    attendanceError:
+    attendanceError ?? this.attendanceError,
+
+    existingBgImage: identical(existingBgImage, _unset)
+        ? this.existingBgImage
+        : existingBgImage as String?,
+
+    existingMedia: existingMedia ?? this.existingMedia,
+
+    deletedMediaIds: deletedMediaIds ?? this.deletedMediaIds,
+
+    isEventUpdated: isEventUpdated ?? this.isEventUpdated,
+    removeTags: removeTags ?? this.removeTags,
+    removeBackgroundImage:
+    removeBackgroundImage ?? this.removeBackgroundImage,
+  );
+}
 }
 

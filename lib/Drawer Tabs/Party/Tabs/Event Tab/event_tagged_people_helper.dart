@@ -37,7 +37,7 @@ class EventTaggedPeopleHandler {
     }
   }
 
-  Future<List<Tagged>?> addMoreTaggedPeople({
+  Future<Map<String, dynamic>?> addMoreTaggedPeople({
     required List<Tagged> taggedPeople,
   }) async {
     final result = await EventLeaderPickerDialog.show(
@@ -53,12 +53,18 @@ class EventTaggedPeopleHandler {
     }
 
     final added = result['added'] as List<Tagged>? ?? [];
-    final removed = result['removed'] as List<dynamic>? ?? [];
+    final removed = result['removed'] as List<Tagged>? ?? [];
 
+    // Remove people from the currently displayed tag list.
     taggedPeople.removeWhere(
-          (person) => removed.contains(person.id),
+          (person) => removed.any(
+            (removedPerson) =>
+        person.id == removedPerson.id &&
+            person.type == removedPerson.type,
+      ),
     );
 
+    // Add newly selected people.
     for (final newPerson in added) {
       final alreadyTagged = taggedPeople.any(
             (person) =>
@@ -71,7 +77,10 @@ class EventTaggedPeopleHandler {
       }
     }
 
-    return taggedPeople;
+    return {
+      'taggedPeople': taggedPeople,
+      'removed': removed,
+    };
   }
 }
 
@@ -492,10 +501,14 @@ class _EventLeaderPickerDialogState
                           context,
                           {
                             'added': taggedPeople,
-                            'removed':
-                            removedExistingLeaders
-                                .map((e) => e.id)
-                                .toList(),
+                            'removed': removedExistingLeaders.map((leader) {
+                              return Tagged(
+                                type: "POLITICIAN",
+                                id: leader.id,
+                                name: leader.name,
+                                photoUrl: leader.image,
+                              );
+                            }).toList(),
                           },
                         );
                       },

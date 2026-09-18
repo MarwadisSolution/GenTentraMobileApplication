@@ -3,17 +3,15 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:video_player/video_player.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../party_page_data.dart';
+import 'attendance_count_page.dart';
 import 'event_modal.dart';
 import 'package:intl/intl.dart';
 
 ///----------Media showing
-import 'package:flutter/material.dart';
 
 class ReusableMediaWidget<T> extends StatelessWidget {
   final List<T> media;
@@ -422,7 +420,7 @@ class EventRangePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
-
+final w=MediaQuery.of(context).size.width;
     return InkWell(
       onTap: () {
         if (type == EventRangePickerType.date) {
@@ -465,11 +463,19 @@ class EventRangePicker extends StatelessWidget {
             horizontal: 20,
             vertical: h * 0.026,
           ),
-          suffixIcon: Icon(
-            type == EventRangePickerType.date
-                ? Icons.calendar_month_outlined
-                : Icons.access_time_outlined,
-            color: Colors.grey.shade600,
+          suffixIcon: Padding(
+            padding:  EdgeInsets.only(right: w*0.09),
+            child: SizedBox(
+              width: 15,
+              height: 15,
+              child: SvgPicture.asset(
+                type == EventRangePickerType.date
+                    ? PartyPageData.dateIcon
+                    : PartyPageData.clockIcon,
+                color:   type == EventRangePickerType.date?Colors.black.withOpacity(0.44):null,
+                fit: BoxFit.contain,
+              ),
+            ),
           ),
         ),
         child: Row(
@@ -478,20 +484,23 @@ class EventRangePicker extends StatelessWidget {
               child: Text(
                 _fromText(),
                 style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontSize: (MediaQuery.of(context).size.width * 0.045).clamp(14.0, 18.0),
+                  fontWeight: FontWeight.w300,
+                  letterSpacing: 0.5,
                   color: _isFromEmpty()
-                      ? Colors.grey
+                      ? Colors.black.withOpacity(0.5)
                       : Colors.black,
                 ),
               ),
             ),
 
-            const Text(
+             Text(
               "To",
               style: TextStyle(
-                fontSize: 13,
-                color: Colors.black87,
+                fontSize: (MediaQuery.of(context).size.width * 0.045).clamp(14.0, 18.0),
+                fontWeight: FontWeight.w300,
+                letterSpacing: 0.5,
+                color: Colors.black
               ),
             ),
 
@@ -501,10 +510,11 @@ class EventRangePicker extends StatelessWidget {
               child: Text(
                 _toText(),
                 style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontSize: (MediaQuery.of(context).size.width * 0.045).clamp(14.0, 18.0),
+                  fontWeight: FontWeight.w300,
+                  letterSpacing: 0.5,
                   color: _isToEmpty()
-                      ? Colors.grey
+                      ? Colors.black.withOpacity(0.5)
                       : Colors.black,
                 ),
               ),
@@ -522,14 +532,14 @@ class EventRangePicker extends StatelessWidget {
   String _fromText() {
     if (type == EventRangePickerType.date) {
       if (fromDate == null) {
-        return "From Date";
+        return "DD MM YYYY";
       }
 
       return _formatDate(fromDate!);
     }
 
     if (fromTime == null) {
-      return "From Time";
+      return "HH MM";
     }
 
     return _formatTime(fromTime!);
@@ -538,14 +548,14 @@ class EventRangePicker extends StatelessWidget {
   String _toText() {
     if (type == EventRangePickerType.date) {
       if (toDate == null) {
-        return "To Date";
+        return "DD MM YYYY";
       }
 
       return _formatDate(toDate!);
     }
 
     if (toTime == null) {
-      return "To Time";
+      return "HH MM";
     }
 
     return _formatTime(toTime!);
@@ -975,7 +985,7 @@ class TimeOfDayRange {
   });
 }
 
-///--------------Radio buttons
+//-------------- Radio buttons
 Widget radioButtons(
     String name,
     bool value,
@@ -983,6 +993,8 @@ Widget radioButtons(
     double screenHeight,
     ValueChanged<bool?> onChanged,
     ) {
+  final bool isSelected = selectedValue == value;
+
   return Row(
     mainAxisSize: MainAxisSize.min,
     children: [
@@ -1002,12 +1014,14 @@ Widget radioButtons(
         name,
         style: TextStyle(
           fontSize: screenHeight * 0.02,
+          fontWeight: isSelected
+              ? FontWeight.bold
+              : FontWeight.w400,
         ),
       ),
     ],
   );
 }
-
 ///-------------Image adder
 class ReusableImagePicker extends StatelessWidget {
   final List<File> mediaFiles;
@@ -1062,7 +1076,7 @@ class ReusableImagePicker extends StatelessWidget {
     return SizedBox(
       height: height - 20,
       child: Center(
-        child: _buildAddButton(),
+        child: _buildAddButton(context),
       ),
     );
   }
@@ -1084,7 +1098,7 @@ class ReusableImagePicker extends StatelessWidget {
         ),
 
         // Add Media button
-        _buildAddButton(),
+        _buildAddButton(context),
       ],
     );
   }
@@ -1177,35 +1191,31 @@ class ReusableImagePicker extends StatelessWidget {
     );
   }
 
-  Widget _buildAddButton() {
+  Widget _buildAddButton(BuildContext context) {
     return InkWell(
       onTap: onAddMedia,
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        width: 85,
-        height: 85,
+        width:  MediaQuery.of(context).size.width*0.35,
+        height:  MediaQuery.of(context).size.height*0.05,
         decoration: BoxDecoration(
-          color: const Color(0xFFF0F0F0),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: const Color(0xFFBFC1CC),
-          ),
+          color: const Color(0xFF000000).withOpacity(0.08),
+          borderRadius: BorderRadius.circular(  MediaQuery.of(context).size.width * 0.05),
         ),
-        child: const Column(
+        child:  Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.add_photo_alternate_outlined,
-              size: 28,
-              color: Color(0xFFFF2164),
-            ),
-            SizedBox(height: 5),
+          SvgPicture.asset(
+              width: MediaQuery.of(context).size.width * 0.055,
+              PartyPageData.addImageIcon
+          ),
+            SizedBox(width: MediaQuery.of(context).size.width*0.02 ),
             Text(
               "Add Media",
               style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                fontSize:   MediaQuery.of(context).size.width * 0.035,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
               ),
             ),
           ],
@@ -1384,9 +1394,26 @@ class EventAttendeesPreview extends StatelessWidget {
 String dateFormating(String date) {
   DateTime parsedDate = DateTime.parse(date);
 
-  String formatedDate = DateFormat('dd-MM-yyyy').format(parsedDate);
+  String formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
 
-  return formatedDate;
+  return formattedDate;
+}
+String timingConversionAccordingToPMAM(String fromTime) {
+  final match = RegExp(r'TimeOfDay\((\d{1,2}):(\d{2})\)').firstMatch(fromTime);
+
+  if (match == null) return fromTime;
+
+  int hour = int.parse(match.group(1)!);
+  final int minute = int.parse(match.group(2)!);
+
+  final String period = hour >= 12 ? 'PM' : 'AM';
+
+  hour = hour % 12;
+  if (hour == 0) {
+    hour = 12;
+  }
+
+  return '$hour:${minute.toString().padLeft(2, '0')} $period';
 }
 
 class ReusableEventCard extends StatelessWidget {
@@ -1492,14 +1519,12 @@ class ReusableEventCard extends StatelessWidget {
                   _showAdminMenu(context);
                 },
 
-                child: const SizedBox(
+                child:  SizedBox(
                   width: 30,
                   height: 30,
 
                   child: Center(
-                    child: Icon(
-                      Icons.more_vert,
-                    ),
+                    child:SvgPicture.asset(PartyPageData.threeDots)
                   ),
                 ),
               )
@@ -1519,8 +1544,9 @@ class ReusableEventCard extends StatelessWidget {
               child: Row(
                 children: [
                   SvgPicture.asset(
-                    PartyPageData.dateIcon,
+                    PartyPageData.calenderIcon,
                     color: ColorScheme.of(context).secondary,
+                    height: h*0.025,
                   ),
 
                   SizedBox(width: w * 0.04),
@@ -1534,6 +1560,7 @@ class ReusableEventCard extends StatelessWidget {
 
                     style: TextStyle(
                       fontWeight: FontWeight.w400,
+                     fontSize: (MediaQuery.of(context).size.width * 0.045).clamp(14.0, 18.0),
                       color: ColorScheme.of(context).secondary,
                     ),
                   ),
@@ -1541,17 +1568,19 @@ class ReusableEventCard extends StatelessWidget {
                   SizedBox(width: w * 0.08),
 
                   SvgPicture.asset(
-                    PartyPageData.dateIcon,
+                    PartyPageData.clock,
                     color: ColorScheme.of(context).secondary,
+                    height: h*0.025,
                   ),
 
                   SizedBox(width: w * 0.04),
 
                   Text(
-                    fromTime,
+                   timingConversionAccordingToPMAM(fromTime),
 
                     style: TextStyle(
                       fontWeight: FontWeight.w400,
+                      fontSize: (MediaQuery.of(context).size.width * 0.045).clamp(14.0, 18.0),
                       color: ColorScheme.of(context).secondary,
                     ),
                   ),
@@ -1575,7 +1604,9 @@ class ReusableEventCard extends StatelessWidget {
                 child: Row(
                   children: [
                     SvgPicture.asset(
-                      PartyPageData.headquarterIcon,
+                      PartyPageData.addressIcon,
+                      color: ColorScheme.of(context).secondary,
+                      height: h*0.025,
                     ),
 
                     SizedBox(width: w * 0.04),
@@ -1584,7 +1615,8 @@ class ReusableEventCard extends StatelessWidget {
                       child: Text(
                         eventData.address?.addressText ?? "-",
 
-                        style: const TextStyle(
+                        style:  TextStyle(
+                         fontSize:  (MediaQuery.of(context).size.width * 0.045).clamp(14.0, 18.0),
                           color: Colors.blue,
                         ),
                       ),
@@ -1608,11 +1640,24 @@ class ReusableEventCard extends StatelessWidget {
 
                 children: [
                   // ATTENDEES
-                  EventAttendeesPreview(
-                    attendees: eventData.attendeesPreview,
-                    attendeeCount:
-                    eventData.attendeeCount ?? 0,
-                    size: 40,
+                  GestureDetector(
+                    onTap: () {
+                      if (eventData.id == null) return;
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AttendanceCountPage(
+                            eventId: eventData.id!,
+                          ),
+                        ),
+                      );
+                    },
+                    child: EventAttendeesPreview(
+                      attendees: eventData.attendeesPreview,
+                      attendeeCount: eventData.attendeeCount ?? 0,
+                      size: 40,
+                    ),
                   ),
 
                   const Spacer(),
@@ -1892,3 +1937,329 @@ String timingConversion(String fromDate) {
 
   return finalTime;
 }
+
+
+///------------------------------------
+/// EXISTING EVENT MEDIA GRID
+///------------------------------------
+class ExistingEventMediaGrid extends StatelessWidget {
+  final List<MediaModel> media;
+  final void Function(int index) onRemove;
+
+  const ExistingEventMediaGrid({
+    super.key,
+    required this.media,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (media.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: media.length,
+      gridDelegate:
+      const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemBuilder: (context, index) {
+        final item = media[index];
+
+        final bool isVideo =
+            item.mediaType?.toUpperCase() == 'VIDEO';
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            ///--------------------------------
+            /// MEDIA
+            ///--------------------------------
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: isVideo
+                  ? _ExistingVideoPreview(
+                videoUrl: item.url ?? '',
+              )
+                  : buildImageWidget(
+                item.url ?? '',
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+
+            ///--------------------------------
+            /// VIDEO PLAY ICON
+            ///--------------------------------
+            if (isVideo)
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+
+            ///--------------------------------
+            /// REMOVE BUTTON
+            ///--------------------------------
+            Positioned(
+              top: 5,
+              right: 5,
+              child: InkWell(
+                onTap: () {
+                  onRemove(index);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+///------------------------------------
+/// EXISTING VIDEO PREVIEW
+///------------------------------------
+class _ExistingVideoPreview extends StatefulWidget {
+  final String videoUrl;
+
+  const _ExistingVideoPreview({
+    required this.videoUrl,
+  });
+
+  @override
+  State<_ExistingVideoPreview> createState() =>
+      _ExistingVideoPreviewState();
+}
+
+class _ExistingVideoPreviewState
+    extends State<_ExistingVideoPreview> {
+  late VideoPlayerController _controller;
+
+  bool _isInitialized = false;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = VideoPlayerController.networkUrl(
+      Uri.parse(widget.videoUrl),
+    );
+
+    _initializeVideo();
+  }
+
+  Future<void> _initializeVideo() async {
+    try {
+      await _controller.initialize();
+
+      if (!mounted) return;
+
+      setState(() {
+        _isInitialized = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _hasError = true;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ///--------------------------------
+    /// VIDEO FAILED
+    ///--------------------------------
+    if (_hasError) {
+      return Container(
+        color: Colors.black12,
+        child: const Center(
+          child: Icon(
+            Icons.video_library_outlined,
+            color: Colors.grey,
+            size: 30,
+          ),
+        ),
+      );
+    }
+
+    ///--------------------------------
+    /// VIDEO LOADING
+    ///--------------------------------
+    if (!_isInitialized) {
+      return Container(
+        color: Colors.black12,
+        child: const Center(
+          child: SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+            ),
+          ),
+        ),
+      );
+    }
+
+    ///--------------------------------
+    /// VIDEO
+    ///--------------------------------
+    return SizedBox.expand(
+      child: FittedBox(
+        fit: BoxFit.cover,
+        clipBehavior: Clip.hardEdge,
+        child: SizedBox(
+          width: _controller.value.size.width,
+          height: _controller.value.size.height,
+          child: VideoPlayer(_controller),
+        ),
+      ),
+    );
+  }
+}
+
+///------------------------------------
+/// EXISTING VIDEO PREVIEW
+///------------------------------------
+// class _ExistingVideoPreview extends StatefulWidget {
+//   final String videoUrl;
+//
+//   const _ExistingVideoPreview({
+//     required this.videoUrl,
+//   });
+//
+//   @override
+//   State<_ExistingVideoPreview> createState() =>
+//       _ExistingVideoPreviewState();
+// }
+//
+// class _ExistingVideoPreviewState
+//     extends State<_ExistingVideoPreview> {
+//   late VideoPlayerController _controller;
+//
+//   bool _isInitialized = false;
+//   bool _hasError = false;
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//
+//     _controller = VideoPlayerController.networkUrl(
+//       Uri.parse(widget.videoUrl),
+//     );
+//
+//     _initializeVideo();
+//   }
+//
+//   Future<void> _initializeVideo() async {
+//     try {
+//       await _controller.initialize();
+//
+//       if (!mounted) return;
+//
+//       setState(() {
+//         _isInitialized = true;
+//       });
+//     } catch (_) {
+//       if (!mounted) return;
+//
+//       setState(() {
+//         _hasError = true;
+//       });
+//     }
+//   }
+//
+//   @override
+//   void dispose() {
+//     _controller.dispose();
+//     super.dispose();
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     ///--------------------------------
+//     /// VIDEO FAILED
+//     ///--------------------------------
+//     if (_hasError) {
+//       return Container(
+//         color: Colors.black12,
+//         child: const Center(
+//           child: Icon(
+//             Icons.video_library_outlined,
+//             color: Colors.grey,
+//             size: 30,
+//           ),
+//         ),
+//       );
+//     }
+//
+//     ///--------------------------------
+//     /// VIDEO LOADING
+//     ///--------------------------------
+//     if (!_isInitialized) {
+//       return Container(
+//         color: Colors.black12,
+//         child: const Center(
+//           child: SizedBox(
+//             width: 22,
+//             height: 22,
+//             child: CircularProgressIndicator(
+//               strokeWidth: 2,
+//             ),
+//           ),
+//         ),
+//       );
+//     }
+//
+//     ///--------------------------------
+//     /// VIDEO
+//     ///--------------------------------
+//     return SizedBox.expand(
+//       child: FittedBox(
+//         fit: BoxFit.cover,
+//         clipBehavior: Clip.hardEdge,
+//         child: SizedBox(
+//           width: _controller.value.size.width,
+//           height: _controller.value.size.height,
+//           child: VideoPlayer(_controller),
+//         ),
+//       ),
+//     );
+//   }
+// }

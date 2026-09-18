@@ -10,10 +10,10 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20T
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import '../../../../Reusable Functions/reusable_functions.dart';
+import 'add_event.dart';
+import 'apis.dart';
+import 'event_modal.dart';
 import 'event_tab_event.dart';
 
 class EventTab extends StatefulWidget {
@@ -33,6 +33,24 @@ class EventTab extends StatefulWidget {
 class _EventTabState extends State<EventTab> {
   int? selectedIndex;
   bool isAdmin=false;
+  bool _hasEventStarted(EventModel event) {
+    if (event.eventFrom == null ||
+        event.timeFrom == null) {
+      return false;
+    }
+
+    final startDateTime = DateTime(
+      event.eventFrom!.year,
+      event.eventFrom!.month,
+      event.eventFrom!.day,
+      event.timeFrom!.hour,
+      event.timeFrom!.minute,
+    );
+
+    return DateTime.now().isAfter(startDateTime) ||
+        DateTime.now().isAtSameMomentAs(startDateTime);
+  }
+
   Future<void> checkAdmin() async {
     final admin = await AdminChecking.isAdmin(widget.partyId);
 
@@ -99,8 +117,6 @@ class _EventTabState extends State<EventTab> {
   // ------------------------------------------------------------
   // BUILD
   // ------------------------------------------------------------
-  final ValueNotifier<bool> isAddSelected = ValueNotifier(false);
-  final GlobalKey menuKey = GlobalKey();
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
@@ -114,18 +130,59 @@ class _EventTabState extends State<EventTab> {
               backgroundColor: Colors.green,
               duration: const Duration(seconds: 1),
               content: Text(
-                state.joiningActionMessage ?? "Event updated successfully",
+                state.joiningActionMessage ??
+                    "Event updated successfully",
               ),
             ),
+          );
+
+          // Consume the message so it cannot appear again
+          // when another state change happens.
+          context.read<EventsBloc>().add(
+            ClearJoinMessageEvent(),
           );
         }
 
         if (state.isErrorInJoining) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
+              backgroundColor: Colors.red,
               content: Text(
                 state.errorMessage ??
                     "Please try again, failed to join the event",
+              ),
+            ),
+          );
+
+          // Consume the error message
+          context.read<EventsBloc>().add(
+            ClearJoinMessageEvent(),
+          );
+        }
+
+        // DELETE SUCCESS
+        if (state.isEventDeleted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+              content: Text(
+                "Event deleted successfully",
+              ),
+            ),
+          );
+        }
+
+        // DELETE ERROR
+        if (state.status == EventStatus.error &&
+            !state.isErrorInJoining &&
+            state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
+              content: Text(
+                state.errorMessage!,
               ),
             ),
           );
@@ -316,7 +373,7 @@ class _EventTabState extends State<EventTab> {
 
                               isAdmin: isAdmin,
 
-                              fromTime: fromTime,
+                              fromTime: eventData.timeFrom.toString(),
 
                               isJoining:
                               state.joiningEventId == eventData.id,
@@ -333,12 +390,79 @@ class _EventTabState extends State<EventTab> {
                                 );
                               },
 
-                              onEdit: () {
-                                // Your edit logic
-                              },
+                              onEdit: () async {
+                                if (_hasEventStarted(eventData)) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      backgroundColor: Colors.red,
+                                      content: Text(
+                                        "This event cannot be edited because it has already started.",
+                                      ),
+                                    ),
+                                  );
 
-                              onDelete: () {
-                                // Your delete logic
+                                  return;
+                                }
+
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) {
+                                      return BlocProvider(
+                                        create: (_) => EventsBloc(EventApis()),
+                                        child: AddEvent(
+                                          partyId: widget.partyId,
+                                          eventToEdit: eventData,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                              onDelete: () async {
+                                final shouldDelete = await showDialog<bool>(
+                                  context: context,
+                                  builder: (dialogContext) {
+                                    return AlertDialog(
+                                      title: const Text("Delete Event"),
+                                      content: const Text(
+                                        "Are you sure you want to delete this event?",
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(dialogContext, false);
+                                          },
+                                          child: const Text("Cancel"),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(dialogContext, true);
+                                          },
+                                          child: const Text(
+                                            "Delete",
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+
+                                if (shouldDelete != true) return;
+
+                                if (eventData.id == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Unable to delete event"),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                context.read<EventsBloc>().add(
+                                  DeleteEvent(eventData.id!),
+                                );
                               },
                             )
                           ),

@@ -818,3 +818,85 @@ class _ExpandableQuillContentState extends State<ExpandableQuillContent> {
     );
   }
 }
+///--------------Reusabel container
+class FeedQuoteTab extends StatelessWidget {
+  final String title;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final String? iconName;
+
+  final double? height;
+  final double? width;
+
+  // Optional customizations
+  final TextStyle? textStyle;
+  final double? iconHeight;
+  final double? iconWidth;
+  final Color? iconColor;
+
+  const FeedQuoteTab({
+    super.key,
+    required this.title,
+    required this.isSelected,
+    required this.onTap,
+    this.iconName,
+    this.height,
+    this.width,
+    this.textStyle,
+    this.iconHeight,
+    this.iconWidth,
+    this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(h * 0.02),
+      child: Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(h * 0.025),
+          gradient: isSelected
+              ? GradientColors.primaryGradient
+              : null,
+          color: isSelected
+              ? null
+              : ColorScheme.of(context)
+              .onSurface
+              .withOpacity(0.08),
+        ),
+        child: Align(
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                iconName!,
+                height: iconHeight ?? h * 0.025,
+                width: iconWidth,
+                color: iconColor,
+              ),
+
+              SizedBox(width: w * 0.02),
+
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: textStyle ??
+                    const TextStyle(
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 0.22,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -7,6 +7,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_dat
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../Reusable Functions/reusable_functions.dart';
+import '../../reusable_functions.dart';
 import '../Feed Tab/apis.dart';
 import '../Feed Tab/reusable_functions.dart';
 import '../tagged_people_helper.dart';
@@ -47,15 +48,7 @@ class _FullEventDescState extends State<FullEventDesc> {
     print(eventData.medias);
     bool isAdmin=false;
 
-    Future<void> checkAdmin() async {
-      final admin = await AdminChecking.isAdmin(widget.partyId);
 
-      if (!mounted) return;
-
-      setState(() {
-        isAdmin = admin;
-      });
-    }
     Future<void> shareFeed(dynamic event) async {
       final String shareLink =
           'https://gentantrabackend-production.up.railway.app/event/${event.uuid}';
@@ -142,8 +135,50 @@ class _FullEventDescState extends State<FullEventDesc> {
                               // Your edit logic
                             },
 
-                            onDelete: () {
-                              // Your delete logic
+                            onDelete: () async {
+                              final shouldDelete = await showDialog<bool>(
+                                context: context,
+                                builder: (dialogContext) {
+                                  return AlertDialog(
+                                    title: const Text("Delete Event"),
+                                    content: const Text(
+                                      "Are you sure you want to delete this event?",
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(dialogContext, false);
+                                        },
+                                        child: const Text("Cancel"),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(dialogContext, true);
+                                        },
+                                        child: const Text(
+                                          "Delete",
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+
+                              if (shouldDelete != true) return;
+
+                              if (eventData.id == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Unable to delete event"),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              context.read<EventsBloc>().add(
+                                DeleteEvent(eventData.id!),
+                              );
                             },
                           ),
 SizedBox(height: h*0.02,),
