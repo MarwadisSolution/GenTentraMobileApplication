@@ -119,10 +119,10 @@ class _AddEventState extends State<AddEvent> {
       schedule: scheduleController.text.trim(),
 
       // Background image
-      bgImage: state.bgImage != null
-          ? state.bgImage!.path
+      bgImageUrl: state.bgImageUrl != null
+          ? state.bgImageUrl!.path
           : state.existingBgImage,
-
+       bgImage:state.bgImage,
       // Existing + newly selected media
       medias: previewMedia,
 
@@ -155,6 +155,7 @@ class _AddEventState extends State<AddEvent> {
           child: FullEventDesc(
             eventData: event,
             partyId: widget.partyId,
+            isAdmin: false,
           ),
         );
       },
@@ -315,9 +316,11 @@ class _AddEventState extends State<AddEvent> {
       tags: eventState.taggedPeople,
 
       schedule: scheduleController.text.trim(),
-      bgImage: eventState.bgImage?.path ?? eventState.existingBgImage,
+      bgImageUrl: eventState.hasBackgroundImage
+          ? eventState.bgImageUrl?.path ?? eventState.existingBgImage
+          : null,
+      bgImage: eventState.hasBackgroundImage,
       medias: eventState.existingMedia,
-
       author: widget.eventToEdit?.author,
       authorUserId: widget.eventToEdit?.authorUserId,
       authorPartyId: widget.eventToEdit?.authorPartyId,
@@ -341,11 +344,14 @@ class _AddEventState extends State<AddEvent> {
         EditEvent(
           eventData: event,
           mediaFiles: eventState.images,
-          bgImage: eventState.bgImage,
+          bgImageUrl: eventState.hasBackgroundImage
+              ? eventState.bgImageUrl
+              : null,
+          bgImage: eventState.hasBackgroundImage,
           partyId: widget.partyId,
           deletedMediaIds: eventState.deletedMediaIds,
-            removeTags: eventState.removeTags,
-            removeBackgroundImage: eventState.removeBackgroundImage,
+          removeTags: eventState.removeTags,
+          removeBackgroundImage: eventState.removeBackgroundImage,
         ),
       );
     } else {
@@ -353,7 +359,10 @@ class _AddEventState extends State<AddEvent> {
         AddNewEvent(
           eventData: event,
           mediaFiles: eventState.images,
-          bgImage: eventState.bgImage,
+          bgImageUrl: eventState.hasBackgroundImage
+              ? eventState.bgImageUrl
+              : null,
+          bgImage: eventState.hasBackgroundImage,
           partyId: widget.partyId,
         ),
       );
@@ -393,7 +402,7 @@ class _AddEventState extends State<AddEvent> {
             ),
           );
 
-          Navigator.pop(context);
+          Navigator.pop(context,true);
         }
 
         // UPDATE SUCCESS
@@ -416,7 +425,7 @@ class _AddEventState extends State<AddEvent> {
             ),
           );
 
-          Navigator.pop(context);
+          Navigator.pop(context,true);
         }
 
         // ERROR
@@ -789,7 +798,7 @@ class _AddEventState extends State<AddEvent> {
 
                                     if (state.existingBgImage != null &&
                                         state.existingBgImage!.isNotEmpty &&
-                                        state.bgImage == null)
+                                        state.bgImageUrl == null)
                                       Stack(
                                         children: [
                                           ClipRRect(
@@ -832,11 +841,11 @@ class _AddEventState extends State<AddEvent> {
                                     // NEWLY SELECTED BACKGROUND
                                     // --------------------------------------------------------
 
-                                    else if (state.bgImage != null)
+                                    else if (state.bgImageUrl != null)
                                       ReusableImagePicker(
                                         height: h * 0.18,
                                         mediaFiles: [
-                                          state.bgImage!,
+                                          state.bgImageUrl!,
                                         ],
 
                                         // IMPORTANT:

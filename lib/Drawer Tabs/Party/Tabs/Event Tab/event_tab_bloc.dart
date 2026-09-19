@@ -36,6 +36,7 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
     on<RemovedTaggedPeopleEvent>(_removedTaggedPeople);
     on<RemoveExistingMediaEvent>(_removeExistingMedia);
     on<ClearJoinMessageEvent>(_clearJoinMessage);
+    on<ClearDeleteMessageEvent>(_clearDeleteMessage);
   }
 
   // ==========================================================
@@ -125,7 +126,7 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
     print("Event title: ${event.eventData.title}");
     print("Party ID: ${event.partyId}");
     print("Media count: ${event.mediaFiles.length}");
-    print("Background image: ${event.bgImage?.path}");
+    print("Background image: ${event.bgImageUrl?.path}");
 
     emit(
       state.copyWith(
@@ -142,7 +143,7 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
         event: event.eventData,
         partyId: event.partyId,
         mediaFiles: event.mediaFiles,
-        bgImage: event.bgImage,
+        bgImageFile: event.bgImageUrl,
       );
 
       print("========== POST EVENT API COMPLETED ==========");
@@ -193,7 +194,7 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
       print("Event ID: ${event.eventData.id}");
       print("Party ID: ${event.partyId}");
       print("New media count: ${event.mediaFiles.length}");
-      print("New BG image: ${event.bgImage?.path}");
+      print("New BG image: ${event.bgImageUrl?.path}");
       print("Deleted media IDs: ${event.deletedMediaIds}");
 
       // ----------------------------------------------------------
@@ -215,7 +216,7 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
         eventId: eventId,
         event: event.eventData,
         mediaFiles: event.mediaFiles,
-        bgImage: event.bgImage,
+        bgImageUrl: event.bgImageUrl,
         deletedMediaIds: event.deletedMediaIds,
         removeTags: event.removeTags,
         removeBackgroundImage: event.removeBackgroundImage,
@@ -444,7 +445,7 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
       emit(
         state.copyWith(
           hasBackgroundImage: false,
-          bgImage: null,
+          bgImageUrl: null,
           existingBgImage: null,
         ),
       );
@@ -463,7 +464,7 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
       ) {
     emit(
       state.copyWith(
-        bgImage: event.image,
+        bgImageUrl: event.image,
 
         // A newly selected image replaces the old server background.
         existingBgImage: null,
@@ -478,7 +479,7 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
       ) {
     emit(
       state.copyWith(
-        bgImage: null,
+        bgImageUrl: null,
         existingBgImage: null,
         hasBackgroundImage: false,
         removeBackgroundImage: true,
@@ -634,7 +635,7 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
         toTime: null,
 
         hasBackgroundImage: false,
-        bgImage: null,
+        bgImageUrl: null,
 
         displayJoiningButton: false,
 
@@ -908,12 +909,12 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
         existingEvent.displayJoinButton ?? false,
 
         hasBackgroundImage:
-        existingEvent.bgImage != null &&
-            existingEvent.bgImage!.isNotEmpty,
+        existingEvent.bgImageUrl != null &&
+            existingEvent.bgImageUrl!.isNotEmpty,
 
-        existingBgImage: existingEvent.bgImage,
+        existingBgImage: existingEvent.bgImageUrl,
 
-        bgImage: null,
+        bgImageUrl: null,
 
         existingMedia:
         List<MediaModel>.from(existingEvent.medias ?? const []),
@@ -998,6 +999,16 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
         isErrorInJoining: false,
         joiningActionMessage: null,
         errorMessage: null,
+      ),
+    );
+  }
+  void _clearDeleteMessage(
+      ClearDeleteMessageEvent event,
+      Emitter<EventTabState> emit,
+      ) {
+    emit(
+      state.copyWith(
+        isEventDeleted: false,
       ),
     );
   }

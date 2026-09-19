@@ -28,18 +28,31 @@ class EventPaginationResponse {
 
 class EventApis{
   final Dio _dio= apiClient;
+
   Future<EventModel> postTheEvent({
     required EventModel event,
     required int partyId,
-    List<File>?mediaFiles,
-    File? bgImage,
-})async{
+    List<File>? mediaFiles,
+    File? bgImageFile,
+  }) async {
     print("========== postTheEvent() HIT ==========");
-    try{
-      FormData formData=FormData();
-      final eventJson = event.toJson();
+
+    try {
+      final FormData formData = FormData();
+
+      final Map<String, dynamic> eventJson = event.toJson();
 
       eventJson["authorPartyId"] = partyId;
+
+      // ----------------------------------------------------------
+      // IMPORTANT:
+      // bgImage is already included by EventModel.toJson()
+      // ----------------------------------------------------------
+
+      print("========== EVENT JSON ==========");
+      print(jsonEncode(eventJson));
+      print("bgImage flag: ${eventJson["bgImage"]}");
+      print("================================");
 
       formData.fields.add(
         MapEntry(
@@ -47,57 +60,67 @@ class EventApis{
           jsonEncode(eventJson),
         ),
       );
-      ///--------MediaFiles
-      if (mediaFiles!=null) {
-        for (File file in mediaFiles) {
+
+      // ----------------------------------------------------------
+      // MEDIA FILES
+      // ----------------------------------------------------------
+
+      if (mediaFiles != null && mediaFiles.isNotEmpty) {
+        for (final File file in mediaFiles) {
           formData.files.add(
-            MapEntry("media",
+            MapEntry(
+              "media",
               await MultipartFile.fromFile(
                 file.path,
-                filename: file.path
-                    .split('/')
-                    .last,
+                filename: file.path.split('/').last,
               ),
             ),
           );
         }
       }
-      if(bgImage!=null) {
+
+      // ----------------------------------------------------------
+      // BACKGROUND IMAGE
+      //
+      // Only send the file when bgImage == true
+      // ----------------------------------------------------------
+
+      if (event.bgImage == true && bgImageFile != null) {
         formData.files.add(
           MapEntry(
             "bgImage",
             await MultipartFile.fromFile(
-              bgImage.path,
-              filename: bgImage.path
-                  .split('/')
-                  .last,
+              bgImageFile.path,
+              filename: bgImageFile.path.split('/').last,
             ),
           ),
         );
       }
-      print("========== ABOUT TO SEND POST REQUEST ==========");
-      print("URL: $api/events");
-      print("DATA: ${formData}");
-      print("Media files: ${mediaFiles?.length}");
-      print("BG image: ${bgImage?.path}");
+
+      print("========== ABOUT TO SEND POST ==========");
+      print("URL: $api/api/v1/events");
+      print("Media files: ${mediaFiles?.length ?? 0}");
+      print("BG flag: ${event.bgImage}");
+      print("BG file: ${bgImageFile?.path}");
+      print("========================================");
 
       final response = await _dio.post(
         "$api/api/v1/events",
         data: formData,
       );
-      print("----------------------");
-      print(response.statusCode);
-      return EventModel.fromJson(response.data["data"]);
-    }
-    on DioException catch (e) {
+
+      print("POST status: ${response.statusCode}");
+      print("POST response: ${response.data}");
+
+      return EventModel.fromJson(
+        response.data["data"],
+      );
+    } on DioException catch (e) {
       print("========== DIO ERROR ==========");
       print("STATUS CODE: ${e.response?.statusCode}");
       print("RESPONSE DATA: ${e.response?.data}");
-      print("RESPONSE HEADERS: ${e.response?.headers}");
       print("REQUEST URL: ${e.requestOptions.uri}");
       print("REQUEST METHOD: ${e.requestOptions.method}");
-      print("REQUEST DATA: ${e.requestOptions.data}");
-      print("ERROR MESSAGE: ${e.message}");
 
       final message =
           e.response?.data?["message"] ??
@@ -109,6 +132,7 @@ class EventApis{
       throw Exception("Failed to create event: $e");
     }
   }
+
   ///--------------------------------
   Future<EventPaginationResponse> getTheEvents({
     required int partyId,
@@ -127,7 +151,8 @@ class EventApis{
       );
 
       final data = response.data["data"];
-
+      print("Datas-------------------------");
+      print(data);
       final List<EventModel> events =
       (data["items"] as List)
           .map(
@@ -294,7 +319,7 @@ class EventApis{
     required int eventId,
     required EventModel event,
     List<File>? mediaFiles,
-    File? bgImage,
+    File? bgImageUrl,
     List<int>? deletedMediaIds,
     List<Tagged>? removeTags,
     bool removeBackgroundImage = false,
@@ -376,13 +401,13 @@ class EventApis{
       // NEW BACKGROUND IMAGE
       // ----------------------------------------------------------
 
-      if (bgImage != null) {
+      if (bgImageUrl != null) {
         formData.files.add(
           MapEntry(
             "bgImage",
             await MultipartFile.fromFile(
-              bgImage.path,
-              filename: bgImage.path.split('/').last,
+              bgImageUrl.path,
+              filename: bgImageUrl.path.split('/').last,
             ),
           ),
         );
@@ -390,7 +415,7 @@ class EventApis{
 
       print("New media count: ${mediaFiles?.length ?? 0}");
       print("Deleted media IDs: ${deletedMediaIds ?? []}");
-      print("New background: ${bgImage?.path}");
+      print("New background: ${bgImageUrl?.path}");
       print("Remove background: $removeBackgroundImage");
 
       // ----------------------------------------------------------

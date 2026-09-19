@@ -27,7 +27,8 @@ final String locationLink;
 final List<File>images;
 final bool displayJoiningButton;
 final bool hasBackgroundImage;
-final File? bgImage;
+final File? bgImageUrl;
+final bool? bgImage;
 final List<Tagged> taggedPeople;
 final String? errorMessage;
 final int currentPage;
@@ -80,6 +81,7 @@ final int? joiningEventId;
    this.images=const [],
    this.displayJoiningButton = false,
    this.hasBackgroundImage=false,
+   this.bgImageUrl,
    this.bgImage,
    this.taggedPeople = const [],
    this.errorMessage,
@@ -139,7 +141,7 @@ EventTabState copyWith({
 
   bool? hasBackgroundImage,
 
-  Object? bgImage = _unset,
+  Object? bgImageUrl = _unset,
 
   List<Tagged>? taggedPeople,
   String? errorMessage,
@@ -218,10 +220,10 @@ EventTabState copyWith({
     hasBackgroundImage:
     hasBackgroundImage ?? this.hasBackgroundImage,
 
-    bgImage: identical(bgImage, _unset)
-        ? this.bgImage
-        : bgImage as File?,
-
+    bgImageUrl: identical(bgImageUrl, _unset)
+        ? this.bgImageUrl
+        : bgImageUrl as File?,
+   bgImage: bgImage??this.bgImage,
     taggedPeople:
     taggedPeople ?? this.taggedPeople,
 

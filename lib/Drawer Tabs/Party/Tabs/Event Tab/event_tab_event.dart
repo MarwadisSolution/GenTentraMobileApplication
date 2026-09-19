@@ -8,12 +8,14 @@ abstract class EventsEvent{}
 class AddNewEvent extends EventsEvent{
   final EventModel eventData;
   final List<File>mediaFiles;
-  final File? bgImage;
+  final File? bgImageUrl;
+  final bool? bgImage;
   final int partyId;
 
   AddNewEvent({
     required this.eventData,
     required this.mediaFiles,
+    this.bgImageUrl,
     this.bgImage,
     required this.partyId,
 });
@@ -22,7 +24,8 @@ class AddNewEvent extends EventsEvent{
 class EditEvent extends EventsEvent {
   final EventModel eventData;
   final List<File> mediaFiles;
-  final File? bgImage;
+  final File? bgImageUrl;
+  final bool?bgImage;
   final int partyId;
 
   final List<int> deletedMediaIds;
@@ -33,6 +36,7 @@ class EditEvent extends EventsEvent {
   EditEvent({
     required this.eventData,
     required this.mediaFiles,
+    this.bgImageUrl,
     this.bgImage,
     required this.partyId,
     this.deletedMediaIds = const [],
@@ -186,3 +190,4 @@ class RemoveExistingMediaEvent extends EventsEvent {
 }
 
 class ClearJoinMessageEvent extends EventsEvent {}
+class ClearDeleteMessageEvent extends EventsEvent {}

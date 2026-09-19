@@ -9,6 +9,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20T
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/event_tab_bloc.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/adding_feed.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/adding_quote.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Menifesto/manifesto_tab.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_apis.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_modal.dart';
@@ -19,6 +20,8 @@ import '../../Reusable Functions/reusable_functions.dart';
 import 'Tabs/Feed Tab/apis.dart';
 import 'Tabs/Feed Tab/feed_bloc.dart';
 import 'Tabs/Feed Tab/feed_tab.dart';
+import 'Tabs/Menifesto/manifesto_apis.dart';
+import 'Tabs/Menifesto/manifesto_bloc.dart' show ManifestoBloc;
 import 'Tabs/info_tab.dart';
 import 'Tabs/journey_tab.dart';
 import 'Tabs/leadership_tab.dart';
@@ -71,7 +74,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
     super.initState();
 
     _tabController = TabController(
-      length: 6,
+      length: 7,
       vsync: this,
     );
 
@@ -124,6 +127,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
       case 5:
         return EventTab(partyId: widget.partyData["id"],
             scrollController: scrollController,);
+      case 6:
+        return ManifestoTab(partyId: widget.partyData["id"], scrollController: scrollController,);
       default:
         return const SizedBox.shrink();
     }
@@ -150,7 +155,12 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
         ),
         BlocProvider<EventsBloc>(
           create: (_)=>EventsBloc(EventApis()),
-        )
+        ),
+        BlocProvider<ManifestoBloc>(
+          create: (_) => ManifestoBloc(
+            ManifestoApis(),
+          ),
+        ),
       ],
       child: Builder(
         builder: (context) {
@@ -355,6 +365,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                           Tab(text: PartyPageData.leadership),
                                           Tab(text: PartyPageData.feed),
                                           Tab(text: PartyPageData.event,),
+                                          Tab(text: PartyPageData.quote,),
                                         ],
                                       ),
                                     ),
@@ -380,7 +391,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                       );
                     },
                   ),
-                  if ((_tabController.index == 4 || _tabController.index == 5) &&
+                  if ((_tabController.index == 4 || _tabController.index == 5 || _tabController.index==6) &&
                       isAdmin == true)
                     Positioned(
                       bottom: MediaQuery.of(context).size.height * 0.03,
@@ -491,6 +502,14 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                               title: PartyPageData.newGroup,
                                               onTap: () {
                                                 // New Group action
+                                              },
+                                            ),
+                                            ActionMenuItem(
+                                              imageIcon:
+                                              PartyPageData.calenderIcon,
+                                              title: PartyPageData.quote,
+                                              onTap: () {
+                                                // New manifesto
                                               },
                                             ),
                                           ],

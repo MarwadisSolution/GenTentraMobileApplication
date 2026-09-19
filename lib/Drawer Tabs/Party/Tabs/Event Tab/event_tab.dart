@@ -33,6 +33,66 @@ class EventTab extends StatefulWidget {
 class _EventTabState extends State<EventTab> {
   int? selectedIndex;
   bool isAdmin=false;
+  List<EventModel> _getFilteredEvents(
+      List<EventModel> events,
+      int selectedTab,
+      ) {
+    switch (selectedTab) {
+    // ----------------------------------------------------------
+    // ALL EVENTS
+    // ----------------------------------------------------------
+      case 0:
+        return events;
+
+    // ----------------------------------------------------------
+    // MY EVENTS
+    // ----------------------------------------------------------
+      case 1:
+      // Current logged-in user ID is not available
+      // in EventTab yet.
+      //
+      // Do not use AdminOfParty here because that is
+      // the party-admin ID, not the logged-in user ID.
+        return events;
+
+    // ----------------------------------------------------------
+    // PRIVATE EVENTS
+    // ----------------------------------------------------------
+      case 2:
+        return events
+            .where(
+              (event) => event.kind.toUpperCase() == "PRIVATE",
+        )
+            .toList();
+
+    // ----------------------------------------------------------
+    // PAST EVENTS
+    // ----------------------------------------------------------
+      case 3:
+        return events
+            .where(_hasEventEnded)
+            .toList();
+
+      default:
+        return events;
+    }
+  }
+  bool _hasEventEnded(EventModel event) {
+    if (event.eventTo == null || event.timeTo == null) {
+      return false;
+    }
+
+    final endDateTime = DateTime(
+      event.eventTo!.year,
+      event.eventTo!.month,
+      event.eventTo!.day,
+      event.timeTo!.hour,
+      event.timeTo!.minute,
+    );
+
+    return DateTime.now().isAfter(endDateTime) ||
+        DateTime.now().isAtSameMomentAs(endDateTime);
+  }
   bool _hasEventStarted(EventModel event) {
     if (event.eventFrom == null ||
         event.timeFrom == null) {
@@ -161,6 +221,7 @@ class _EventTabState extends State<EventTab> {
         }
 
         // DELETE SUCCESS
+        // DELETE SUCCESS
         if (state.isEventDeleted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -170,6 +231,12 @@ class _EventTabState extends State<EventTab> {
                 "Event deleted successfully",
               ),
             ),
+          );
+
+          // Consume delete success message so it cannot appear again
+          // when another BLoC state change happens.
+          context.read<EventsBloc>().add(
+            ClearDeleteMessageEvent(),
           );
         }
 
@@ -228,16 +295,25 @@ class _EventTabState extends State<EventTab> {
         // --------------------------------------------------------
         // MAIN EVENT UI
         // --------------------------------------------------------
+        final List<EventModel> filteredEvents =
+        _getFilteredEvents(
+          state.events,
+          state.selectedTab,
+        );
         return Container(
           width: w,
           color: Colors.white,
 
           child: Column(
             children: [
+              buildEventTabs(
+                context,
+                state,
+              ),
               // --------------------------------------------------
               // WHITE SPACE ABOVE THE EVENT SECTION
               // --------------------------------------------------
-              const SizedBox(height: 20),
+               SizedBox(height: h*0.02),
 
               // --------------------------------------------------
               // GREY EVENT SECTION
@@ -254,7 +330,24 @@ class _EventTabState extends State<EventTab> {
                   ),
                 ),
 
-                child: ListView.separated(
+                child:filteredEvents.isEmpty
+                    ? Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 60,
+                    horizontal: 20,
+                  ),
+                  child: Center(
+                    child: Text(
+                      emptyMessage(state.selectedTab),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ColorScheme.of(context).onSurface,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                )
+                    : ListView.separated(
                   shrinkWrap: true,
 
                   physics: const NeverScrollableScrollPhysics(),
@@ -265,7 +358,8 @@ class _EventTabState extends State<EventTab> {
                   // EVENT COUNT + LOADING MORE
                   // ------------------------------------------------
                   itemCount:
-                      state.events.length + (state.isLoadingMore ? 1 : 0),
+                  filteredEvents.length +
+                      (state.isLoadingMore ? 1 : 0),
 
                   // ------------------------------------------------
                   // EVENT ITEM
@@ -275,7 +369,7 @@ class _EventTabState extends State<EventTab> {
                     // ----------------------------------------------
                     // LOAD MORE INDICATOR
                     // ----------------------------------------------
-                    if (index >= state.events.length) {
+                    if (index >= filteredEvents.length) {
                       return const Padding(
                         padding: EdgeInsets.symmetric(vertical: 30),
                         child: Center(child: CircularProgressIndicator()),
@@ -285,8 +379,7 @@ class _EventTabState extends State<EventTab> {
                     // ----------------------------------------------
                     // CURRENT EVENT
                     // ----------------------------------------------
-                    final eventData = state.events[index];
-                    print(eventData.address?.addressLink,);
+                    final eventData =filteredEvents[index];
                     // ----------------------------------------------
                     // TIME
                     // ----------------------------------------------
@@ -323,6 +416,7 @@ class _EventTabState extends State<EventTab> {
                               child: FullEventDesc(
                                 eventData: eventData,
                                 partyId: widget.partyId,
+                                isAdmin: isAdmin,
                               ),
                             );
                           }
@@ -330,8 +424,8 @@ class _EventTabState extends State<EventTab> {
                       },
                       child: Stack(
                         children: [
-                          if (eventData.bgImage != null &&
-                              eventData.bgImage!.isNotEmpty)
+                          if (eventData.bgImageUrl != null &&
+                              eventData.bgImageUrl!.isNotEmpty)
                             Container(
                               margin: const EdgeInsets.symmetric(horizontal: 12),
                               height: h * 0.5,
@@ -343,7 +437,7 @@ class _EventTabState extends State<EventTab> {
                               child: SizedBox(
                                 width: double.infinity,
                                 child: buildImageWidget(
-                                  eventData.bgImage!,
+                                  eventData.bgImageUrl!,
                                   width: double.infinity,
                                   height: h * 0.25,
                                   fit: BoxFit.cover,
@@ -353,18 +447,18 @@ class _EventTabState extends State<EventTab> {
                           Padding(
                             padding: EdgeInsets.only(
                               top:
-                                  eventData.bgImage != null &&
-                                      eventData.bgImage!.isNotEmpty
+                                  eventData.bgImageUrl != null &&
+                                      eventData.bgImageUrl!.isNotEmpty
                                   ? h * 0.192
                                   : 0,
                               left:
-                                  eventData.bgImage != null &&
-                                      eventData.bgImage!.isNotEmpty
+                                  eventData.bgImageUrl != null &&
+                                      eventData.bgImageUrl!.isNotEmpty
                                   ? w * 0.04
                                   : 0,
                               right:
-                                  eventData.bgImage != null &&
-                                      eventData.bgImage!.isNotEmpty
+                                  eventData.bgImageUrl != null &&
+                                      eventData.bgImageUrl!.isNotEmpty
                                   ? w * 0.04
                                   : 0,
                             ),
@@ -404,7 +498,7 @@ class _EventTabState extends State<EventTab> {
                                   return;
                                 }
 
-                                await Navigator.push(
+                                final bool? updated = await Navigator.push<bool>(
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) {
@@ -418,6 +512,16 @@ class _EventTabState extends State<EventTab> {
                                     },
                                   ),
                                 );
+
+                                if (updated == true && mounted) {
+                                  context.read<EventsBloc>().add(
+                                    GetEventEvent(
+                                      partyId: widget.partyId,
+                                      page: 0,
+                                      size: 20,
+                                    ),
+                                  );
+                                }
                               },
                               onDelete: () async {
                                 final shouldDelete = await showDialog<bool>(

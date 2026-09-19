@@ -11,6 +11,8 @@ import '../../reusable_functions.dart';
 import '../Feed Tab/apis.dart';
 import '../Feed Tab/reusable_functions.dart';
 import '../tagged_people_helper.dart';
+import 'add_event.dart';
+import 'apis.dart';
 import 'event._tag_peoples.dart';
 import 'event_location_map.dart';
 import 'event_modal.dart' show EventModel, MediaModel;
@@ -20,7 +22,8 @@ import 'event_tab_event.dart';
 class FullEventDesc extends StatefulWidget {
   final EventModel eventData;
   final int partyId;
-  const FullEventDesc({super.key, required this.eventData, required this.partyId});
+  final bool isAdmin;
+  const FullEventDesc({super.key, required this.eventData, required this.partyId, required this.isAdmin});
 
   @override
   State<FullEventDesc> createState() => _FullEventDescState();
@@ -30,6 +33,7 @@ class _FullEventDescState extends State<FullEventDesc> {
   final FeedApis api = FeedApis();
   List<Tagged> taggedPeople = [];
   late TaggedPeopleHandler taggedPeopleHandler;
+
 @override
   void initState() {
     // TODO: implement initState
@@ -39,14 +43,30 @@ class _FullEventDescState extends State<FullEventDesc> {
       api: api,
     );
   }
+  bool _hasEventStarted(EventModel event) {
+    if (event.eventFrom == null || event.timeFrom == null) {
+      return false;
+    }
+
+    final startDateTime = DateTime(
+      event.eventFrom!.year,
+      event.eventFrom!.month,
+      event.eventFrom!.day,
+      event.timeFrom!.hour,
+      event.timeFrom!.minute,
+    );
+
+    return DateTime.now().isAfter(startDateTime) ||
+        DateTime.now().isAtSameMomentAs(startDateTime);
+  }
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
     final h = MediaQuery.of(context).size.height;
-    dynamic eventData=widget.eventData;
-    print("Medias");
-    print(eventData.medias);
-    bool isAdmin=false;
+    // final eventData = state.events.firstWhere(
+    //       (event) => event.id == widget.eventData.id,
+    //   orElse: () => widget.eventData,
+    // );
 
 
     Future<void> shareFeed(dynamic event) async {
@@ -54,11 +74,16 @@ class _FullEventDescState extends State<FullEventDesc> {
           'https://gentantrabackend-production.up.railway.app/event/${event.uuid}';
       await Share.share('Check out this post: \n$shareLink');
     }
-    final fromTime = timingConversion(
-      eventData.eventFrom.toString(),
-    );
+
     return BlocBuilder<EventsBloc, EventTabState>(
       builder: (context, state){
+        final eventData = state.events.firstWhere(
+              (event) => event.id == widget.eventData.id,
+          orElse: () => widget.eventData,
+        );
+        final fromTime = timingConversion(
+          eventData.eventFrom.toString(),
+        );
         return DraggableScrollableSheet(
             initialChildSize: 0.95,
             minChildSize: 0.95,
@@ -68,8 +93,8 @@ class _FullEventDescState extends State<FullEventDesc> {
               return Stack(
                 children: [
 
-                  if (eventData.bgImage != null &&
-                      eventData.bgImage!.isNotEmpty)
+                  if (eventData.bgImageUrl != null &&
+                      eventData.bgImageUrl!.isNotEmpty)
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 12),
                       height: h * 0.6,
@@ -81,7 +106,7 @@ class _FullEventDescState extends State<FullEventDesc> {
                       child: SizedBox(
                         width: double.infinity,
                         child: buildImageWidget(
-                          eventData.bgImage!,
+                          eventData.bgImageUrl!,
                           width: double.infinity,
                           height: h * 0.25,
                           fit: BoxFit.cover,
@@ -90,18 +115,18 @@ class _FullEventDescState extends State<FullEventDesc> {
                     ),
                   Padding(padding: EdgeInsets.only(
                     top:
-                    eventData.bgImage != null &&
-                        eventData.bgImage!.isNotEmpty
+                    eventData.bgImageUrl != null &&
+                        eventData.bgImageUrl!.isNotEmpty
                         ? h * 0.192
                         : 0,
                     left:
-                    eventData.bgImage != null &&
-                        eventData.bgImage!.isNotEmpty
+                    eventData.bgImageUrl != null &&
+                        eventData.bgImageUrl!.isNotEmpty
                         ? w * 0.04
                         : 0,
                     right:
-                    eventData.bgImage != null &&
-                        eventData.bgImage!.isNotEmpty
+                    eventData.bgImageUrl != null &&
+                        eventData.bgImageUrl!.isNotEmpty
                         ? w * 0.04
                         : 0,
                   ),
@@ -112,7 +137,7 @@ class _FullEventDescState extends State<FullEventDesc> {
                           ReusableEventCard(
                             eventData: eventData,
 
-                            isAdmin: isAdmin,
+                            isAdmin: widget.isAdmin,
 
                             fromTime: fromTime,
 
@@ -131,8 +156,52 @@ class _FullEventDescState extends State<FullEventDesc> {
                               );
                             },
 
-                            onEdit: () {
-                              // Your edit logic
+                            onEdit: () async {
+                              // ------------------------------------------
+                              // CHECK WHETHER EVENT HAS ALREADY STARTED
+                              // ------------------------------------------
+                              if (_hasEventStarted(eventData)) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    backgroundColor: Colors.red,
+                                    content: Text(
+                                      "This event cannot be edited because it has already started.",
+                                    ),
+                                  ),
+                                );
+
+                                return;
+                              }
+
+                              // ------------------------------------------
+                              // CLOSE FULL EVENT DESCRIPTION
+                              // ------------------------------------------
+                              Navigator.pop(context);
+
+                              // ------------------------------------------
+                              // OPEN EDIT EVENT PAGE
+                              // ------------------------------------------
+                              final bool? updated = await Navigator.push<bool>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) {
+                                    return BlocProvider(
+                                      create: (_) => EventsBloc(EventApis()),
+                                      child: AddEvent(
+                                        partyId: widget.partyId,
+                                        eventToEdit: eventData,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+
+                              // ------------------------------------------
+                              // RETURN RESULT TO EVENT TAB
+                              // ------------------------------------------
+                              if (updated == true && mounted) {
+                                Navigator.pop(context, true);
+                              }
                             },
 
                             onDelete: () async {
@@ -200,7 +269,7 @@ Container(
           fontSize: h*0.021
         ),),
         Text(
-          eventData.aboutEvent,
+          eventData.aboutEvent??"",
         style:TextStyle(
           fontSize: h*0.021,
           fontWeight: FontWeight.w400,
@@ -208,8 +277,13 @@ Container(
         )
         ),
         SizedBox(height: h*0.02,),
-
-        EventLocationMap(
+        if(eventData.address?.addressLink=="")...[
+        Text("Address: ${eventData.address?.addressText}", style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: h * 0.021,
+          ),),
+        ],
+          if(eventData.address?.addressLink!="")  EventLocationMap(
           addressText: eventData.address?.addressText,
           addressLink: eventData.address?.addressLink,
         ),
@@ -332,8 +406,8 @@ SizedBox(height: h*0.02,),
                       )
                   ),
                   Positioned(
-                    top: 20,
-                    right: 20,
+                    top: h*0.01,
+                    right: w*0.05,
                     child: Container(
                       height: h*0.03,
                       width: h*0.03,

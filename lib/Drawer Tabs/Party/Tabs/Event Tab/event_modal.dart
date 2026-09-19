@@ -17,7 +17,8 @@ class EventModel {
   final TimeOfDay? timeFrom;
   final TimeOfDay? timeTo;
 
-  final String? bgImage;
+  final String? bgImageUrl;
+  final bool? bgImage;
   final bool? displayJoinButton;
 
   final List<MediaModel>? medias;
@@ -48,6 +49,8 @@ class EventModel {
     this.eventTo,
     this.timeFrom,
     this.timeTo,
+
+    this.bgImageUrl,
     this.bgImage,
     this.displayJoinButton,
     this.medias,
@@ -93,8 +96,8 @@ class EventModel {
       timeFrom: _parseTime(json["timeFrom"]),
       timeTo: _parseTime(json["timeTo"]),
 
-      bgImage: json["bgImage"],
-
+      bgImageUrl: json["bgImageUrl"],
+  bgImage: json["bgImage"],
       displayJoinButton: json["displayJoinButton"],
 
       medias: json["media"] != null
@@ -164,6 +167,7 @@ class EventModel {
       "timeTo": timeTo != null
           ? _formatTime(timeTo!)
           : null,
+      "bgImage": bgImage ?? false,
 
       "displayJoinButton": displayJoinButton,
 
@@ -193,7 +197,8 @@ class EventModel {
     DateTime? eventTo,
     TimeOfDay? timeFrom,
     TimeOfDay? timeTo,
-    String? bgImage,
+    String? bgImageUrl,
+    bool? bgImage,
     bool? displayJoinButton,
     List<MediaModel>? medias,
     List<Tagged>? tags,
@@ -221,7 +226,8 @@ class EventModel {
       eventTo: eventTo ?? this.eventTo,
       timeFrom: timeFrom ?? this.timeFrom,
       timeTo: timeTo ?? this.timeTo,
-      bgImage: bgImage ?? this.bgImage,
+      bgImageUrl: bgImageUrl ?? this.bgImageUrl,
+      bgImage: bgImage??this.bgImage,
       displayJoinButton:
       displayJoinButton ?? this.displayJoinButton,
       medias: medias ?? this.medias,
@@ -293,8 +299,6 @@ class EventModel {
 class Tagged {
   final String? type;
   final int? id;
-
-  // These are available from response's "ref"
   final String? name;
   final String? photoUrl;
   final String? partyInitial;
@@ -308,15 +312,12 @@ class Tagged {
   });
 
   factory Tagged.fromJson(Map<String, dynamic> json) {
-    final ref = json["ref"];
-
     return Tagged(
-      type: json["kind"],
+      type: json["kind"]?.toString(),
       id: json["id"],
-
-      name: ref != null ? ref["name"] : null,
-      photoUrl: ref != null ? ref["imageUrl"] : null,
-      partyInitial: ref != null ? ref["partyInitial"] : null,
+      name: json["name"]?.toString(),
+      photoUrl: json["imageUrl"]?.toString(),
+      partyInitial: json["partyInitial"]?.toString(),
     );
   }
 

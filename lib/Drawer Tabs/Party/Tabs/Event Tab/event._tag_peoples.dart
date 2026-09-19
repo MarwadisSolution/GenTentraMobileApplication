@@ -29,7 +29,8 @@ class EventTaggedPeopleDialog extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final w = size.width;
     final h = size.height;
-
+    print("Tagged Ones");
+print(taggedPeople);
     return Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
@@ -109,7 +110,7 @@ class EventTaggedPeopleDialog extends StatelessWidget {
                 },
                 itemBuilder: (context, index) {
                   final person = taggedPeople[index];
-
+                    print("Person-> ${person.partyInitial}");
                   return _TaggedPersonTile(
                     person: person,
                   );

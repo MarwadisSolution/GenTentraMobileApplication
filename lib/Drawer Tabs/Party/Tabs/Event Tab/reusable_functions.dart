@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
@@ -10,6 +11,90 @@ import '../../party_page_data.dart';
 import 'attendance_count_page.dart';
 import 'event_modal.dart';
 import 'package:intl/intl.dart';
+
+import 'event_tab_bloc.dart';
+import 'event_tab_event.dart';
+import 'event_tab_state.dart';
+String emptyMessage(int selectedTab) {
+  switch (selectedTab) {
+    case 0:
+      return "No events found";
+
+    case 1:
+      return "You haven't created any events yet";
+
+    case 2:
+      return "No private events found";
+
+    case 3:
+      return "No past events found";
+
+    default:
+      return "No events found";
+  }
+}
+Widget buildEventTabs(
+    BuildContext context,
+    EventTabState state,
+    ) {
+  final tabs = [
+    "All",
+    "My Events",
+    "Private Events",
+    "Past Events",
+  ];
+
+  return Container(
+    width: double.infinity,
+    height: 64,
+    color: Colors.white,
+    child: ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 12,
+      ),
+      itemCount: tabs.length,
+      itemBuilder: (context, index) {
+        final bool isSelected = state.selectedTab == index;
+
+        return GestureDetector(
+          onTap: () {
+            context.read<EventsBloc>().add(
+              ChangeTabEvent(index),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.only(right: 10),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+            ),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? const Color(0xFFFF4B3E)
+                  : const Color(0xFFBDBDBD),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Text(
+              tabs[index],
+              style: TextStyle(
+                color: isSelected
+                    ? Colors.white
+                    : Colors.white,
+                fontSize: 13,
+                fontWeight: isSelected
+                    ? FontWeight.w600
+                    : FontWeight.w500,
+              ),
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
+
 
 ///----------Media showing
 
@@ -1520,8 +1605,8 @@ class ReusableEventCard extends StatelessWidget {
                 },
 
                 child:  SizedBox(
-                  width: 30,
-                  height: 30,
+                  width: w*0.13,
+                  height: h*0.04,
 
                   child: Center(
                     child:SvgPicture.asset(PartyPageData.threeDots)
@@ -1617,7 +1702,7 @@ class ReusableEventCard extends StatelessWidget {
 
                         style:  TextStyle(
                          fontSize:  (MediaQuery.of(context).size.width * 0.045).clamp(14.0, 18.0),
-                          color: Colors.blue,
+                          color:  eventData.address?.addressLink!=""?Colors.blue:ColorScheme.of(context).secondary,
                         ),
                       ),
                     ),
