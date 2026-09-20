@@ -205,36 +205,43 @@ class _FullEventDescState extends State<FullEventDesc> {
                             },
 
                             onDelete: () async {
-                              final shouldDelete = await showDialog<bool>(
+                              final shouldDelete = await showGeneralDialog<bool>(
                                 context: context,
-                                builder: (dialogContext) {
-                                  return AlertDialog(
-                                    title: const Text("Delete Event"),
-                                    content: const Text(
-                                      "Are you sure you want to delete this event?",
+                                barrierDismissible: true,
+                                barrierLabel: 'Delete',
+                                barrierColor: Colors.black.withOpacity(0.25),
+                                transitionDuration: const Duration(milliseconds: 250),
+                                pageBuilder: (dialogContext, _, __) {
+                                  return popUpMessageForDeleteOrCancel(
+                                    dialogContext,
+                                    PartyPageData.calenderIcon,
+                                    "Would you like to Delete Event?",
+                                    "Once deleted, this event will be permanently removed.",
+                                        () {},
+                                  );
+                                },
+                                transitionBuilder: (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                    ) {
+                                  return SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0, 1),
+                                      end: Offset.zero,
+                                    ).animate(
+                                      CurvedAnimation(
+                                        parent: animation,
+                                        curve: Curves.easeOutCubic,
+                                      ),
                                     ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(dialogContext, false);
-                                        },
-                                        child: const Text("Cancel"),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(dialogContext, true);
-                                        },
-                                        child: const Text(
-                                          "Delete",
-                                          style: TextStyle(color: Colors.red),
-                                        ),
-                                      ),
-                                    ],
+                                    child: child,
                                   );
                                 },
                               );
 
-                              if (shouldDelete != true) return;
+                              if (shouldDelete != true || !mounted) return;
 
                               if (eventData.id == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(

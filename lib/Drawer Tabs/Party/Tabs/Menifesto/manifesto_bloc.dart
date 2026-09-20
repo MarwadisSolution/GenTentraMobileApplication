@@ -33,6 +33,9 @@ class ManifestoBloc extends Bloc<ManifestoEvent, ManifestoState> {
     on<ResetManifestoMessageEvent>(
       _resetMessage,
     );
+    on<DeleteManifestoEvent>(
+      _deleteManifesto,
+    );
   }
 
   // ==========================================================
@@ -278,6 +281,7 @@ class ManifestoBloc extends Bloc<ManifestoEvent, ManifestoState> {
       UpdateManifestoEvent event,
       Emitter<ManifestoState> emit,
       ) async {
+
     emit(
       state.copyWith(
         updateStatus:
@@ -297,9 +301,13 @@ class ManifestoBloc extends Bloc<ManifestoEvent, ManifestoState> {
         filePath: event.filePath,
       );
 
-      // Replace the old manifesto in the list.
+      // ======================================================
+      // REPLACE OLD MANIFESTO
+      // ======================================================
+
       final List<ManifestoModel> updatedList =
       state.manifestos.map((manifesto) {
+
         if (manifesto.id ==
             updatedManifesto.id) {
           return updatedManifesto;
@@ -317,7 +325,9 @@ class ManifestoBloc extends Bloc<ManifestoEvent, ManifestoState> {
           "Manifesto updated successfully",
         ),
       );
+
     } catch (e) {
+
       debugPrint(
         "UPDATE MANIFESTO BLOC ERROR: $e",
       );
@@ -346,5 +356,62 @@ class ManifestoBloc extends Bloc<ManifestoEvent, ManifestoState> {
         clearMessage: true,
       ),
     );
+  }
+  // ==========================================================
+// DELETE MANIFESTO
+// ==========================================================
+
+  Future<void> _deleteManifesto(
+      DeleteManifestoEvent event,
+      Emitter<ManifestoState> emit,
+      ) async {
+    emit(
+      state.copyWith(
+        deleteStatus: ManifestoActionStatus.loading,
+        clearMessage: true,
+      ),
+    );
+
+    try {
+      debugPrint(
+        "DELETE MANIFESTO STARTED: ${event.manifestoId}",
+      );
+
+      await api.deleteManifesto(
+        manifestoId: event.manifestoId,
+      );
+
+      // Remove deleted manifesto from the current list.
+      final List<ManifestoModel> updatedList =
+      state.manifestos
+          .where(
+            (manifesto) =>
+        manifesto.id != event.manifestoId,
+      )
+          .toList();
+
+      emit(
+        state.copyWith(
+          deleteStatus:
+          ManifestoActionStatus.success,
+          manifestos: updatedList,
+          message:
+          "Manifesto deleted successfully",
+        ),
+      );
+    } catch (e) {
+      debugPrint(
+        "DELETE MANIFESTO BLOC ERROR: $e",
+      );
+
+      emit(
+        state.copyWith(
+          deleteStatus:
+          ManifestoActionStatus.error,
+          message:
+          "Failed to delete manifesto",
+        ),
+      );
+    }
   }
 }

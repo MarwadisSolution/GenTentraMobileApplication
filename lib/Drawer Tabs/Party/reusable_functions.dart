@@ -505,7 +505,8 @@ final w=MediaQuery.of(context).size.width;
                 SizedBox(height: MediaQuery.of(context).size.height*0.015),
 
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  //crossAxisAlignment: CrossAxisAlignment.start,
+                  // mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -606,9 +607,9 @@ final w=MediaQuery.of(context).size.width;
                         }
                       },
                       child: Padding(
-                        padding:  EdgeInsets.only(top: MediaQuery.of(context).size.height*0.008),
+                        padding:  EdgeInsets.only(top: MediaQuery.of(context).size.height*0.006,bottom: MediaQuery.of(context).size.height*0.007 ),
                         child: Container(
-                          height: MediaQuery.of(context).size.height*0.05,
+                          height: MediaQuery.of(context).size.width*0.1,
                           padding: EdgeInsets.only(
                             left: MediaQuery.of(context).size.width*0.05, right: MediaQuery.of(context).size.width*0.05,
                           ),
@@ -644,13 +645,10 @@ final w=MediaQuery.of(context).size.width;
                         ),
                       ),
                     ),
-                    //SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.05),
 
-                  Padding(
-
-                    padding: EdgeInsets.only(top: MediaQuery.of(context).size.height*0.02, left:MediaQuery.of(context).size.width * 0.06,
-
-                    ),
+                  Align(
+                    alignment: Alignment.center,
                     child: InkWell(
                       onTap: () async {
                         final id = widget.partyData["id"];
@@ -681,7 +679,7 @@ final w=MediaQuery.of(context).size.width;
                       },
                       child: SvgPicture.asset(
                         PartyPageData.favoriteIcon,
-                        height: MediaQuery.of(context).size.height*0.027,
+                        height:MediaQuery.of(context).size.width*0.06,
                         color: favorite ? null : const Color(0xFF666666),
                       ),
                     ),

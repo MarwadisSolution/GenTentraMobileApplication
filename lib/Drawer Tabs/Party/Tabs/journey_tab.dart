@@ -32,12 +32,12 @@ class _JourneyTabState extends State<JourneyTab> {
 
     _pageController = PageController(
       initialPage: selectedIndex,
-      viewportFraction: 0.75,
+      viewportFraction: 0.85,
     );
 
     _timelineController = PageController(
       initialPage: selectedIndex,
-      viewportFraction: 0.25
+      viewportFraction: 0.22
     );
 
     _textController = PageController(
@@ -65,7 +65,7 @@ class _JourneyTabState extends State<JourneyTab> {
       if (controller.hasClients && controller.page?.round() != newIndex) {
         controller.animateToPage(
           newIndex,
-          duration: const Duration(milliseconds: 500),
+          duration: const Duration(milliseconds: 550),
           curve: Curves.easeInOut,
         );
       }
@@ -79,7 +79,7 @@ class _JourneyTabState extends State<JourneyTab> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size.width;
-
+    final height=MediaQuery.of(context).size.height;
     if (journeys.isEmpty) {
       return Center(
         child: Text(
@@ -96,9 +96,11 @@ class _JourneyTabState extends State<JourneyTab> {
       child: Column(
         children: [
           /// 1. IMAGE CAROUSEL
-          SizedBox(height: size*0.05,),
+          //SizedBox(height: size*0.09,),
+
           SizedBox(
             height: size * 0.9,
+
             child: PageView.builder(
               controller: _pageController,
               //physics: const NeverScrollableScrollPhysics(),
@@ -151,13 +153,15 @@ class _JourneyTabState extends State<JourneyTab> {
                     right: MediaQuery.of(context).size.width * 0.05,
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       /// Title
                       Text(
                         item.title,
                         textAlign: TextAlign.center,
                         style:  TextStyle(
-                          fontSize: MediaQuery.textScalerOf(context).scale(18).clamp(18, 20),
+                          fontSize:height*0.021,
                           letterSpacing: 0.31,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF070707),
@@ -181,7 +185,7 @@ class _JourneyTabState extends State<JourneyTab> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
-                          fontSize: MediaQuery.textScalerOf(context).scale(14).clamp(15, 18),
+                          fontSize: height*0.0175,
                           color: const Color(0xFF000000).withOpacity(0.6),
                         ),
                       ),
@@ -255,7 +259,7 @@ class _JourneyTabState extends State<JourneyTab> {
               ],
             ),
           ),
-SizedBox(height: MediaQuery.of(context).size.height*0.04,),
+SizedBox(height: MediaQuery.of(context).size.height*0.06,),
 
         ],
       ),

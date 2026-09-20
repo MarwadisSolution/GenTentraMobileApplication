@@ -11,6 +11,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_dat
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
+import '../../reusable_functions.dart';
 import 'add_event.dart';
 import 'apis.dart';
 import 'event_modal.dart';
@@ -306,255 +307,239 @@ class _EventTabState extends State<EventTab> {
 
           child: Column(
             children: [
+              SizedBox(height: h*0.01),
               buildEventTabs(
                 context,
                 state,
               ),
-              // --------------------------------------------------
-              // WHITE SPACE ABOVE THE EVENT SECTION
-              // --------------------------------------------------
-               SizedBox(height: h*0.02),
 
-              // --------------------------------------------------
-              // GREY EVENT SECTION
-              // --------------------------------------------------
-              Container(
-                width: w,
-
-                decoration: const BoxDecoration(
-                  color: Color(0xFFEFEFEF),
-
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
+              filteredEvents.isEmpty
+                  ? Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 60,
+                  horizontal: 20,
                 ),
-
-                child:filteredEvents.isEmpty
-                    ? Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 60,
-                    horizontal: 20,
-                  ),
-                  child: Center(
-                    child: Text(
-                      emptyMessage(state.selectedTab),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: ColorScheme.of(context).onSurface,
-                        fontSize: 15,
-                      ),
+                child: Center(
+                  child: Text(
+                    emptyMessage(state.selectedTab),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: ColorScheme.of(context).onSurface,
+                      fontSize: 15,
                     ),
                   ),
-                )
-                    : ListView.separated(
-                  shrinkWrap: true,
+                ),
+              )
+                  : ListView.separated(
+                shrinkWrap: true,
 
-                  physics: const NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
 
-                  padding: const EdgeInsets.only(top: 12, bottom: 12),
+                padding:  EdgeInsets.only(top: h*0.003,),
 
-                  // ------------------------------------------------
-                  // EVENT COUNT + LOADING MORE
-                  // ------------------------------------------------
-                  itemCount:
-                  filteredEvents.length +
-                      (state.isLoadingMore ? 1 : 0),
+                // ------------------------------------------------
+                // EVENT COUNT + LOADING MORE
+                // ------------------------------------------------
+                itemCount:
+                filteredEvents.length +
+                    (state.isLoadingMore ? 1 : 0),
 
-                  // ------------------------------------------------
-                  // EVENT ITEM
-                  // ------------------------------------------------
-                  itemBuilder: (context, index) {
+                // ------------------------------------------------
+                // EVENT ITEM
+                // ------------------------------------------------
+                itemBuilder: (context, index) {
 
-                    // ----------------------------------------------
-                    // LOAD MORE INDICATOR
-                    // ----------------------------------------------
-                    if (index >= filteredEvents.length) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 30),
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-
-                    // ----------------------------------------------
-                    // CURRENT EVENT
-                    // ----------------------------------------------
-                    final eventData =filteredEvents[index];
-                    // ----------------------------------------------
-                    // TIME
-                    // ----------------------------------------------
-                    final fromTime = timingConversion(
-                      eventData.eventFrom.toString(),
+                  // ----------------------------------------------
+                  // LOAD MORE INDICATOR
+                  // ----------------------------------------------
+                  if (index >= filteredEvents.length) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 30),
+                      child: Center(child: CircularProgressIndicator()),
                     );
+                  }
 
-                    // ----------------------------------------------
-                    // DATE
-                    // ----------------------------------------------
-                    final fromDate = eventData.eventFrom.toString().substring(
-                      0,
-                      10,
-                    );
+                  // ----------------------------------------------
+                  // CURRENT EVENT
+                  // ----------------------------------------------
+                  final eventData =filteredEvents[index];
+                  // ----------------------------------------------
+                  // TIME
+                  // ----------------------------------------------
 
-                    final DateTime parsedDate = DateTime.parse(fromDate);
 
-                    final String formattedDate = DateFormat(
-                      'dd-MM-yyyy',
-                    ).format(parsedDate);
 
-                    // ----------------------------------------------
-                    // INDIVIDUAL EVENT CARD
-                    // ----------------------------------------------
-                    return InkWell(
-                      onTap: () {
-                        final eventBloc=context.read<EventsBloc>();
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context){
-                            return BlocProvider.value(value: eventBloc,
-                              child: FullEventDesc(
-                                eventData: eventData,
-                                partyId: widget.partyId,
-                                isAdmin: isAdmin,
-                              ),
-                            );
-                          }
-                        );
-                      },
-                      child: Stack(
-                        children: [
-                          if (eventData.bgImageUrl != null &&
-                              eventData.bgImageUrl!.isNotEmpty)
-                            Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 12),
-                              height: h * 0.5,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: ColorScheme.of(context).surface,
-                              ),
-                              clipBehavior: Clip.antiAlias,
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: buildImageWidget(
-                                  eventData.bgImageUrl!,
-                                  width: double.infinity,
-                                  height: h * 0.25,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top:
-                                  eventData.bgImageUrl != null &&
-                                      eventData.bgImageUrl!.isNotEmpty
-                                  ? h * 0.192
-                                  : 0,
-                              left:
-                                  eventData.bgImageUrl != null &&
-                                      eventData.bgImageUrl!.isNotEmpty
-                                  ? w * 0.04
-                                  : 0,
-                              right:
-                                  eventData.bgImageUrl != null &&
-                                      eventData.bgImageUrl!.isNotEmpty
-                                  ? w * 0.04
-                                  : 0,
-                            ),
-                            child: ReusableEventCard(
+                  final fromDate = eventData.eventFrom.toString().substring(
+                    0,
+                    10,
+                  );
+
+                  final DateTime parsedDate = DateTime.parse(fromDate);
+
+                  final String formattedDate = DateFormat(
+                    'dd-MM-yyyy',
+                  ).format(parsedDate);
+
+                  // ----------------------------------------------
+                  // INDIVIDUAL EVENT CARD
+                  // ----------------------------------------------
+                  return InkWell(
+                    onTap: () {
+                      final eventBloc=context.read<EventsBloc>();
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context){
+                          return BlocProvider.value(value: eventBloc,
+                            child: FullEventDesc(
                               eventData: eventData,
-
+                              partyId: widget.partyId,
                               isAdmin: isAdmin,
+                            ),
+                          );
+                        }
+                      );
+                    },
+                    child: Stack(
+                      children: [
+                        if (eventData.bgImageUrl != null &&
+                            eventData.bgImageUrl!.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 12),
+                            height: w*1.2 ,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: ColorScheme.of(context).surface,
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: buildImageWidget(
+                                eventData.bgImageUrl!,
+                                width: double.infinity,
+                                height: h * 0.25,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        Padding(
+                          padding: EdgeInsets.only(
+                            top:
+                                eventData.bgImageUrl != null &&
+                                    eventData.bgImageUrl!.isNotEmpty
+                                ? h * 0.192
+                                : 0,
+                            left:
+                                eventData.bgImageUrl != null &&
+                                    eventData.bgImageUrl!.isNotEmpty
+                                ? w * 0.04
+                                : 0,
+                            right:
+                                eventData.bgImageUrl != null &&
+                                    eventData.bgImageUrl!.isNotEmpty
+                                ? w * 0.04
+                                : 0,
+                          ),
+                          child: ReusableEventCard(
+                            eventData: eventData,
 
-                              fromTime: eventData.timeFrom.toString(),
+                            isAdmin: isAdmin,
 
-                              isJoining:
-                              state.joiningEventId == eventData.id,
+                            fromTime: eventData.timeFrom.toString(),
 
-                              onShare: () {
-                                shareFeed(eventData);
-                              },
+                            isJoining:
+                            state.joiningEventId == eventData.id,
 
-                              onJoin: () {
-                                context.read<EventsBloc>().add(
-                                  joinUnJoinButtonEvent(
-                                    eventId: eventData.id!,
+                            onShare: () {
+                              shareFeed(eventData);
+                            },
+
+                            onJoin: () {
+                              context.read<EventsBloc>().add(
+                                joinUnJoinButtonEvent(
+                                  eventId: eventData.id!,
+                                ),
+                              );
+                            },
+
+                            onEdit: () async {
+                              if (_hasEventStarted(eventData)) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    backgroundColor: Colors.red,
+                                    content: Text(
+                                      "This event cannot be edited because it has already started.",
+                                    ),
                                   ),
                                 );
-                              },
 
-                              onEdit: () async {
-                                if (_hasEventStarted(eventData)) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      backgroundColor: Colors.red,
-                                      content: Text(
-                                        "This event cannot be edited because it has already started.",
+                                return;
+                              }
+
+                              final bool? updated = await Navigator.push<bool>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) {
+                                    return BlocProvider(
+                                      create: (_) => EventsBloc(EventApis()),
+                                      child: AddEvent(
+                                        partyId: widget.partyId,
+                                        eventToEdit: eventData,
                                       ),
-                                    ),
-                                  );
-
-                                  return;
-                                }
-
-                                final bool? updated = await Navigator.push<bool>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) {
-                                      return BlocProvider(
-                                        create: (_) => EventsBloc(EventApis()),
-                                        child: AddEvent(
-                                          partyId: widget.partyId,
-                                          eventToEdit: eventData,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                );
-
-                                if (updated == true && mounted) {
-                                  context.read<EventsBloc>().add(
-                                    GetEventEvent(
-                                      partyId: widget.partyId,
-                                      page: 0,
-                                      size: 20,
-                                    ),
-                                  );
-                                }
-                              },
-                              onDelete: () async {
-                                final shouldDelete = await showDialog<bool>(
-                                  context: context,
-                                  builder: (dialogContext) {
-                                    return AlertDialog(
-                                      title: const Text("Delete Event"),
-                                      content: const Text(
-                                        "Are you sure you want to delete this event?",
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(dialogContext, false);
-                                          },
-                                          child: const Text("Cancel"),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(dialogContext, true);
-                                          },
-                                          child: const Text(
-                                            "Delete",
-                                            style: TextStyle(color: Colors.red),
-                                          ),
-                                        ),
-                                      ],
                                     );
                                   },
+                                ),
+                              );
+
+                              if (updated == true && mounted) {
+                                context.read<EventsBloc>().add(
+                                  GetEventEvent(
+                                    partyId: widget.partyId,
+                                    page: 0,
+                                    size: 20,
+                                  ),
                                 );
+                              }
+                            },
+                            onDelete: () async {
+                              final shouldDelete = await showGeneralDialog<bool>(
+                                context: context,
+                                barrierDismissible: true,
+                                barrierLabel: 'Delete',
+                                barrierColor: Colors.black.withOpacity(0.25),
+                                transitionDuration: const Duration(milliseconds: 250),
+                                pageBuilder: (dialogContext, _, __) {
+                                  return popUpMessageForDeleteOrCancel(
+                                    dialogContext,
+                                    PartyPageData.calenderIcon,
+                                    "Would you like to Delete Event?",
+                                    "Once deleted, this event will be permanently removed.",
+                                        () {},
+                                  );
+                                },
+                                transitionBuilder: (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                    ) {
+                                  return SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0, 1),
+                                      end: Offset.zero,
+                                    ).animate(
+                                      CurvedAnimation(
+                                        parent: animation,
+                                        curve: Curves.easeOutCubic,
+                                      ),
+                                    ),
+                                    child: child,
+                                  );
+                                },
+                              );
 
-                                if (shouldDelete != true) return;
-
+                              if (shouldDelete == true && mounted) {
                                 if (eventData.id == null) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
@@ -567,21 +552,21 @@ class _EventTabState extends State<EventTab> {
                                 context.read<EventsBloc>().add(
                                   DeleteEvent(eventData.id!),
                                 );
-                              },
-                            )
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                              }
+                            },
+                          )
+                        ),
+                      ],
+                    ),
+                  );
+                },
 
-                  // ------------------------------------------------
-                  // GAP BETWEEN CARDS
-                  // ------------------------------------------------
-                  separatorBuilder: (context, index) {
-                    return const SizedBox(height: 12);
-                  },
-                ),
+                // ------------------------------------------------
+                // GAP BETWEEN CARDS
+                // ------------------------------------------------
+                separatorBuilder: (context, index) {
+                  return  SizedBox(height: h*0.02);
+                },
               ),
               SizedBox(height: h*0.03,),
             ],

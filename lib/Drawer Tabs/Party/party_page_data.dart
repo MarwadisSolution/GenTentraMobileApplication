@@ -88,11 +88,13 @@ static final locationIcon="Assets/PartyPage/locationIcon.svg";
 static final youCannotChange ="You cannot change the date or time once it has passed.";
 static final backgroundImage ="Background Image";
 static final displayJoinButton ="Display Join Button";
-static final menifesto = "MENIFESTO";
+static final manifestoCard="Manifesto";
 static final eventName ="Event Name/Title";
 static final year="Year";
-static final uploadMenifesto="Upload Manifesto";
+static final uploadManifesto="Upload Manifesto";
 static final docAddIcon ="Assets/PartyPage/docAddIcon.svg";
 static final calenderIcon="Assets/PartyPage/calenderIcon.svg";
 static final addressIcon ="Assets/PartyPage/addressIcon.svg";
+static final pdfIcon="Assets/PartyPage/pdfIcon.png";
+static final addIconMenifesto ="Assets/PartyPage/addIconMenifesto.svg";
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class ManifestoModel {
   final int? id;
@@ -217,5 +218,54 @@ class ManifestoPaginationResponse {
       'totalPages': totalPages,
       'hasNext': hasNext,
     };
+  }
+}
+
+
+
+class ManifestoPdfViewer extends StatefulWidget {
+  final String fileUrl;
+  final String title;
+
+  const ManifestoPdfViewer({
+    super.key,
+    required this.fileUrl,
+    required this.title,
+  });
+
+  @override
+  State<ManifestoPdfViewer> createState() => _ManifestoPdfViewerState();
+}
+
+class _ManifestoPdfViewerState extends State<ManifestoPdfViewer> {
+  final GlobalKey<SfPdfViewerState> _pdfViewerKey =
+  GlobalKey<SfPdfViewerState>();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+      body: SfPdfViewer.network(
+        widget.fileUrl,
+        key: _pdfViewerKey,
+        onDocumentLoadFailed: (PdfDocumentLoadFailedDetails details) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                details.description.isNotEmpty
+                    ? details.description
+                    : 'Failed to load PDF',
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

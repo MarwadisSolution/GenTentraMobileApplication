@@ -65,6 +65,7 @@ class ManifestoState extends Equatable {
   // ==========================================================
 
   final String? message;
+  final ManifestoActionStatus deleteStatus;
 
   const ManifestoState({
     this.manifestos = const [],
@@ -81,6 +82,7 @@ class ManifestoState extends Equatable {
     this.postStatus = ManifestoActionStatus.initial,
     this.updateStatus = ManifestoActionStatus.initial,
     this.message,
+    this.deleteStatus = ManifestoActionStatus.initial,
   });
 
   ManifestoState copyWith({
@@ -99,8 +101,10 @@ class ManifestoState extends Equatable {
     ManifestoActionStatus? updateStatus,
     String? message,
 
+
     // Allows explicitly clearing nullable values.
     bool clearMessage = false,
+    ManifestoActionStatus? deleteStatus,
   }) {
     return ManifestoState(
       manifestos: manifestos ?? this.manifestos,
@@ -122,6 +126,8 @@ class ManifestoState extends Equatable {
       message: clearMessage
           ? null
           : message ?? this.message,
+      deleteStatus:
+      deleteStatus ?? this.deleteStatus,
     );
   }
 
@@ -141,5 +147,6 @@ class ManifestoState extends Equatable {
     postStatus,
     updateStatus,
     message,
+    deleteStatus,
   ];
 }

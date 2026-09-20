@@ -46,13 +46,13 @@ Widget buildEventTabs(
 
   return Container(
     width: double.infinity,
-    height: 64,
-    color: Colors.white,
+    height: MediaQuery.of(context).size.width*0.16,
+    //color: Colors.white,
     child: ListView.builder(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 12,
+      padding:  EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width*0.035,
+       vertical: MediaQuery.of(context).size.width*0.035,
       ),
       itemCount: tabs.length,
       itemBuilder: (context, index) {
@@ -65,7 +65,7 @@ Widget buildEventTabs(
             );
           },
           child: Container(
-            margin: const EdgeInsets.only(right: 10),
+            margin:  EdgeInsets.only(right:MediaQuery.of(context).size.width*0.02 ),
             padding: const EdgeInsets.symmetric(
               horizontal: 20,
             ),
@@ -73,7 +73,7 @@ Widget buildEventTabs(
             decoration: BoxDecoration(
               color: isSelected
                   ? const Color(0xFFFF4B3E)
-                  : const Color(0xFFBDBDBD),
+                  :Colors.black.withOpacity(0.23),
               borderRadius: BorderRadius.circular(30),
             ),
             child: Text(
@@ -82,10 +82,10 @@ Widget buildEventTabs(
                 color: isSelected
                     ? Colors.white
                     : Colors.white,
-                fontSize: 13,
+                fontSize: MediaQuery.of(context).size.width*0.035,
                 fontWeight: isSelected
                     ? FontWeight.w600
-                    : FontWeight.w500,
+                    : FontWeight.w400,
               ),
             ),
           ),
@@ -1536,32 +1536,34 @@ class ReusableEventCard extends StatelessWidget {
     final h = size.height;
 
     return Card(
+
+      shadowColor: Colors.black.withOpacity(0.2),
+
       key: ValueKey(eventData.id),
 
       margin: const EdgeInsets.symmetric(horizontal: 12),
 
       color: ColorScheme.of(context).surface,
 
-      elevation: 0,
+      elevation: 10,
 
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(w*0.07),
+        borderRadius: BorderRadius.circular(w*0.055),
+        side: BorderSide(color: Colors.black.withOpacity(0.1))
       ),
 
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 20),
+        padding:  EdgeInsets.only(bottom:  w*0.04),
 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
 
           children: [
-            // ======================================
-            // AUTHOR + EVENT TITLE
-            // ======================================
+
             ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
+              contentPadding:  EdgeInsets.symmetric(
+                horizontal: w*0.04,
+                vertical: w*0.02,
               ),
 
               leading: CircleAvatar(
@@ -1584,36 +1586,23 @@ class ReusableEventCard extends StatelessWidget {
               title: Text(
                 eventData.title,
 
-                maxLines: 2,
+                maxLines: 3,
 
                 overflow: TextOverflow.ellipsis,
 
                 style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: h * 0.021,
+                  height: 1.15,
+                  fontWeight: FontWeight.w600,
+                  fontSize: w * 0.04,
                   color: ColorScheme.of(context).onSurface,
+
                 ),
               ),
 
               // ======================================
               // ADMIN THREE DOTS
               // ======================================
-              trailing: isAdmin
-                  ? InkWell(
-                onTap: () {
-                  _showAdminMenu(context);
-                },
 
-                child:  SizedBox(
-                  width: w*0.13,
-                  height: h*0.04,
-
-                  child: Center(
-                    child:SvgPicture.asset(PartyPageData.threeDots)
-                  ),
-                ),
-              )
-                  : null,
             ),
 
             // ======================================
@@ -1621,7 +1610,7 @@ class ReusableEventCard extends StatelessWidget {
             // ======================================
             Padding(
               padding: EdgeInsets.only(
-                top: h * 0.01,
+
                 left: w * 0.087,
                 right: w * 0.04,
               ),
@@ -1630,8 +1619,8 @@ class ReusableEventCard extends StatelessWidget {
                 children: [
                   SvgPicture.asset(
                     PartyPageData.calenderIcon,
-                    color: ColorScheme.of(context).secondary,
-                    height: h*0.025,
+                    color: ColorScheme.of(context).secondary.withOpacity(0.4),
+                    width: w * 0.045,
                   ),
 
                   SizedBox(width: w * 0.04),
@@ -1645,7 +1634,7 @@ class ReusableEventCard extends StatelessWidget {
 
                     style: TextStyle(
                       fontWeight: FontWeight.w400,
-                     fontSize: (MediaQuery.of(context).size.width * 0.045).clamp(14.0, 18.0),
+                     fontSize: w * 0.04,
                       color: ColorScheme.of(context).secondary,
                     ),
                   ),
@@ -1654,8 +1643,8 @@ class ReusableEventCard extends StatelessWidget {
 
                   SvgPicture.asset(
                     PartyPageData.clock,
-                    color: ColorScheme.of(context).secondary,
-                    height: h*0.025,
+                    color: ColorScheme.of(context).secondary.withOpacity(0.4),
+                    width: w * 0.045,
                   ),
 
                   SizedBox(width: w * 0.04),
@@ -1665,7 +1654,7 @@ class ReusableEventCard extends StatelessWidget {
 
                     style: TextStyle(
                       fontWeight: FontWeight.w400,
-                      fontSize: (MediaQuery.of(context).size.width * 0.045).clamp(14.0, 18.0),
+                      fontSize: w * 0.04,
                       color: ColorScheme.of(context).secondary,
                     ),
                   ),
@@ -1678,7 +1667,7 @@ class ReusableEventCard extends StatelessWidget {
             // ======================================
             Padding(
               padding: EdgeInsets.only(
-                top: h * 0.02,
+                top: h * 0.015,
                 left: w * 0.087,
                 right: w * 0.04,
               ),
@@ -1690,18 +1679,19 @@ class ReusableEventCard extends StatelessWidget {
                   children: [
                     SvgPicture.asset(
                       PartyPageData.addressIcon,
-                      color: ColorScheme.of(context).secondary,
-                      height: h*0.025,
+                      color: ColorScheme.of(context).secondary.withOpacity(0.4),
+                      width: w * 0.04,
                     ),
 
                     SizedBox(width: w * 0.04),
 
                     Expanded(
-                      child: Text(
+                      child: Text(maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         eventData.address?.addressText ?? "-",
 
                         style:  TextStyle(
-                         fontSize:  (MediaQuery.of(context).size.width * 0.045).clamp(14.0, 18.0),
+                         fontSize: w * 0.04,
                           color:  eventData.address?.addressLink!=""?Colors.blue:ColorScheme.of(context).secondary,
                         ),
                       ),
@@ -1717,7 +1707,7 @@ class ReusableEventCard extends StatelessWidget {
             Padding(
               padding: EdgeInsets.only(
                 left: w * 0.05,
-                top: h * 0.025,
+                top: h * 0.015,
               ),
 
               child: Row(
@@ -1746,6 +1736,23 @@ class ReusableEventCard extends StatelessWidget {
                   ),
 
                   const Spacer(),
+                  if(isAdmin)...[
+                    InkWell(
+                      overlayColor: WidgetStateProperty.all(Colors.transparent),
+                      onTap: () {
+                        _showAdminMenu(context);
+                      },
+
+                      child:  SizedBox(
+                        width: w*0.2,
+                        height: h*0.04,
+
+                        child: Center(
+                            child:SvgPicture.asset(PartyPageData.threeDots,width: w*0.05,)
+                        ),
+                      ),
+                    )
+                  ],
 
                   // SHARE
                   InkWell(
@@ -1753,11 +1760,11 @@ class ReusableEventCard extends StatelessWidget {
 
                     child: SvgPicture.asset(
                       PartyPageData.share,
-                      width: w * 0.06,
+                      width: w*0.05,
                     ),
                   ),
 
-                  SizedBox(width: w * 0.04),
+                  SizedBox(width: w * 0.06),
 
                   // JOIN
                   if (eventData.displayJoinButton == true)
@@ -1766,9 +1773,12 @@ class ReusableEventCard extends StatelessWidget {
                       w,
                       h,
                     ),
+
                 ],
               ),
             ),
+            if(eventData.displayJoinButton == false)
+              SizedBox(height:w*0.009 ,),
           ],
         ),
       ),
@@ -1789,7 +1799,7 @@ class ReusableEventCard extends StatelessWidget {
 
     return InkWell(
       onTap: isJoining ? null : onJoin,
-
+overlayColor: WidgetStateProperty.all(Colors.transparent),
       child: Container(
         height: h * 0.05,
         width: w * 0.20,
@@ -1806,6 +1816,7 @@ class ReusableEventCard extends StatelessWidget {
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(w * 0.08),
             bottomLeft: Radius.circular(w * 0.08),
+           // bottomRight: Radius.circular(w*0.025),
           ),
         ),
 

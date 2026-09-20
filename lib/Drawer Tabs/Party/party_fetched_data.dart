@@ -9,6 +9,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20T
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/event_tab_bloc.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/adding_feed.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/adding_quote.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Menifesto/add_menifest.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Menifesto/manifesto_tab.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_apis.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
@@ -22,6 +23,7 @@ import 'Tabs/Feed Tab/feed_bloc.dart';
 import 'Tabs/Feed Tab/feed_tab.dart';
 import 'Tabs/Menifesto/manifesto_apis.dart';
 import 'Tabs/Menifesto/manifesto_bloc.dart' show ManifestoBloc;
+import 'Tabs/Menifesto/manifesto_event.dart';
 import 'Tabs/info_tab.dart';
 import 'Tabs/journey_tab.dart';
 import 'Tabs/leadership_tab.dart';
@@ -128,7 +130,10 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
         return EventTab(partyId: widget.partyData["id"],
             scrollController: scrollController,);
       case 6:
-        return ManifestoTab(partyId: widget.partyData["id"], scrollController: scrollController,);
+        return ManifestoTab(partyId: widget.partyData["id"],
+          scrollController: scrollController,
+        isAdmin: isAdmin??false,
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -331,7 +336,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                     delegate: _SliverTabBarDelegate(
                                       TabBar(
                                         controller: _tabController,
-                                        tabAlignment: TabAlignment.start,
+                                        tabAlignment: TabAlignment.center,
+                                        overlayColor: WidgetStateProperty.all(Colors.transparent),
                                         padding: EdgeInsets.only(
                                           left:
                                               MediaQuery.of(
@@ -365,7 +371,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                           Tab(text: PartyPageData.leadership),
                                           Tab(text: PartyPageData.feed),
                                           Tab(text: PartyPageData.event,),
-                                          Tab(text: PartyPageData.quote,),
+                                          Tab(text: PartyPageData.manifesto,),
                                         ],
                                       ),
                                     ),
@@ -505,11 +511,29 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                               },
                                             ),
                                             ActionMenuItem(
-                                              imageIcon:
-                                              PartyPageData.calenderIcon,
-                                              title: PartyPageData.quote,
-                                              onTap: () {
-                                                // New manifesto
+                                              imageIcon: PartyPageData.calenderIcon,
+                                              title: PartyPageData.manifesto,
+                                              onTap: () async {
+                                                // Close the action menu first
+                                                Navigator.pop(context);
+
+                                                final result = await Navigator.push<bool>(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) => AddManifest(
+                                                      partyId: widget.partyData["id"],
+                                                    ),
+                                                  ),
+                                                );
+
+                                                // Manifesto was successfully added
+                                                if (result == true && context.mounted) {
+                                                  context.read<ManifestoBloc>().add(
+                                                    GetManifestosEvent(
+                                                      partyId: widget.partyData["id"],
+                                                    ),
+                                                  );
+                                                }
                                               },
                                             ),
                                           ],

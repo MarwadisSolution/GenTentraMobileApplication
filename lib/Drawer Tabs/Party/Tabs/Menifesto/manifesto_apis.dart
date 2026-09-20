@@ -229,6 +229,48 @@ class ManifestoApis {
     }
   }
   // ============================================================
+// DELETE MANIFESTO
+// ============================================================
+
+  Future<void> deleteManifesto({
+    required int manifestoId,
+  }) async {
+    try {
+      debugPrint(
+        "DELETE MANIFESTO: $api/api/v1/manifestos/$manifestoId",
+      );
+
+      final response = await _dio.delete(
+        "$api/api/v1/manifestos/$manifestoId",
+      );
+
+      debugPrint("DELETE MANIFESTO RESPONSE:");
+      debugPrint(response.data.toString());
+
+      // Usually DELETE returns 200 or 204
+      if (response.statusCode != 200 &&
+          response.statusCode != 204) {
+        throw Exception(
+          "Failed to delete manifesto.",
+        );
+      }
+    } on DioException catch (e) {
+      debugPrint(
+        "DELETE MANIFESTO API ERROR: ${e.response?.data}",
+      );
+
+      throw Exception(
+        e.response?.data ?? e.message,
+      );
+    } catch (e) {
+      debugPrint(
+        "DELETE MANIFESTO ERROR: $e",
+      );
+
+      throw Exception(e.toString());
+    }
+  }
+  // ============================================================
 // UPDATE MANIFESTO
 // ============================================================
 
@@ -240,11 +282,14 @@ class ManifestoApis {
       String? uploadedFileUrl;
 
       // ========================================================
-      // STEP 1: UPLOAD NEW FILE IF SELECTED
+      // STEP 1: UPLOAD NEW PDF IF SELECTED
       // ========================================================
 
-      if (filePath != null && filePath.trim().isNotEmpty) {
-        debugPrint("STEP 1: Uploading new manifesto file...");
+      if (filePath != null &&
+          filePath.trim().isNotEmpty) {
+        debugPrint(
+          "STEP 1: Uploading new manifesto file...",
+        );
 
         final List<String> uploadedUrls =
         await _mediaUploadApi.uploadMedia(
@@ -269,15 +314,21 @@ class ManifestoApis {
       // STEP 2: CREATE UPDATE JSON
       // ========================================================
 
-      final Map<String, dynamic> data = manifesto.toJson();
+      final Map<String, dynamic> data = {
+        "title": manifesto.title,
+        "year": manifesto.year,
+        "fileUrl":
+        uploadedFileUrl ?? manifesto.fileUrl,
+        "kind": manifesto.kind,
+      };
 
-      // Only replace fileUrl when a new file was uploaded.
-      if (uploadedFileUrl != null) {
-        data["fileUrl"] = uploadedFileUrl;
-      }
+      debugPrint(
+        "UPDATE MANIFESTO DATA:",
+      );
 
-      debugPrint("UPDATE MANIFESTO DATA:");
-      debugPrint(jsonEncode(data));
+      debugPrint(
+        jsonEncode(data),
+      );
 
       // ========================================================
       // STEP 3: PATCH MANIFESTO
@@ -291,15 +342,21 @@ class ManifestoApis {
         ),
       );
 
-      debugPrint("UPDATE MANIFESTO RESPONSE:");
-      debugPrint(response.data.toString());
+      debugPrint(
+        "UPDATE MANIFESTO RESPONSE:",
+      );
+
+      debugPrint(
+        response.data.toString(),
+      );
 
       return ManifestoModel.fromJson(
         response.data["data"],
       );
     } on DioException catch (e) {
       debugPrint(
-        "UPDATE MANIFESTO API ERROR: ${e.response?.data}",
+        "UPDATE MANIFESTO API ERROR: "
+            "${e.response?.data}",
       );
 
       throw Exception(
@@ -310,7 +367,9 @@ class ManifestoApis {
         "UPDATE MANIFESTO ERROR: $e",
       );
 
-      throw Exception(e.toString());
+      throw Exception(
+        e.toString(),
+      );
     }
   }
 }

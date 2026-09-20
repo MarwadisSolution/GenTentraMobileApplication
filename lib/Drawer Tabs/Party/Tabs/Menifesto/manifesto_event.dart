@@ -87,6 +87,7 @@ class PostManifestoEvent extends ManifestoEvent {
 // UPDATE MANIFESTO
 // ============================================================
 
+
 class UpdateManifestoEvent extends ManifestoEvent {
   final ManifestoModel manifesto;
   final String? filePath;
@@ -109,4 +110,21 @@ class UpdateManifestoEvent extends ManifestoEvent {
 
 class ResetManifestoMessageEvent extends ManifestoEvent {
   const ResetManifestoMessageEvent();
+}
+
+// ============================================================
+// DELETE MANIFESTO
+// ============================================================
+
+class DeleteManifestoEvent extends ManifestoEvent {
+  final int manifestoId;
+
+  const DeleteManifestoEvent({
+    required this.manifestoId,
+  });
+
+  @override
+  List<Object?> get props => [
+    manifestoId,
+  ];
 }
