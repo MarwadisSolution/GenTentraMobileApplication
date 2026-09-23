@@ -19,6 +19,55 @@ import 'Tabs/Feed Tab/feed_bloc.dart';
 import 'Tabs/info_tab.dart';
 import 'Tabs/symbol_tab.dart';
 import 'following_party_caching.dart';
+///--------------------Filter chips-----------------------------------------
+
+class ReusableFilterChip extends StatelessWidget {
+  final String title;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const ReusableFilterChip({
+    super.key,
+    required this.title,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.only(
+          right: w * 0.025,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: w * 0.055,
+        ),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFFFF4B3A)
+              : const Color(0xFFBDBDBD),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: h * 0.018,
+            fontWeight: isSelected
+                ? FontWeight.w600
+                : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
 ///-----------Delete cancle pop up message
 Widget popUpMessageForDeleteOrCancel(
     BuildContext context,

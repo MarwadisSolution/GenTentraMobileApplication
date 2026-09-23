@@ -274,6 +274,10 @@ class ManifestoApis {
 // UPDATE MANIFESTO
 // ============================================================
 
+// ============================================================
+// UPDATE MANIFESTO
+// ============================================================
+
   Future<ManifestoModel> updateManifesto({
     required ManifestoModel manifesto,
     String? filePath,
@@ -282,7 +286,7 @@ class ManifestoApis {
       String? uploadedFileUrl;
 
       // ========================================================
-      // STEP 1: UPLOAD NEW PDF IF SELECTED
+      // STEP 1: UPLOAD NEW PDF ONLY IF SELECTED
       // ========================================================
 
       if (filePath != null &&
@@ -308,6 +312,10 @@ class ManifestoApis {
         debugPrint(
           "New manifesto URL: $uploadedFileUrl",
         );
+      } else {
+        debugPrint(
+          "STEP 1: No new PDF selected. Keeping existing PDF.",
+        );
       }
 
       // ========================================================
@@ -317,9 +325,15 @@ class ManifestoApis {
       final Map<String, dynamic> data = {
         "title": manifesto.title,
         "year": manifesto.year,
-        "fileUrl":
-        uploadedFileUrl ?? manifesto.fileUrl,
-        "kind": manifesto.kind,
+
+        // If a new PDF was selected:
+        //     use new uploaded URL
+        //
+        // Otherwise:
+        //     keep existing backend URL
+        "fileUrl": uploadedFileUrl ?? manifesto.fileUrl,
+
+        "kind": "ELECT",
       };
 
       debugPrint(
@@ -331,15 +345,29 @@ class ManifestoApis {
       );
 
       // ========================================================
-      // STEP 3: PATCH MANIFESTO
+      // STEP 3: CREATE MULTIPART FORM DATA
+      // ========================================================
+
+      final FormData formData = FormData();
+
+      formData.fields.add(
+        MapEntry(
+          "data",
+          jsonEncode(data),
+        ),
+      );
+
+      debugPrint(
+        "UPDATE MANIFESTO REQUEST: multipart/form-data",
+      );
+
+      // ========================================================
+      // STEP 4: PATCH MANIFESTO
       // ========================================================
 
       final response = await _dio.patch(
         "$api/api/v1/manifestos/${manifesto.id}",
-        data: data,
-        options: Options(
-          contentType: Headers.jsonContentType,
-        ),
+        data: formData,
       );
 
       debugPrint(

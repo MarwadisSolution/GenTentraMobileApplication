@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../party_page_data.dart';
+import '../../reusable_functions.dart';
 import 'attendance_count_page.dart';
 import 'event_modal.dart';
 import 'package:intl/intl.dart';
@@ -33,6 +34,7 @@ String emptyMessage(int selectedTab) {
       return "No events found";
   }
 }
+
 Widget buildEventTabs(
     BuildContext context,
     EventTabState state,
@@ -44,56 +46,33 @@ Widget buildEventTabs(
     "Past Events",
   ];
 
-  return Container(
+  final w = MediaQuery.of(context).size.width;
+  final h = MediaQuery.of(context).size.height;
+
+  return SizedBox(
     width: double.infinity,
-    height: MediaQuery.of(context).size.width*0.16,
-    //color: Colors.white,
+    height: h * 0.055,
     child: ListView.builder(
       scrollDirection: Axis.horizontal,
-      padding:  EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width*0.035,
-       vertical: MediaQuery.of(context).size.width*0.035,
+      padding: EdgeInsets.symmetric(
+        horizontal: w * 0.035,
       ),
       itemCount: tabs.length,
       itemBuilder: (context, index) {
-        final bool isSelected = state.selectedTab == index;
-
-        return GestureDetector(
+        return ReusableFilterChip(
+          title: tabs[index],
+          isSelected: state.selectedTab == index,
           onTap: () {
             context.read<EventsBloc>().add(
               ChangeTabEvent(index),
             );
           },
-          child: Container(
-            margin:  EdgeInsets.only(right:MediaQuery.of(context).size.width*0.02 ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-            ),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFFFF4B3E)
-                  :Colors.black.withOpacity(0.23),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Text(
-              tabs[index],
-              style: TextStyle(
-                color: isSelected
-                    ? Colors.white
-                    : Colors.white,
-                fontSize: MediaQuery.of(context).size.width*0.035,
-                fontWeight: isSelected
-                    ? FontWeight.w600
-                    : FontWeight.w400,
-              ),
-            ),
-          ),
         );
       },
     ),
   );
 }
+
 
 
 ///----------Media showing
@@ -1773,7 +1752,6 @@ class ReusableEventCard extends StatelessWidget {
                       w,
                       h,
                     ),
-
                 ],
               ),
             ),

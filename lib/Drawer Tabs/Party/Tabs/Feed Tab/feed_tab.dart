@@ -107,7 +107,7 @@ class _FeedTabState extends State<FeedTab> {
       builder: (context, state) {
         if (state.isLoading) {
           return Padding(
-            padding: EdgeInsets.only(top: h * 0.2),
+            padding: EdgeInsets.only(top: h * 0.1),
             child: const Center(
               child: CircularProgressIndicator(color: Colors.black),
             ),

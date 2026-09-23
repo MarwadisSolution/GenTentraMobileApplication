@@ -263,8 +263,11 @@ class _EventTabState extends State<EventTab> {
         // --------------------------------------------------------
         if (state.status == EventStatus.loading) {
           return Center(
-            child: CircularProgressIndicator(
-              color: ColorScheme.of(context).onSurface,
+            child: Padding(
+              padding: EdgeInsets.all(h*0.1),
+              child: CircularProgressIndicator(
+                color: ColorScheme.of(context).onSurface,
+              ),
             ),
           );
         }
@@ -312,7 +315,7 @@ class _EventTabState extends State<EventTab> {
                 context,
                 state,
               ),
-
+              SizedBox(height: h*0.01),
               filteredEvents.isEmpty
                   ? Padding(
                 padding: const EdgeInsets.symmetric(
@@ -374,11 +377,7 @@ class _EventTabState extends State<EventTab> {
                     10,
                   );
 
-                  final DateTime parsedDate = DateTime.parse(fromDate);
 
-                  final String formattedDate = DateFormat(
-                    'dd-MM-yyyy',
-                  ).format(parsedDate);
 
                   // ----------------------------------------------
                   // INDIVIDUAL EVENT CARD

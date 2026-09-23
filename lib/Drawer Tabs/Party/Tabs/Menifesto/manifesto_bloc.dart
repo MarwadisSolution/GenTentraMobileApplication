@@ -354,6 +354,7 @@ class ManifestoBloc extends Bloc<ManifestoEvent, ManifestoState> {
     emit(
       state.copyWith(
         clearMessage: true,
+        deleteStatus: ManifestoActionStatus.initial,
       ),
     );
   }
