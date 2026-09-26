@@ -19,7 +19,6 @@ class _HomePageState extends State<HomePage> {
   String accessToken = '';
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     loadToken();
 
@@ -29,7 +28,8 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {
       accessToken = prefs.getString("accessToken") ?? '';
-    });
+    }
+    );
   }
   @override
   Widget build(BuildContext context) {
@@ -46,13 +46,12 @@ class _HomePageState extends State<HomePage> {
         ),
        SliverSections(child: SingleChildScrollView(
        child: Column(
-       children: [
-      ],
-    ),
-    ),),
+       children:[],
+     ),
+      ),
+       ),
 
       ],
-
     );
   }
 }

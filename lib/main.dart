@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/add_feed.dart';
 import 'package:gen_tentra_mobile_application/Services/deep_link_service.dart';
 import 'package:gen_tentra_mobile_application/splash_screen.dart';
 import 'package:gen_tentra_mobile_application/temp_screen_for_url.dart';

@@ -195,7 +195,7 @@ class _FavouritePageState extends State<FavouritePage> {
                                             ),
                                              SizedBox(height: h*0.01),
                                             Text(
-                                              party.name,
+                                              party.partyInitial,
                                               maxLines: 1,
                                               overflow:
                                               TextOverflow.ellipsis,

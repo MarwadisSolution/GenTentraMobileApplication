@@ -167,9 +167,10 @@ class EventModel {
       "timeTo": timeTo != null
           ? _formatTime(timeTo!)
           : null,
-      "bgImage": bgImage ?? false,
-
       "displayJoinButton": displayJoinButton,
+      // "bgImage": bgImage ?? false,
+
+
 
       "schedule": schedule,
 

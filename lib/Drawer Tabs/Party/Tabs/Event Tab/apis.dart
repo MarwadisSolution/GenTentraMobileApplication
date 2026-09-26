@@ -103,7 +103,7 @@ class EventApis{
       print("BG flag: ${event.bgImage}");
       print("BG file: ${bgImageFile?.path}");
       print("========================================");
-
+      print(formData);
       final response = await _dio.post(
         "$api/api/v1/events",
         data: formData,
@@ -116,12 +116,12 @@ class EventApis{
         response.data["data"],
       );
     } on DioException catch (e) {
-      print("========== DIO ERROR ==========");
+      print("========== DIO ERRORs ==========");
       print("STATUS CODE: ${e.response?.statusCode}");
       print("RESPONSE DATA: ${e.response?.data}");
       print("REQUEST URL: ${e.requestOptions.uri}");
       print("REQUEST METHOD: ${e.requestOptions.method}");
-
+      print("-----------hhhh------$e ---------------------------");
       final message =
           e.response?.data?["message"] ??
               e.message ??
@@ -129,6 +129,7 @@ class EventApis{
 
       throw Exception(message);
     } catch (e) {
+
       throw Exception("Failed to create event: $e");
     }
   }

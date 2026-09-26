@@ -10,6 +10,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20T
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_bar_reusable.dart';
 
+import '../../../../Reusable Functions/image_video_compressor.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../reusable_functions.dart';
 import '../Feed Tab/apis.dart';
@@ -1041,9 +1042,63 @@ class _AddEventState extends State<AddEvent> {
                                         ),
                                       ];
 
-                                      if (selectedMedia.isNotEmpty) {
-                                        context.read<EventsBloc>().add(
-                                          AddImageEvent(selectedMedia),
+                                      if (selectedMedia.isEmpty) {
+                                        return;
+                                      }
+
+                                      // Show compression/loading dialog.
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        builder: (_) {
+                                          return const Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        },
+                                      );
+
+                                      try {
+                                        final List<File> compressedFiles =
+                                        await MediaCompressor.compressFiles(
+                                          selectedMedia,
+                                        );
+
+                                        if (!context.mounted) {
+                                          return;
+                                        }
+
+                                        Navigator.of(context).pop();
+
+                                        if (compressedFiles.length != selectedMedia.length) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              backgroundColor: Colors.red,
+                                              content: Text(
+                                                "Some media files are larger than 25 MB even after compression.",
+                                              ),
+                                            ),
+                                          );
+                                        }
+
+                                        if (compressedFiles.isNotEmpty) {
+                                          context.read<EventsBloc>().add(
+                                            AddImageEvent(compressedFiles),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (!context.mounted) {
+                                          return;
+                                        }
+
+                                        Navigator.of(context).pop();
+
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: Colors.red,
+                                            content: Text(
+                                              "Unable to compress media: $e",
+                                            ),
+                                          ),
                                         );
                                       }
                                     },

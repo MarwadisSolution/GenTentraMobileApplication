@@ -142,6 +142,46 @@ class FeedApis {
       );
     }
   }
+  /// ------------------------------------------------------------
+  /// REPORT FEED POST VIEWS
+  /// ------------------------------------------------------------
+  ///
+  /// Single:
+  /// postIds = [123]
+  ///
+  /// Bulk:
+  /// postIds = [123, 124, 125]
+  ///
+  /// API:
+  /// POST /api/v1/feed/posts/views
+  ///
+  Future<bool> reportFeedViews(List<int> postIds) async {
+    if (postIds.isEmpty) return false;
+
+    try {
+      final response = await _dio.post(
+        "$api/api/v1/feed/posts/views",
+        data: {
+          "postIds": postIds,
+        },
+      );
+
+      debugPrint(
+        "VIEW API RESPONSE: ${response.statusCode} ${response.data}",
+      );
+
+      return response.statusCode == 200 ||
+          response.statusCode == 201;
+    } on DioException catch (e) {
+      debugPrint(
+        "VIEW API ERROR: ${e.response?.data ?? e.message}",
+      );
+
+      throw Exception(
+        e.response?.data ?? e.message,
+      );
+    }
+  }
 
 }
 

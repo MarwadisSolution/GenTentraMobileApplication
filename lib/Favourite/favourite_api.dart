@@ -65,6 +65,7 @@ class FavouriteApi {
               id: item["targetId"]??"-",
               name: item["meta"]["title"]??"-",
               partySymbolUrl: item["meta"]["imageUrl"] ?? "",
+            partyInitial: item["meta"]["partyInitial"]??"",
           );
         }).toList();
       }

@@ -51,7 +51,7 @@ Widget buildEventTabs(
 
   return SizedBox(
     width: double.infinity,
-    height: h * 0.055,
+    height: w*0.1,
     child: ListView.builder(
       scrollDirection: Axis.horizontal,
       padding: EdgeInsets.symmetric(

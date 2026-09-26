@@ -11,6 +11,7 @@ import 'package:path/path.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class PickedMedia {
   final List<XFile> images;
@@ -599,23 +600,23 @@ class FeedMediaWidget extends StatelessWidget {
                   ),
                 ),
 
-              if (media[index].mediaType == "VIDEO")
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.55),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.play_arrow,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ),
-                ),
+              // if (media[index].mediaType == "VIDEO")
+              //   Positioned(
+              //     top: 10,
+              //     right: 10,
+              //     child: Container(
+              //       padding: const EdgeInsets.all(6),
+              //       decoration: BoxDecoration(
+              //         color: Colors.black.withOpacity(0.55),
+              //         shape: BoxShape.circle,
+              //       ),
+              //       child: const Icon(
+              //         Icons.play_arrow,
+              //         color: Colors.red,
+              //         size: 18,
+              //       ),
+              //     ),
+              //   ),
             ],
           ),
         ),
@@ -685,7 +686,10 @@ class FeedMediaWidget extends StatelessWidget {
 class VideoPreview extends StatefulWidget {
   final String url;
 
-  const VideoPreview({super.key, required this.url});
+  const VideoPreview({
+    super.key,
+    required this.url,
+  });
 
   @override
   State<VideoPreview> createState() => VideoPreviewState();
@@ -695,15 +699,16 @@ class VideoPreviewState extends State<VideoPreview> {
   late VideoPlayerController controller;
 
   bool isLoading = true;
+  bool isMuted = true;
   String? errorMessage;
 
   @override
   void initState() {
     super.initState();
 
-    print("VIDEO URL: ${widget.url}");
-
-    controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    controller = VideoPlayerController.networkUrl(
+      Uri.parse(widget.url),
+    );
 
     _initializeVideo();
   }
@@ -712,23 +717,55 @@ class VideoPreviewState extends State<VideoPreview> {
     try {
       await controller.initialize();
 
-      print("VIDEO INITIALIZED");
-      print("VIDEO SIZE: ${controller.value.size}");
-      print("VIDEO DURATION: ${controller.value.duration}");
+      // Social-media style:
+      // Start muted
+      await controller.setVolume(0.0);
 
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
+      // Loop continuously
+      await controller.setLooping(true);
+
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+
+      // Start automatically after initialization
+      await controller.play();
     } catch (e) {
-      print("VIDEO INITIALIZATION ERROR: $e");
+      debugPrint("VIDEO INITIALIZATION ERROR: $e");
 
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-          errorMessage = e.toString();
-        });
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+        errorMessage = e.toString();
+      });
+    }
+  }
+
+  void _toggleAudio() {
+    if (!controller.value.isInitialized) return;
+
+    setState(() {
+      isMuted = !isMuted;
+    });
+
+    controller.setVolume(isMuted ? 0.0 : 1.0);
+  }
+
+  void _handleVisibility(double visibleFraction) {
+    if (!controller.value.isInitialized) return;
+
+    // Play when at least 50% of the video is visible.
+    if (visibleFraction >= 0.5) {
+      if (!controller.value.isPlaying) {
+        controller.play();
+      }
+    } else {
+      // Pause when mostly outside the screen.
+      if (controller.value.isPlaying) {
+        controller.pause();
       }
     }
   }
@@ -741,6 +778,16 @@ class VideoPreviewState extends State<VideoPreview> {
 
   @override
   Widget build(BuildContext context) {
+    return VisibilityDetector(
+      key: Key('video_${widget.url}'),
+      onVisibilityChanged: (info) {
+        _handleVisibility(info.visibleFraction);
+      },
+      child: _buildVideo(),
+    );
+  }
+
+  Widget _buildVideo() {
     if (isLoading) {
       return Container(
         color: Colors.grey.shade200,
@@ -763,7 +810,11 @@ class VideoPreviewState extends State<VideoPreview> {
         child: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.video_library_outlined, color: Colors.grey, size: 38),
+            Icon(
+              Icons.video_library_outlined,
+              color: Colors.grey,
+              size: 38,
+            ),
             SizedBox(height: 8),
             Text(
               "Unable to load video",
@@ -781,6 +832,11 @@ class VideoPreviewState extends State<VideoPreview> {
       child: Stack(
         fit: StackFit.expand,
         children: [
+
+          // =====================================================
+          // VIDEO
+          // =====================================================
+
           Positioned.fill(
             child: FittedBox(
               fit: BoxFit.cover,
@@ -792,11 +848,39 @@ class VideoPreviewState extends State<VideoPreview> {
               ),
             ),
           ),
+
+          // =====================================================
+          // AUDIO BUTTON
+          // =====================================================
+
+          Positioned(
+            right: 12,
+            bottom: 12,
+            child: GestureDetector(
+              onTap: _toggleAudio,
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.60),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isMuted
+                      ? Icons.volume_off_rounded
+                      : Icons.volume_up_rounded,
+                  color: Colors.white,
+                  size: 21,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
+
 
 class FeedMediaViewer extends StatefulWidget {
   final List<FeedMedia> media;

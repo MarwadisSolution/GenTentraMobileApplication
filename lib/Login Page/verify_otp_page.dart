@@ -8,14 +8,13 @@ import 'package:gen_tentra_mobile_application/Login%20Page/Sign%20up/signup_page
 import 'package:gen_tentra_mobile_application/Login%20Page/password_verification_page.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../Reusable Functions/Bottom Navigation/bloc_conde_in_one_navigation.dart';
 import '../Reusable Functions/Bottom Navigation/main_page.dart';
 import '../Reusable Functions/Drawer/bloc_code_in_one.dart';
 import 'Login Bloc/login_event.dart';
 import 'login_apis.dart';
 import 'login_pages_data.dart';
-
+import 'package:flutter/services.dart';
 class VerifyOtpPage extends StatefulWidget {
   String fromWhereICame;
    VerifyOtpPage({super.key, required this.fromWhereICame});
@@ -102,18 +101,18 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
           loginBloc.add(ResetNavigationEvent());
 
           if (!mounted) return;
+          if (!state.requirePassword && widget.fromWhereICame=="From SignUp page") {
 
-          if (!state.requirePassword && widget.fromWhereICame=="From OTP Page") {
-
-            Navigator.pushAndRemoveUntil(
+            Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) => BlocProvider.value(
                   value: loginBloc,
-                  child: AddressPage(verificationToken: token),
+                  child: AddressPage(
+                    verificationToken: token,
+                  ),
                 ),
               ),
-                  (route) => false,
             );
           } else {
             Navigator.pushAndRemoveUntil(
@@ -195,14 +194,14 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
             if (!context.mounted) return;
 
             final messenger = ScaffoldMessenger.maybeOf(context);
-            if (messenger == null) return;
-
-            messenger.showSnackBar(
-              SnackBar(
-                content: Text(e.toString()),
-                backgroundColor: Colors.red,
-              ),
-            );
+            // if (messenger == null) return;
+            //
+            // messenger.showSnackBar(
+            //   SnackBar(
+            //     content: Text(e.toString()),
+            //     backgroundColor: Colors.green,
+            //   ),
+            // );
           }
         }
       },
@@ -429,64 +428,245 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
     );
   }
 }
-
 class OtpInputFields extends StatefulWidget {
   final List<TextEditingController> otpControllers;
 
-  const OtpInputFields({super.key, required this.otpControllers});
+  const OtpInputFields({
+    super.key,
+    required this.otpControllers,
+  });
 
   @override
   State<OtpInputFields> createState() => _OtpInputFieldsState();
 }
 
-class _OtpInputFieldsState extends State<OtpInputFields>
-    with AutomaticKeepAliveClientMixin {
+class _OtpInputFieldsState extends State<OtpInputFields> {
+  late final List<FocusNode> focusNodes;
+
+  String? lastSubmittedOtp;
+
   @override
-  bool get wantKeepAlive => true;
+  void initState() {
+    super.initState();
+
+    focusNodes = List.generate(
+      widget.otpControllers.length,
+          (_) => FocusNode(),
+    );
+
+    // Rebuild when focus changes.
+    for (final node in focusNodes) {
+      node.addListener(() {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final node in focusNodes) {
+      node.dispose();
+    }
+
+    super.dispose();
+  }
+
+  void _verifyOtpIfComplete() {
+    final otp = widget.otpControllers
+        .map((controller) => controller.text)
+        .join();
+
+    final allFilled = widget.otpControllers.every(
+          (controller) => controller.text.isNotEmpty,
+    );
+
+    if (!allFilled) {
+      lastSubmittedOtp = null;
+      return;
+    }
+
+    if (lastSubmittedOtp == otp) {
+      return;
+    }
+
+    final loginBloc = context.read<LoginBloc>();
+
+    if (loginBloc.state.isVerifyingOtp) {
+      return;
+    }
+
+    lastSubmittedOtp = otp;
+
+    loginBloc.add(
+      VerifyOtpEvent(otp),
+    );
+  }
+
+  void _handleChanged(String value, int index) {
+    lastSubmittedOtp = null;
+
+    // Update underline immediately.
+    setState(() {});
+
+    // If digit was deleted, stay on this field.
+    if (value.isEmpty) {
+      return;
+    }
+
+    // Digit entered -> move to next field.
+    if (index < focusNodes.length - 1) {
+      focusNodes[index + 1].requestFocus();
+    }
+
+    _verifyOtpIfComplete();
+  }
+
+  void _handleBackspace(int index) {
+    final controller = widget.otpControllers[index];
+
+    // ------------------------------------------
+    // CASE 1:
+    // Current field has a digit.
+    //
+    // Delete the digit but STAY on this field.
+    // ------------------------------------------
+    if (controller.text.isNotEmpty) {
+      controller.clear();
+
+      lastSubmittedOtp = null;
+
+      setState(() {});
+
+      return;
+    }
+
+    // ------------------------------------------
+    // CASE 2:
+    // Current field is already empty.
+    //
+    // Move to previous field.
+    // Delete previous digit if present.
+    // ------------------------------------------
+    if (index > 0) {
+      final previousController = widget.otpControllers[index - 1];
+
+      focusNodes[index - 1].requestFocus();
+
+      if (previousController.text.isNotEmpty) {
+        previousController.clear();
+      }
+
+      lastSubmittedOtp = null;
+
+      setState(() {});
+    }
+  }
+
+  void _handleTap(int index) {
+    final controller = widget.otpControllers[index];
+
+    controller.selection = TextSelection.fromPosition(
+      TextPosition(
+        offset: controller.text.length,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-    // print("OTP FIELDS REBUILD ${DateTime.now()}");
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(
-        6,
-        (index) => SizedBox(
-          width: 35,
-          child: TextField(
-            controller: widget.otpControllers[index],
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.number,
-            maxLength: 1,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: MediaQuery.of(context).size.width*0.06
+        widget.otpControllers.length,
+            (index) {
+          final controller = widget.otpControllers[index];
+
+          final hasValue = controller.text.isNotEmpty;
+
+          return SizedBox(
+            width: 35,
+            child: KeyboardListener(
+              focusNode: FocusNode(
+                debugLabel: 'keyboard_$index',
+              ),
+              onKeyEvent: (KeyEvent event) {
+                if (event is KeyDownEvent &&
+                    event.logicalKey == LogicalKeyboardKey.backspace) {
+                  _handleBackspace(index);
+                }
+              },
+              child: TextField(
+                controller: controller,
+                focusNode: focusNodes[index],
+
+                textAlign: TextAlign.center,
+
+                keyboardType: TextInputType.number,
+
+                textInputAction:
+                index == widget.otpControllers.length - 1
+                    ? TextInputAction.done
+                    : TextInputAction.next,
+
+                autofillHints: index == 0
+                    ? const [AutofillHints.oneTimeCode]
+                    : null,
+
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(1),
+                ],
+
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize:
+                  MediaQuery.of(context).size.width * 0.06,
+                ),
+
+                decoration: InputDecoration(
+                  counterText: "",
+
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: hasValue
+                          ? const Color(0xFFFD8454)
+                          : Colors.grey,
+                      width: 1.5,
+                    ),
+                  ),
+
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: hasValue
+                          ? const Color(0xFFFD8454)
+                          : Colors.grey,
+                      width: 2,
+                    ),
+                  ),
+                ),
+
+                onTap: () {
+                  _handleTap(index);
+                },
+
+                onChanged: (value) {
+                  _handleChanged(value, index);
+                },
+
+                onEditingComplete: () {
+                  if (index <
+                      widget.otpControllers.length - 1) {
+                    focusNodes[index + 1].requestFocus();
+                  } else {
+                    _verifyOtpIfComplete();
+                  }
+                },
+              ),
             ),
-            decoration: const InputDecoration(counterText: ""),
-            onChanged: (value) {
-              if (value.length == 1 && index < 5) {
-                FocusScope.of(context).nextFocus();
-              }
-
-              if (value.isEmpty && index > 0) {
-                FocusScope.of(context).previousFocus();
-              }
-
-              bool allFilled = widget.otpControllers.every(
-                (controller) => controller.text.isNotEmpty,
-              );
-
-              if (allFilled) {
-                final enteredOtp = widget.otpControllers
-                    .map((e) => e.text)
-                    .join();
-
-                context.read<LoginBloc>().add(VerifyOtpEvent(enteredOtp));
-              }
-            },
-          ),
-        ),
+          );
+        },
       ),
     );
   }

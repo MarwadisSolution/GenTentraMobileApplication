@@ -26,6 +26,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     on<YearWiseFeedEvent>(_yearWiseFeed);
     on<DeleteFeedEvent>(_deleteFeed);
     on<UpdateFeedEvent>(_updateFeed);
+    on<ReportFeedViewEvent>(_reportFeedView);
   }
 
   Future<void> _loadFeed(
@@ -398,6 +399,116 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       );
     }
   }
+
+  Future<void> _reportFeedView(
+      ReportFeedViewEvent event,
+      Emitter<FeedState> emit,
+      ) async {
+    final postId = event.postId;
+
+    // Already successfully viewed in this FeedBloc session.
+    if (state.viewedPostIds.contains(postId)) {
+      debugPrint(
+        "VIEW ALREADY REPORTED IN SESSION: $postId",
+      );
+      return;
+    }
+
+    // Request for this post is already in progress.
+    if (state.reportingViewIds.contains(postId)) {
+      debugPrint(
+        "VIEW REQUEST ALREADY IN PROGRESS: $postId",
+      );
+      return;
+    }
+
+    // ----------------------------------------------------------
+    // Mark request as in progress
+    // ----------------------------------------------------------
+
+    final reportingIds = Set<int>.from(
+      state.reportingViewIds,
+    )..add(postId);
+
+    emit(
+      state.copyWith(
+        reportingViewIds: reportingIds,
+      ),
+    );
+
+    try {
+      debugPrint(
+        "Reporting view for feed: $postId",
+      );
+
+      final success = await api.reportFeedViews(
+        [postId],
+      );
+
+      // Remove from "currently reporting"
+      final updatedReportingIds = Set<int>.from(
+        state.reportingViewIds,
+      )..remove(postId);
+
+      if (!success) {
+        emit(
+          state.copyWith(
+            reportingViewIds: updatedReportingIds,
+          ),
+        );
+
+        debugPrint(
+          "VIEW NOT REPORTED: $postId",
+        );
+
+        return;
+      }
+
+      // ----------------------------------------------------------
+      // API SUCCESS
+      // ----------------------------------------------------------
+
+      final viewedIds = Set<int>.from(
+        state.viewedPostIds,
+      )..add(postId);
+
+      emit(
+        state.copyWith(
+          viewedPostIds: viewedIds,
+          reportingViewIds: updatedReportingIds,
+        ),
+      );
+
+      debugPrint(
+        "VIEW REPORTED SUCCESSFULLY: $postId",
+      );
+
+      // IMPORTANT:
+      // Do NOT increment feed.viewCount here.
+      //
+      // Backend is the source of truth for the actual count.
+    } catch (e, stackTrace) {
+      debugPrint(
+        "REPORT VIEW ERROR: $e",
+      );
+
+      debugPrint(
+        "$stackTrace",
+      );
+
+      // Remove from reporting so it can be retried later.
+      final updatedReportingIds = Set<int>.from(
+        state.reportingViewIds,
+      )..remove(postId);
+
+      emit(
+        state.copyWith(
+          reportingViewIds: updatedReportingIds,
+        ),
+      );
+    }
+  }
+
 }
 bool isNetworkError(Object error) {
   /*

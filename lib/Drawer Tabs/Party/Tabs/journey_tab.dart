@@ -96,10 +96,10 @@ class _JourneyTabState extends State<JourneyTab> {
       child: Column(
         children: [
           /// 1. IMAGE CAROUSEL
-          //SizedBox(height: size*0.09,),
+          SizedBox(height: size*0.02,),
 
           SizedBox(
-            height: size * 0.9,
+            height: size < 360 ? size * 0.70 : size * 0.9,
 
             child: PageView.builder(
               controller: _pageController,
@@ -161,7 +161,7 @@ class _JourneyTabState extends State<JourneyTab> {
                         item.title,
                         textAlign: TextAlign.center,
                         style:  TextStyle(
-                          fontSize:height*0.021,
+                          fontSize:size*0.052,
                           letterSpacing: 0.31,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF070707),
@@ -185,7 +185,7 @@ class _JourneyTabState extends State<JourneyTab> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
-                          fontSize: height*0.0175,
+                          fontSize: size*0.04,
                           color: const Color(0xFF000000).withOpacity(0.6),
                         ),
                       ),

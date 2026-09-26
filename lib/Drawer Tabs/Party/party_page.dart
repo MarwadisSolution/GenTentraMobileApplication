@@ -15,7 +15,7 @@ class PartyPage extends StatefulWidget {
 class _PartyPageState extends State<PartyPage> {
   late Future<List<dynamic>> partiesFuture;
   final apiService = PartyPageApis();
-
+  bool _isLoadingParty = false;
   @override
   void initState() {
     super.initState();
@@ -42,179 +42,211 @@ class _PartyPageState extends State<PartyPage> {
         ? 5
         : 3;
     return Scaffold(
-      body: CustomScrollView(
-       // physics: NeverScrollableScrollPhysics(),
-          slivers: [
-            ReusableSliverAppBar(
+      body: Stack(
+        children: [
+          CustomScrollView(
+           // physics: NeverScrollableScrollPhysics(),
+              slivers: [
+                ReusableSliverAppBar(
 
-              title: "PARTY'S", automaticallyImplyLeading: true, height: h*0.07),
-            SliverFillRemaining(
-              child: Stack(
-                children: [
-                  Container(
-                    height: h * 0.08,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
-                    ),
-                  ),
-                  Positioned.fill(
-                    top: h * 0.02,
-                    child: Container(
-
+                  title: "PARTY'S",
+                    automaticallyImplyLeading: true,
+                    height: h*0.07
+                ),
+                SliverFillRemaining(
+                  child: Stack(
+                    children: [
+                      Container(
+                        height: h * 0.08,
+                        width: double.infinity,
                         decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(25),
-                                topRight: Radius.circular(25))
+                          gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
                         ),
-                        child: FutureBuilder<List<dynamic>>(
-                          future: partiesFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return SizedBox(
-                                height: MediaQuery.of(context).size.height,
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    color: ColorScheme.of(context).onSurface,
-                                  ),
-                                ),
-                              );
-                            }
+                      ),
+                      Positioned.fill(
+                        top: h * 0.02,
+                        child: Container(
 
-                            if (snapshot.hasError) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      duration: Duration(seconds: 2),
-                                      backgroundColor: Colors.red,
-                                      content: Text(
-                                          snapshot.error.toString().contains(
-                                              "has a status code of 530")
-                                              ? "Please contact the owner"
-                                              : snapshot.error.toString().contains(
-                                              "The connection errored") ?
-                                          "You are offline"
-                                              : snapshot.error.toString()),
-                                    )
-                                );
-                              });
-
-                              return Center(
-                                child: Text(
-                                  "Something went wrong", style: TextStyle(
-                                    color: ColorScheme
-                                        .of(context)
-                                        .onSurface),),
-                              );
-                            }
-
-                            final parties = snapshot.data ?? [];
-
-                            return Padding(
-                              padding:  EdgeInsets.only(
-                                  right: MediaQuery.of(context).size.width*0.025,
-                                  left: MediaQuery.of(context).size.width*0.025,
-                                  top: MediaQuery.of(context).size.height*0.025),
-                              child: GridView.builder(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                padding:  EdgeInsets.all(MediaQuery.of(context).size.height*0.005),
-                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: gridCount,
-                                  crossAxisSpacing: 5,
-                                  mainAxisSpacing: 15,
-                                  childAspectRatio: 0.9,
-                                ),
-                                itemCount: parties.length,
-                                itemBuilder: (context, index) {
-                                  final party = parties[index];
-                                  return InkWell(
-                                    onTap: () async {
-                                      try {
-                                        final partyData = await apiService.fetchPartySingleWithId(
-                                          party["id"],
-                                        );
-
-                                        if (!mounted) return;
-
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => PartyFetchedData(
-                                              partyData: partyData,
-                                            ),
-                                          ),
-                                        );
-                                      } catch (e) {
-                                        if (!mounted) return;
-
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text("Failed to load party details"),
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-
-                                          ),
-                                          child: CircleAvatar(
-                                            radius:  MediaQuery.of(context).size.width*0.11,
-                                            backgroundColor: Colors.white,
-                                            child: ClipOval(
-                                              child: SizedBox.expand(
-                                                child:  (party["partySymbolUrl"] != null &&
-                                                    (party["partySymbolUrl"] as String)
-                                                        .isNotEmpty)
-                                                    ? buildImageWidget(
-                                                  party["partySymbolUrl"],
-                                                  fit: BoxFit.contain,
-                                                )
-                                                    : Icon(
-                                                  Icons.image,
-                                                  color: ColorScheme
-                                                      .of(context)
-                                                      .onSurface,
-                                                ),
-                                              ),
-                                            )
-
-                                          ),
-                                        ),
-                                        SizedBox(height: h*0.01),
-                                        Text(
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          party["partyInitial"] ?? "",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                                        ),
-
-                                      ],
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(25),
+                                    topRight: Radius.circular(25))
+                            ),
+                            child: FutureBuilder<List<dynamic>>(
+                              future: partiesFuture,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return SizedBox(
+                                    height: MediaQuery.of(context).size.height,
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        color: ColorScheme.of(context).onSurface,
+                                      ),
                                     ),
                                   );
-                                },
-                              ),
-                            );
-                          },
-                        )
-                    ),
+                                }
+
+                                if (snapshot.hasError) {
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          duration: Duration(seconds: 2),
+                                          backgroundColor: Colors.red,
+                                          content: Text(
+                                              snapshot.error.toString().contains(
+                                                  "has a status code of 530")
+                                                  ? "Please contact the owner"
+                                                  : snapshot.error.toString().contains(
+                                                  "The connection errored") ?
+                                              "You are offline"
+                                                  : snapshot.error.toString()),
+                                        )
+                                    );
+                                  });
+
+                                  return Center(
+                                    child: Text(
+                                      "Something went wrong", style: TextStyle(
+                                        color: ColorScheme
+                                            .of(context)
+                                            .onSurface),),
+                                  );
+                                }
+
+                                final parties = snapshot.data ?? [];
+
+                                return Padding(
+                                  padding:  EdgeInsets.only(
+                                      right: MediaQuery.of(context).size.width*0.025,
+                                      left: MediaQuery.of(context).size.width*0.025,
+                                      top: MediaQuery.of(context).size.height*0.025),
+                                  child: GridView.builder(
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    padding:  EdgeInsets.all(MediaQuery.of(context).size.height*0.005),
+                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: gridCount,
+                                      crossAxisSpacing: 5,
+                                      mainAxisSpacing: 15,
+                                      childAspectRatio: 0.9,
+                                    ),
+                                    itemCount: parties.length,
+                                    itemBuilder: (context, index) {
+                                      final party = parties[index];
+                                      return InkWell(
+                                        onTap: () async {
+                                          if(_isLoadingParty)return;
+                                          setState(() {
+                                            _isLoadingParty=true;
+                                          });
+                                          try {
+                                            final partyData = await apiService.fetchPartySingleWithId(
+                                              party["id"],
+                                            );
+
+                                            if (!mounted) return;
+
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => PartyFetchedData(
+                                                  partyData: partyData,
+                                                ),
+                                              ),
+                                            );
+                                          } catch (e) {
+                                            if (!mounted) return;
+
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text("Failed to load party details"),
+                                              ),
+                                            );
+                                          }
+                                          finally{
+                                            if(mounted){
+                                              setState(() {
+                                                _isLoadingParty=false;
+                                              });
+                                            }
+                                          }
+                                        },
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+
+                                              ),
+                                              child: CircleAvatar(
+                                                radius:  MediaQuery.of(context).size.width*0.11,
+                                                backgroundColor: Colors.white,
+                                                child: ClipOval(
+                                                  child: SizedBox.expand(
+                                                    child:  (party["partySymbolUrl"] != null &&
+                                                        (party["partySymbolUrl"] as String)
+                                                            .isNotEmpty)
+                                                        ? buildImageWidget(
+                                                      party["partySymbolUrl"],
+                                                      fit: BoxFit.contain,
+                                                    )
+                                                        : Icon(
+                                                      Icons.image,
+                                                      color: ColorScheme
+                                                          .of(context)
+                                                          .onSurface,
+                                                    ),
+                                                  ),
+                                                )
+
+                                              ),
+                                            ),
+                                            SizedBox(height: h*0.01),
+                                            Text(
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              party["partyInitial"] ?? "",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            )
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-      SliverToBoxAdapter(
-        child: SizedBox(height: h*0.045,),
-      )
-          ]
+
+                ),
+          SliverToBoxAdapter(
+            child: SizedBox(height: h*0.045,),
+          )
+              ],
+          ),
+    if (_isLoadingParty)...[
+    Positioned.fill(
+      child: Container(
+        color: Colors.black.withOpacity(0.2),
+        child: Center(
+          child: CircularProgressIndicator(
+            color: Colors.black,
+          ),
+        ),
       ),
+    )
+    ]
+        ],
+      ),
+
     );
   }
 }

@@ -91,3 +91,16 @@ class UpdateFeedEvent extends FeedEvent {
   ];
 }
 
+class ReportFeedViewEvent extends FeedEvent {
+  final int postId;
+
+  const ReportFeedViewEvent({
+    required this.postId,
+  });
+
+  @override
+  List<Object?> get props => [postId];
+}
+
+
+

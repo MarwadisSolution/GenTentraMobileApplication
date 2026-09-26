@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/reusable_funct
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_bar_reusable.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../Reusable Functions/image_video_compressor.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../party_page_data.dart';
 import '../tagged_people_helper.dart';
@@ -35,7 +37,10 @@ class _AddingFeedState extends State<AddingFeed> {
   late TaggedPeopleHandler taggedPeopleHandler;
   TextEditingController descriptionController = TextEditingController();
   TextEditingController scheduleController = TextEditingController();
+  bool isCompressingMedia = false;
+  bool showSlowCompressionMessage = false;
 
+  Timer? _compressionTimer;
   List<Tagged> taggedPeople = [];
 
   ///-----------Adding Images and videos
@@ -104,7 +109,134 @@ class _AddingFeedState extends State<AddingFeed> {
       return null;
     }
   }
+  Future<void> _pickAndCompressMedia() async {
+    if (isCompressingMedia) return;
 
+    try {
+      final result = await ReusableMediaPicker.pickMedia(context);
+
+      if (!mounted) return;
+
+      final List<XFile> pickedImages = result.images;
+      final List<XFile> pickedVideos = result.videos;
+
+      if (pickedImages.isEmpty && pickedVideos.isEmpty) {
+        return;
+      }
+
+      final List<XFile> pickedFiles = [
+        ...pickedImages,
+        ...pickedVideos,
+      ];
+
+      setState(() {
+        isCompressingMedia = true;
+        showSlowCompressionMessage = false;
+      });
+
+      // Show the message only if processing takes longer than 3 seconds.
+      _compressionTimer?.cancel();
+      _compressionTimer = Timer(
+        const Duration(seconds: 3),
+            () {
+          if (!mounted || !isCompressingMedia) return;
+
+          setState(() {
+            showSlowCompressionMessage = true;
+          });
+
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(
+                backgroundColor: Colors.green,
+                content: Text(
+                  'Your media is large and is taking longer to prepare. '
+                      'You can continue adding details while we process it.',
+                ),
+                duration: Duration(seconds: 4),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+        },
+      );
+
+      final List<File> originalFiles = pickedFiles
+          .map((file) => File(file.path))
+          .toList();
+
+      final List<File> compressedFiles =
+      await MediaCompressor.compressFiles(originalFiles);
+
+      if (!mounted) return;
+
+      if (compressedFiles.length != originalFiles.length) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: ColorScheme.of(context).error,
+            content: Text(
+              'Some media could not be processed. Please try selecting them again.',
+              style: TextStyle(
+                color: ColorScheme.of(context).surface,
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+
+      final List<XFile> finalImages = [];
+      final List<XFile> finalVideos = [];
+
+      // Preserve the image/video categories.
+      for (int i = 0; i < pickedFiles.length; i++) {
+        final XFile original = pickedFiles[i];
+        final XFile processed = XFile(compressedFiles[i].path);
+
+        if (pickedImages.any((image) => image.path == original.path)) {
+          finalImages.add(processed);
+        } else {
+          finalVideos.add(processed);
+        }
+      }
+
+      setState(() {
+        selectedImages.addAll(finalImages);
+        selectedVideos.addAll(finalVideos);
+      });
+
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(
+      //     content: Text('Media ready to upload'),
+      //     duration: Duration(seconds: 2),
+      //   ),
+      // );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: ColorScheme.of(context).error,
+          content: Text(
+            'Failed to process media try again',
+            style: TextStyle(
+              color: ColorScheme.of(context).surface,
+            ),
+          ),
+        ),
+      );
+    } finally {
+      _compressionTimer?.cancel();
+      _compressionTimer = null;
+
+      if (mounted) {
+        setState(() {
+          isCompressingMedia = false;
+          showSlowCompressionMessage = false;
+        });
+      }
+    }
+  }
   @override
   void initState() {
     // TODO: implement initState
@@ -132,7 +264,13 @@ class _AddingFeedState extends State<AddingFeed> {
       }
     }
   }
-
+  @override
+  void dispose() {
+    _compressionTimer?.cancel();
+    descriptionController.dispose();
+    scheduleController.dispose();
+    super.dispose();
+  }
   ///------------Publish
   Future<void> _publishFeed() async {
     if (descriptionController.text
@@ -341,25 +479,44 @@ class _AddingFeedState extends State<AddingFeed> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    FeedQuoteTab(
-                                      title: PartyPageData.addImage,
-                                      isSelected: false,
-                                      onTap: () async {
-                                        final result =
-                                        await ReusableMediaPicker.pickMedia(
-                                          context,
-                                        );
+                                    Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        FeedQuoteTab(
+                                          title: isCompressingMedia
+                                              ? "Preparing..."
+                                              : "Add Media",
+                                          isSelected: false,
+                                          onTap: isCompressingMedia
+                                              ? () {}
+                                              : _pickAndCompressMedia,
+                                          iconName: PartyPageData.addImageIcon,
+                                          height: h * 0.05,
+                                          width: w * 0.35,
+                                        ),
 
-                                        if (!mounted) return;
-
-                                        setState(() {
-                                          selectedImages.addAll(result.images);
-                                          selectedVideos.addAll(result.videos);
-                                        });
-                                      },
-                                      iconName: PartyPageData.addImageIcon,
-                                      height: h * 0.05,
-                                      width: w * 0.35,
+                                        if (isCompressingMedia)
+                                          IgnorePointer(
+                                            child: Container(
+                                              height: h * 0.05,
+                                              width: w * 0.35,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withOpacity(0.85),
+                                                borderRadius: BorderRadius.circular(30),
+                                              ),
+                                              child: const Center(
+                                                child: SizedBox(
+                                                  height: 20,
+                                                  width: 20,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2.5,
+                                                    color: Color(0xFFFE3A31),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                     SizedBox(width: w * 0.03),
                                     //-----Tag Peoples
@@ -590,7 +747,7 @@ class _AddingFeedState extends State<AddingFeed> {
                                         builder: (context, state) {
                                           return Center(
                                             child: InkWell(
-                                              onTap: state.isPosting
+                                              onTap: state.isPosting || isCompressingMedia
                                                   ? null
                                                   : () async {
                                                 await _publishFeed();

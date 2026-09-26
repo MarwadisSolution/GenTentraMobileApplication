@@ -39,19 +39,29 @@ class _OtpPageState extends State<OtpPage> {
       listener: (context, state) {
         if (state.navigateToOtp) {
           print("NAVIGATING TO VERIFY PAGE");
+
+          // Stop the loader before navigating
+          setState(() {
+            otpButtonPressed = false;
+          });
+
           context.read<LoginBloc>().add(
             ResetNavigationEvent(),
           );
-          context.read<LoginBloc>().add(ClearOtpStatusEvent());
+
+          context.read<LoginBloc>().add(
+            ClearOtpStatusEvent(),
+          );
+
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  BlocProvider.value(
-                    value: context.read<LoginBloc>(),
-                    child:  VerifyOtpPage(
-                      fromWhereICame: 'From OTP page',),
-                  ),
+              builder: (_) => BlocProvider.value(
+                value: context.read<LoginBloc>(),
+                child:  VerifyOtpPage(
+                  fromWhereICame: 'From OTP page',
+                ),
+              ),
             ),
           );
         }
@@ -72,7 +82,9 @@ class _OtpPageState extends State<OtpPage> {
                      state.errorMessage),
             ),
           );
-          otpButtonPressed = false;
+          setState(() {
+            otpButtonPressed = false;
+          });
         }
       },
       child: GestureDetector(
@@ -86,7 +98,7 @@ class _OtpPageState extends State<OtpPage> {
                 left: MediaQuery
                     .of(context)
                     .size
-                    .height * 0.03,
+                    .height * 0.031,
                 right: MediaQuery
                     .of(context)
                     .size
@@ -252,30 +264,33 @@ class _OtpPageState extends State<OtpPage> {
                       height: MediaQuery.of(context).size.height * 0.05,
                     ),
                     InkWell(
-                      onTap: () {
-                        //api = urlController.text.trim();
-                        otpButtonPressed = true;
+                      overlayColor: WidgetStateProperty.all(Colors.transparent),
+                      onTap: otpButtonPressed
+                          ? null
+                          : () {
+                        setState(() {
+                          otpButtonPressed = true;
+                        });
 
-                        context.read<LoginBloc>().add(SignInButtonEvent());
+                        context.read<LoginBloc>().add(
+                          SignInButtonEvent(),
+                        );
                       },
                       child: SizedBox(
-                        height: MediaQuery
-                            .of(context)
-                            .size
-                            .height * 0.054,
-                        width: MediaQuery
-                            .of(context)
-                            .size
-                            .width * 0.45,
+                        height: MediaQuery.of(context).size.height * 0.054,
+                        width: MediaQuery.of(context).size.width * 0.45,
                         child: ValueListenableBuilder<TextEditingValue>(
                           valueListenable: phoneController,
                           builder: (context, value, child) {
+                            final bool isPhoneValid =
+                                phoneController.text.length == phoneMaxLength;
+
                             return Container(
                               decoration: BoxDecoration(
-                                gradient:phoneController.text.length==phoneMaxLength
+                                gradient: isPhoneValid
                                     ? GradientColors.primaryGradient
                                     : null,
-                                color: phoneController.text.length==phoneMaxLength
+                                color: isPhoneValid
                                     ? null
                                     : Colors.black.withOpacity(0.3),
                                 borderRadius: BorderRadius.circular(30),
@@ -283,34 +298,38 @@ class _OtpPageState extends State<OtpPage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    LoginPageData.generateOtp,
-                                    style: TextStyle(
-                                      color: ColorScheme
-                                          .of(context)
-                                          .surface,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16,
+                                  if (otpButtonPressed)
+                                    SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          ColorScheme.of(context).surface,
+                                        ),
+                                      ),
+                                    )
+                                  else ...[
+                                    Text(
+                                      LoginPageData.generateOtp,
+                                      style: TextStyle(
+                                        color: ColorScheme.of(context).surface,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 16,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(
-                                    width:
-                                    MediaQuery
-                                        .of(context)
-                                        .size
-                                        .width *
-                                        0.02,
-                                  ),
-                                  SvgPicture.asset(LoginPageData.arrowIcon),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width * 0.02,
+                                    ),
+                                    SvgPicture.asset(LoginPageData.arrowIcon),
+                                  ],
                                 ],
                               ),
                             );
                           },
-
                         ),
                       ),
                     ),
-
                   ],
                 ),
               ),

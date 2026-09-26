@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -13,8 +15,7 @@ import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_func
 import 'package:readmore/readmore.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'add_feed.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import 'apis.dart';
 import 'functions.dart';
 
@@ -87,6 +88,100 @@ class _FeedTabState extends State<FeedTab> {
     await Share.share('Check out this post: \n$shareLink');
   }
 
+// ============================================================
+// FEED VIEW TRACKING
+// ============================================================
+
+  /// Timers for posts that are currently visible.
+  // ============================================================
+// FEED VIEW TRACKING
+// ============================================================
+
+  final Map<int, Timer> _viewTimers = {};
+
+  void _onFeedVisibilityChanged(
+      int? postId,
+      double visibleFraction,
+      ) {
+    if (postId == null) return;
+
+    final feedState = context.read<FeedBloc>().state;
+
+    // Already successfully reported.
+    if (feedState.viewedPostIds.contains(postId)) {
+      return;
+    }
+
+    // API request is currently being processed.
+    if (feedState.reportingViewIds.contains(postId)) {
+      return;
+    }
+
+    // ----------------------------------------------------------
+    // POST IS >= 50% VISIBLE
+    // ----------------------------------------------------------
+
+    if (visibleFraction >= 0.5) {
+      // Timer already running.
+      if (_viewTimers.containsKey(postId)) {
+        return;
+      }
+
+      debugPrint(
+        "FEED $postId >= 50% visible -> starting 2 second timer",
+      );
+
+      _viewTimers[postId] = Timer(
+        const Duration(seconds: 2),
+            () {
+          _viewTimers.remove(postId);
+
+          if (!mounted) return;
+
+          final currentState = context.read<FeedBloc>().state;
+
+          if (currentState.viewedPostIds.contains(postId)) {
+            return;
+          }
+
+          if (currentState.reportingViewIds.contains(postId)) {
+            return;
+          }
+
+          debugPrint(
+            "FEED $postId remained >= 50% visible for 2 seconds",
+          );
+
+          context.read<FeedBloc>().add(
+            ReportFeedViewEvent(
+              postId: postId,
+            ),
+          );
+        },
+      );
+
+      return;
+    }
+
+    // ----------------------------------------------------------
+    // POST IS < 50% VISIBLE
+    // ----------------------------------------------------------
+
+    _cancelViewTimer(postId);
+  }
+
+  void _cancelViewTimer(int postId) {
+    final timer = _viewTimers.remove(postId);
+
+    if (timer != null) {
+      timer.cancel();
+
+      debugPrint(
+        "FEED $postId went below 50% -> timer cancelled",
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
@@ -144,311 +239,322 @@ class _FeedTabState extends State<FeedTab> {
             }
             final feed = state.feeds[index];
            // print("Feeds:--- ${feed.media![0].url}");
-            return Container(
-              key: ValueKey(feed.id ?? index),
-              margin: EdgeInsets.only(bottom: h * 0.012),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
+            return VisibilityDetector(
+              key: Key(
+                'feed_visibility_${feed.id ?? index}',
+              ),
+              onVisibilityChanged: (info) {
+                _onFeedVisibilityChanged(
+                  feed.id,
+                  info.visibleFraction,
+                );
+              },
+              child: Container(
+                key: ValueKey(feed.id ?? index),
+                margin: EdgeInsets.only(bottom: h * 0.012),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ListTile(
 
-                    leading: CircleAvatar(
-                      radius: w * 0.07,
-                      backgroundColor: Colors.white,
-                      child: ClipOval(
-                        child: SizedBox.expand(
-                          child: buildImageWidget(
-                            feed.author?.photoUrl ?? "",
-                            width: double.infinity,
-                            height: double.infinity,
-                            fit: BoxFit.cover,
+                      leading: CircleAvatar(
+                        radius: w * 0.07,
+                        backgroundColor: Colors.white,
+                        child: ClipOval(
+                          child: SizedBox.expand(
+                            child: buildImageWidget(
+                              feed.author?.photoUrl ?? "",
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    title: Text(
-                      feed.author?.name ?? "-",
-                      maxLines: 2,
-                      style: TextStyle(
-                        fontSize: (w * 0.045),
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.31,
+                      title: Text(
+                        feed.author?.name ?? "-",
+                        maxLines: 2,
+                        style: TextStyle(
+                          fontSize: (w * 0.045),
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.31,
+                        ),
                       ),
-                    ),
-                    subtitle: Row(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                     Text(
-                       getTimeAgo(feed.timestamp),
-                       style: TextStyle(
-                         fontSize: (w * 0.025).clamp(12.0, 15.0),
-                         fontWeight: FontWeight.w400,
-                         letterSpacing: 0.21,
-                         color: const Color(0xFF666666),
+                      subtitle: Row(
+                         crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                       Text(
+                         getTimeAgo(feed.timestamp),
+                         style: TextStyle(
+                           fontSize: (w * 0.025).clamp(12.0, 15.0),
+                           fontWeight: FontWeight.w400,
+                           letterSpacing: 0.21,
+                           color: const Color(0xFF666666),
+                         ),
                        ),
-                     ),
-                        SizedBox(width: w*0.01,),
-                        Text(
-                          "•",
-                          style: TextStyle(
-                            fontSize: (w * 0.025).clamp(12.0, 15.0),
-                            color: ColorScheme.of(context).error,
+                          SizedBox(width: w*0.01,),
+                          Text(
+                            "•",
+                            style: TextStyle(
+                              fontSize: (w * 0.025).clamp(12.0, 15.0),
+                              color: ColorScheme.of(context).error,
+                            ),
                           ),
-                        ),
-                        SizedBox(width: w*0.03,),
-                        Padding(
-                          padding:  EdgeInsets.only(top: h*0.0027),
-                          child: SvgPicture.asset(PartyPageData.headquarterIcon,
-                          height: (h * 0.017) ,
+                          SizedBox(width: w*0.03,),
+                          Padding(
+                            padding:  EdgeInsets.only(top: h*0.0027),
+                            child: SvgPicture.asset(PartyPageData.headquarterIcon,
+                            height: (h * 0.017) ,
+                            ),
                           ),
-                        ),
-                        SizedBox(width: w*0.01,),
-                        Text(
-                          feed.author?.state ?? "-",
-                          style: TextStyle(
-                            fontSize: (w * 0.025).clamp(12.0, 15.0),
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.21,
-                            color: const Color(0xFF666666),
+                          SizedBox(width: w*0.01,),
+                          Text(
+                            feed.author?.state ?? "-",
+                            style: TextStyle(
+                              fontSize: (w * 0.025).clamp(12.0, 15.0),
+                              fontWeight: FontWeight.w400,
+                              letterSpacing: 0.21,
+                              color: const Color(0xFF666666),
+                            ),
                           ),
-                        ),
-                        SizedBox(width: w*0.01,),
-                        Text(
-                          feed.author?.country ?? "",
-                          style: TextStyle(
-                            fontSize: (w * 0.025).clamp(12.0, 15.0),
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.21,
-                            color: const Color(0xFF666666),
+                          SizedBox(width: w*0.01,),
+                          Text(
+                            feed.author?.country ?? "",
+                            style: TextStyle(
+                              fontSize: (w * 0.025).clamp(12.0, 15.0),
+                              fontWeight: FontWeight.w400,
+                              letterSpacing: 0.21,
+                              color: const Color(0xFF666666),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    trailing: isAdmin == true
-                        ? PopupMenuButton<String>(
-                      icon: Transform.translate(
-                        offset: const Offset(20, 0),
-                        child: SvgPicture.asset(
-                          PartyPageData.threeDots,
-                          height: h * 0.004,
-                        ),
+                        ],
                       ),
-                      onSelected: (value) async {
-                        if (value == 'edit') {
-                          final result = feed.kind=="POST"? await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                           builder: (_) => BlocProvider.value(
-                                value: context.read<FeedBloc>(),
-                                child: AddingFeed(
-                                  partyId: widget.partyId,
-                                  editFeed: feed,
-                                ),
-                              ),
-                            ),
-                          ):
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>  BlocProvider.value(
-                                value: context.read<FeedBloc>(),
-                                child: AddingQuote(
-                                  partyId: widget.partyId,
-                                  editQuote: feed,
-                                ),
-                              ),
-                            ),
-                          )
-                          ;
-
-                          if (result == true && mounted) {
-                            setState(() {});
-                          }
-                        }
-                       else if (value == 'share') {
-                          shareFeed(feed);
-                        } else if (value == 'delete') {
-                          final shouldDelete = await showGeneralDialog<bool>(
-                            context: context,
-                            barrierDismissible: true,
-                            barrierLabel: 'Delete',
-                            barrierColor: Colors.black.withOpacity(0.25),
-                            transitionDuration: const Duration(milliseconds: 250),
-                            pageBuilder: (dialogContext,_,__) {
-                              return popUpMessageForDeleteOrCancel(
-                                dialogContext,
-                               feed.kind=="POST"? PartyPageData.addFeedIcon:PartyPageData.coloredQuoteIcon,
-                                "Would you like to Delete?",
-                                "Once deleted, this post will be permanently removed.",
-                                    () {},
-                              );
-                            },
-                            transitionBuilder: (context, animation, secondaryAnimation, child){
-                              return SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(0,1),
-                                    end: Offset.zero,
-                                  ).animate(
-                                   CurvedAnimation(parent: animation,
-                                       curve: Curves.easeOutCubic,
-                                   ),
+                      trailing: isAdmin == true
+                          ? PopupMenuButton<String>(
+                        icon: Transform.translate(
+                          offset: const Offset(20, 0),
+                          child: SvgPicture.asset(
+                            PartyPageData.threeDots,
+                            height: h * 0.004,
+                          ),
+                        ),
+                        onSelected: (value) async {
+                          if (value == 'edit') {
+                            final result = feed.kind=="POST"? await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                             builder: (_) => BlocProvider.value(
+                                  value: context.read<FeedBloc>(),
+                                  child: AddingFeed(
+                                    partyId: widget.partyId,
+                                    editFeed: feed,
                                   ),
-                                child: child,
+                                ),
+                              ),
+                            ):
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>  BlocProvider.value(
+                                  value: context.read<FeedBloc>(),
+                                  child: AddingQuote(
+                                    partyId: widget.partyId,
+                                    editQuote: feed,
+                                  ),
+                                ),
+                              ),
+                            )
+                            ;
+
+                            if (result == true && mounted) {
+                              setState(() {});
+                            }
+                          }
+                         else if (value == 'share') {
+                            shareFeed(feed);
+                          } else if (value == 'delete') {
+                            final shouldDelete = await showGeneralDialog<bool>(
+                              context: context,
+                              barrierDismissible: true,
+                              barrierLabel: 'Delete',
+                              barrierColor: Colors.black.withOpacity(0.25),
+                              transitionDuration: const Duration(milliseconds: 250),
+                              pageBuilder: (dialogContext,_,__) {
+                                return popUpMessageForDeleteOrCancel(
+                                  dialogContext,
+                                 feed.kind=="POST"? PartyPageData.addFeedIcon:PartyPageData.coloredQuoteIcon,
+                                  "Would you like to Delete?",
+                                  "Once deleted, this post will be permanently removed.",
+                                      () {},
+                                );
+                              },
+                              transitionBuilder: (context, animation, secondaryAnimation, child){
+                                return SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0,1),
+                                      end: Offset.zero,
+                                    ).animate(
+                                     CurvedAnimation(parent: animation,
+                                         curve: Curves.easeOutCubic,
+                                     ),
+                                    ),
+                                  child: child,
+                                );
+                              }
+                            );
+
+                            if (shouldDelete == true && mounted) {
+                              context.read<FeedBloc>().add(
+                                DeleteFeedEvent(
+                                  feed.id!,
+                                  widget.partyId,
+                                ),
                               );
                             }
-                          );
 
-                          if (shouldDelete == true && mounted) {
-                            context.read<FeedBloc>().add(
-                              DeleteFeedEvent(
-                                feed.id!,
-                                widget.partyId,
-                              ),
-                            );
                           }
-
-                        }
-                      },
-                      itemBuilder: (BuildContext context) => [
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              SvgPicture.asset(PartyPageData.editIcon, width: 18),
-                              const SizedBox(width: 8),
-                              const Text("Edit"),
-                            ],
+                        },
+                        itemBuilder: (BuildContext context) => [
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(PartyPageData.editIcon, width: 18),
+                                const SizedBox(width: 8),
+                                const Text("Edit"),
+                              ],
+                            ),
                           ),
-                        ),
-                        PopupMenuItem(
-                          value: 'share',
-                          child: Row(
-                            children: [
-                              SvgPicture.asset(PartyPageData.share, width: 18),
-                              const SizedBox(width: 8),
-                              const Text("Share"),
-                            ],
+                          PopupMenuItem(
+                            value: 'share',
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(PartyPageData.share, width: 18),
+                                const SizedBox(width: 8),
+                                const Text("Share"),
+                              ],
+                            ),
                           ),
-                        ),
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              SvgPicture.asset(PartyPageData.deleteIcon, width: 18),
-                              const SizedBox(width: 8),
-                              const Text("Delete"),
-                            ],
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(PartyPageData.deleteIcon, width: 18),
+                                const SizedBox(width: 8),
+                                const Text("Delete"),
+                              ],
+                            ),
                           ),
+                        ],
+                      )
+                          : null,
+                    ),
+
+                    // Post content
+
+                    ShowingTaggedPersons(tagged:feed.tagged),
+                    Padding(
+                      padding: EdgeInsets.only(top: h*0.001, right: w * 0.044, left: w * 0.044),
+                      child: feed.kind=='POST'?ReadMoreText(
+                        feed.body ?? "-",
+                        trimLines: 3,
+                        trimMode: TrimMode.Line,
+                        trimCollapsedText: "\nRead More",
+                        trimExpandedText: "\nShow Less",
+                        moreStyle: const TextStyle(
+                          color: Color(0xFFFE3A31),
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
-                    )
-                        : null,
-                  ),
+                        lessStyle: const TextStyle(
+                          color: Color(0xFFFE3A31),
+                          fontWeight: FontWeight.w600,
+                        ),
+                        style: TextStyle(
+                          fontSize: (w * 0.042),
+                          color: Colors.black,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ):null,
+                    ),
 
-                  // Post content
+                    if (feed.media != null &&
+                        feed.media!.isNotEmpty &&
+                        feed.kind == "POST" &&
+                        feed.hidden == false) ...[
+                     SizedBox(height: h * 0.012),
+                      FeedMediaWidget(media: feed.media!),
+                    ] else if (feed.kind == "QUOTE" && feed.hidden == false) ...[
+                      SizedBox(height: h * 0.012),
+                      FeedQuoteWidget(
+                        feed.id,
+                        feed.quote!["quote"],
+                        feed.quote!["author"],
+                        feed.media!,
+                        context,
+                      ),
+                    ],
 
-                  ShowingTaggedPersons(tagged:feed.tagged),
-                  Padding(
-                    padding: EdgeInsets.only(top: h*0.001, right: w * 0.044, left: w * 0.044),
-                    child: feed.kind=='POST'?ReadMoreText(
-                      feed.body ?? "-",
-                      trimLines: 3,
-                      trimMode: TrimMode.Line,
-                      trimCollapsedText: "\nRead More",
-                      trimExpandedText: "\nShow Less",
-                      moreStyle: const TextStyle(
-                        color: Color(0xFFFE3A31),
-                        fontWeight: FontWeight.w600,
-                      ),
-                      lessStyle: const TextStyle(
-                        color: Color(0xFFFE3A31),
-                        fontWeight: FontWeight.w600,
-                      ),
-                      style: TextStyle(
-                        fontSize: (w * 0.042),
-                        color: Colors.black,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ):null,
-                  ),
+                      // Views and Interactions
+                    Padding(
+                      padding: EdgeInsets.only(
+                          top:feed.kind=="QUOTE"?0:h*0.012 ,
 
-                  if (feed.media != null &&
-                      feed.media!.isNotEmpty &&
-                      feed.kind == "POST" &&
-                      feed.hidden == false) ...[
-                   SizedBox(height: h * 0.012),
-                    FeedMediaWidget(media: feed.media!),
-                  ] else if (feed.kind == "QUOTE" && feed.hidden == false) ...[
-                    SizedBox(height: h * 0.012),
-                    FeedQuoteWidget(
-                      feed.id,
-                      feed.quote!["quote"],
-                      feed.quote!["author"],
-                      feed.media!,
-                      context,
+                      ),
+                      child: Column(
+                        children: [
+                          if(feed.kind=="QUOTE"||feed.media!.isEmpty)
+                            Divider(
+                              color: ColorScheme.of(context).onSurface.withOpacity(0.08),
+                              thickness: 1,
+                            ),
+                          Padding(
+                            padding:  EdgeInsets.only( right: w * 0.034, left: w * 0.044),
+                            child: Row(
+                              children: [
+                                Text(
+                                 feed.viewCount.toString(),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: (w * 0.05)
+                                  ),
+                                ),
+                                SizedBox(width: w * 0.03),
+                                Text(
+                                  "Views",
+                                  style: TextStyle(
+                                    fontSize: (w * 0.025).clamp(12.0, 15.0),
+                                    fontWeight: FontWeight.w400,
+                                    color: ColorScheme.of(context).onSurface.withOpacity(0.6),
+                                  ),
+                                ),
+                                const Spacer(),
+                                LikeButton(
+                                  key: ValueKey('like_${feed.id}'),
+                                  feedId: feed.id,
+                                  reacted: feed.reacted ?? false,
+                                ),
+                                SizedBox(width: w * 0.08),
+                                Padding(
+                                  padding:  EdgeInsets.only(right: w*0.015),
+                                  child: InkWell(
+                                    onTap: () => shareFeed(feed),
+                                    child: SvgPicture.asset(PartyPageData.share),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: h * 0.01),
+                    Container(
+                      color: const Color(0xFF000000).withOpacity(0.08),
+                      width: w,
+                      height: h * 0.009,
                     ),
                   ],
-
-        // Views and Interactions
-                  Padding(
-                    padding: EdgeInsets.only(
-                        top:feed.kind=="QUOTE"?0:h*0.012 ,
-
-                    ),
-                    child: Column(
-                      children: [
-                        if(feed.kind=="QUOTE"||feed.media!.isEmpty)
-                          Divider(
-                            color: ColorScheme.of(context).onSurface.withOpacity(0.08),
-                            thickness: 1,
-                          ),
-                        Padding(
-                          padding:  EdgeInsets.only( right: w * 0.034, left: w * 0.044),
-                          child: Row(
-                            children: [
-                              Text(
-                               feed.viewCount.toString(),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: (w * 0.05)
-                                ),
-                              ),
-                              SizedBox(width: w * 0.03),
-                              Text(
-                                "Views",
-                                style: TextStyle(
-                                  fontSize: (w * 0.025).clamp(12.0, 15.0),
-                                  fontWeight: FontWeight.w400,
-                                  color: ColorScheme.of(context).onSurface.withOpacity(0.6),
-                                ),
-                              ),
-                              const Spacer(),
-                              LikeButton(
-                                key: ValueKey('like_${feed.id}'),
-                                feedId: feed.id,
-                                reacted: feed.reacted ?? false,
-                              ),
-                              SizedBox(width: w * 0.08),
-                              Padding(
-                                padding:  EdgeInsets.only(right: w*0.015),
-                                child: InkWell(
-                                  onTap: () => shareFeed(feed),
-                                  child: SvgPicture.asset(PartyPageData.share),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: h * 0.01),
-                  Container(
-                    color: const Color(0xFF000000).withOpacity(0.08),
-                    width: w,
-                    height: h * 0.009,
-                  ),
-                ],
+                ),
               ),
             );
           },
