@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -197,10 +198,17 @@ Widget popUpMessageForDeleteOrCancel(
     ),
   );
 }
+
+
 class BannerSection extends StatefulWidget {
   final Map<String, dynamic> partyData;
+  final double progress;
 
-  const BannerSection({super.key, required this.partyData});
+  const BannerSection({
+    super.key,
+    required this.partyData,
+    this.progress = 0.0,
+  });
 
   @override
   State<BannerSection> createState() => _BannerSectionState();
@@ -208,107 +216,194 @@ class BannerSection extends StatefulWidget {
 
 class _BannerSectionState extends State<BannerSection> {
   final PageController _pageController = PageController();
+  final apiService = PartyPageApis();
+
   int currentIndex = 0;
-  final apiService=PartyPageApis();
+
   @override
   Widget build(BuildContext context) {
-    final List banners = widget.partyData["bannerImages"] as List? ?? [];
-    return Stack(
-      children: [
-        ///Banner Images
+    final List banners =
+        widget.partyData["bannerImages"] as List? ?? [];
 
-        SizedBox(
-          height: MediaQuery.of(context).size.height*0.8,
-          width: double.infinity,
-          child: banners.isEmpty
-              ?  const Center(
-                    child: Icon(Icons.image, size: 60, color: Colors.grey),
-                  )
-              : PageView.builder(
-                  controller: _pageController,
-                  itemCount: banners.length,
-                  onPageChanged: (index) {
-                    setState(() {
-                      currentIndex = index;
-                    });
-                  },
-                  itemBuilder: (context, index) {
-                    return Image.network(
-                      banners[index].startsWith("/api/")
-                          ? "$api${banners[index]}"
-                          : banners[index],
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) {
-                        return Container(
-                          color: Colors.white,
-                          child: const Center(
-                            child: Icon(Icons.image),
-                          ),
-                        );
-                      },
-                    );
-                  },
+    final double progress = widget.progress.clamp(0.0, 1.0);
+    final double screenHeight = MediaQuery.of(context).size.height;
+
+    // Animation values
+    final double blur = progress * 8.0;
+    final double darkOpacity = progress * 0.48;
+    final double titleOpacity =
+    ((progress - 0.15) / 0.45).clamp(0.0, 1.0);
+    final double arrowOpacity =
+    ((progress - 0.50) / 0.35).clamp(0.0, 1.0);
+
+    final String partyName =
+        widget.partyData["name"]?.toString() ??
+            widget.partyData["partyName"]?.toString() ??
+            "";
+
+    return SizedBox(
+      height: screenHeight * 0.8,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Banner images with progressive blur
+          if (banners.isEmpty)
+            const ColoredBox(
+              color: Colors.white,
+              child: Center(
+                child: Icon(
+                  Icons.image,
+                  size: 60,
+                  color: Colors.grey,
                 ),
-        ),
-        Positioned(
-          top: 45,
-          left: 30,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              borderRadius: BorderRadius.circular(30),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width*0.06,   // Hit area
-                height: MediaQuery.of(context).size.height*0.048,  // Hit area
+              ),
+            )
+          else
+            ImageFiltered(
+              imageFilter: ImageFilter.blur(
+                sigmaX: blur,
+                sigmaY: blur,
+              ),
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: banners.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    currentIndex = index;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  final image = banners[index].toString();
+
+                  return Image.network(
+                    image.startsWith("/api/")
+                        ? "$api$image"
+                        : image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) {
+                      return const ColoredBox(
+                        color: Colors.white,
+                        child: Center(
+                          child: Icon(Icons.image),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+
+          // Darken the image as the sheet expands
+          IgnorePointer(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 80),
+              color: Colors.black.withOpacity(darkOpacity),
+            ),
+          ),
+
+
+// Fixed back arrow
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.04,
+            left: MediaQuery.of(context).size.width * 0.05,
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                borderRadius: BorderRadius.circular(20),
                 child: Center(
                   child: Transform.rotate(
-                    angle: 3.14,
+                    angle: 3.141592653589793,
                     child: SvgPicture.asset(
                       "Assets/arrow.svg",
-                      color: Colors.black,
-                      height: MediaQuery.of(context).size.height * 0.02,
-                      width: MediaQuery.of(context).size.width * 0.01,
+                      colorFilter: const ColorFilter.mode(
+                        Colors.white,
+                        BlendMode.srcIn,
+                      ),
+                      height: MediaQuery.of(context).size.width * 0.035,
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
 
-        if (banners.length > 1)
+// Party name (keeps its existing animation)
           Positioned(
-            top: MediaQuery.of(context).size.height*0.68,
-            left: MediaQuery.of(context).size.width*0.6,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(banners.length, (index) {
-                final bool isSelected = currentIndex == index;
-
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  height: 10,
-                  width: 10,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: isSelected
-                        ? GradientColors.primaryGradient
-                        : null,
-                    color: isSelected ? null : Colors.transparent,
-                    border: Border.all(color: Colors.white, width: 1),
+            top: MediaQuery.of(context).size.height * 0.05,
+            left: MediaQuery.of(context).size.width * 0.05 + 52,
+            right: MediaQuery.of(context).size.width * 0.05,
+            child: Opacity(
+              opacity: titleOpacity,
+              child: Transform.translate(
+                offset: Offset(
+                  0,
+                  18 * (1 - titleOpacity),
+                ),
+                child: Text(
+                  partyName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: MediaQuery.of(context).size.width * 0.05,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-              }),
+                ),
+              ),
             ),
           ),
 
-        /// Party Symbol
-      ],
+
+          // Banner page indicators
+          if (banners.length > 1)
+            Positioned(
+              top: screenHeight * 0.68,
+              left: 0,
+              right: 0,
+              child: Opacity(
+                opacity: 1 - progress * 0.7,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    banners.length,
+                        (index) {
+                      final bool isSelected =
+                          currentIndex == index;
+
+                      return AnimatedContainer(
+                        duration:
+                        const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                        ),
+                        height: 10,
+                        width: 10,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: isSelected
+                              ? GradientColors.primaryGradient
+                              : null,
+                          color: isSelected
+                              ? null
+                              : Colors.transparent,
+                          border: Border.all(
+                            color: Colors.red,
+                            width: 1,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

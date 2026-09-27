@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/add_event.dart';
@@ -43,14 +44,11 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
   final apiService = PartyPageApis();
   late Future<Map<String, dynamic>> partyFullFuture;
   late TabController _tabController;
+  int _lastTabIndex = 0;
   bool showPartyDetails = true;
-  Timer? _showDetailsTimer;
-  double _scrollDelta = 0.0;
-  static const double _hideThreshold = 0.025;
-  static const double _showThreshold = 0.015;
-  double? _previousSheetExtent;
+  bool _isUserScrolling = false;
   bool? isAdmin;
-
+  final ValueNotifier<double> _sheetProgress = ValueNotifier(0.0);
   Future<void> isAdminChecking() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -85,7 +83,11 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
     _tabController.addListener(() {
       if (!mounted) return;
 
-      setState(() {});
+      if (_tabController.index != _lastTabIndex) {
+        _lastTabIndex = _tabController.index;
+
+        setState(() {});
+      }
     });
 
     partyFullFuture = apiService.fetchPartySingleWithIdFull(
@@ -95,6 +97,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
 
   @override
   void dispose() {
+    _sheetProgress.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -177,225 +180,213 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
               backgroundColor: const Color(0xFFebebeb),
               body: Stack(
                 children: [
-                  BannerSection(partyData: widget.partyData),
-                  DraggableScrollableSheet(
-                    initialChildSize: defaultSheetRatio,
-                    minChildSize: defaultSheetRatio,
-                    maxChildSize: 0.9,
-                    builder: (context, scrollController) {
-                      return NotificationListener<
-                        DraggableScrollableNotification
-                      >(
-                        onNotification: (notification) {
-                          final currentExtent = notification.extent;
-                          final previousExtent = _previousSheetExtent;
+                  ValueListenableBuilder<double>(
+                    valueListenable: _sheetProgress,
+                    builder: (context, progress, child) {
+                      return BannerSection(
+                        partyData: widget.partyData,
+                        progress: progress,
+                      );
+                    },
+                  ),
+                  NotificationListener<DraggableScrollableNotification>(
+                    onNotification: ((notification) {
 
-                          _previousSheetExtent = currentExtent;
+                      final progress = ((notification.extent - defaultSheetRatio)/(0.9 - defaultSheetRatio)).clamp(0.0,1.0);
+                      if ((progress - _sheetProgress.value).abs() > 0.005) {
+                        _sheetProgress.value = progress;
+                      }
+                   return false;
+                    }),
+                    child: DraggableScrollableSheet(
+                      initialChildSize: defaultSheetRatio,
+                      minChildSize: defaultSheetRatio,
+                      maxChildSize: 0.9,
+                      builder: (context, scrollController) {
+                        return NotificationListener<
+                            ScrollNotification
+                        >(
+                          onNotification: (notification) {
 
-                          if (previousExtent == null || !mounted) {
+                            if (!mounted) return false;
+                            if (notification.depth != 0) return false;
+                            if (notification is ScrollStartNotification) {
+                              _isUserScrolling = notification.dragDetails != null;
+                            }
+                            if (notification is ScrollEndNotification) {
+                              _isUserScrolling = false;
+                            }
+                            // Only respond to actual user scroll direction.
+                            if (notification is UserScrollNotification &&
+                                _isUserScrolling) {
+                              if (notification.direction == ScrollDirection.reverse) {
+                                // User scrolls up: hide party details.
+                                if (showPartyDetails) {
+                                  setState(() {
+                                    showPartyDetails = false;
+                                  });
+                                }
+                              } else if (notification.direction ==
+                                  ScrollDirection.forward) {
+                                // User scrolls down: show party details.
+                                if (!showPartyDetails) {
+                                  setState(() {
+                                    showPartyDetails = true;
+                                  });
+                                }
+                              }
+                            }
+
                             return false;
-                          }
 
-                          final delta = currentExtent - previousExtent;
-
-                          // Sheet is expanding = user scrolling up
-                          if (delta > 0) {
-                            _scrollDelta += delta;
-
-                            // Don't hide immediately.
-                            // Wait until the user has actually scrolled enough.
-                            if (_scrollDelta >= _hideThreshold &&
-                                showPartyDetails) {
-                              _scrollDelta = 0.0;
-
-                              _showDetailsTimer?.cancel();
-
-                              setState(() {
-                                showPartyDetails = false;
-                              });
-                            }
-                          }
-                          // Sheet is collapsing = user scrolling down
-                          else if (delta < 0) {
-                            _scrollDelta += delta;
-
-                            // Wait until enough downward scrolling has happened.
-                            if (_scrollDelta.abs() >= _showThreshold &&
-                                !showPartyDetails) {
-                              _scrollDelta = 0.0;
-
-                              _showDetailsTimer?.cancel();
-
-                              setState(() {
-                                showPartyDetails = true;
-                              });
-                            }
-                          }
-
-                          return false;
-                        },
-                        child: Container(
-                          clipBehavior: Clip.antiAlias,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(24),
+                          },
+                          child: Container(
+                            clipBehavior: Clip.antiAlias,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(24),
+                              ),
                             ),
-                          ),
-                          child: FutureBuilder<Map<String, dynamic>>(
-                            future: partyFullFuture,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(30),
-                                    child: CircularProgressIndicator(
-                                      color: ColorScheme.of(context).onSurface,
+                            child: FutureBuilder<Map<String, dynamic>>(
+                              future: partyFullFuture,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(30),
+                                      child: CircularProgressIndicator(
+                                        color: ColorScheme.of(context).onSurface,
+                                      ),
                                     ),
-                                  ),
-                                );
-                              }
+                                  );
+                                }
 
-                              if (snapshot.hasError) {
-                                return Center(
-                                  child: Text(snapshot.error.toString()),
-                                );
-                              }
+                                if (snapshot.hasError) {
+                                  return Center(
+                                    child: Text(snapshot.error.toString()),
+                                  );
+                                }
 
-                              final fullData = snapshot.data!;
-                              final PartyProfileModel party =
-                                  fullData['party'] as PartyProfileModel;
-                              final SymbolModel symbol =
-                                  fullData['symbol'] as SymbolModel;
-                              final List<JourneyModel> journey =
-                                  fullData['journey'] as List<JourneyModel>;
-                              final List<LeaderGroupModel> leaders =
-                                  fullData['leaderGroup']
-                                      as List<LeaderGroupModel>;
-                              final List<MemberDirectoryModel> members =
-                                  fullData['members']
-                                      as List<MemberDirectoryModel>;
-                              final Map<String, List<MemberDirectoryModel>>
-                              membersByRegion =
-                                  fullData['membersByRegion']
-                                      as Map<
-                                        String,
-                                        List<MemberDirectoryModel>
-                                      >;
+                                final fullData = snapshot.data!;
+                                final PartyProfileModel party =
+                                    fullData['party'] as PartyProfileModel;
+                                final SymbolModel symbol =
+                                    fullData['symbol'] as SymbolModel;
+                                final List<JourneyModel> journey =
+                                    fullData['journey'] as List<JourneyModel>;
+                                final List<LeaderGroupModel> leaders =
+                                    fullData['leaderGroup']
+                                        as List<LeaderGroupModel>;
+                                final List<MemberDirectoryModel> members =
+                                    fullData['members']
+                                        as List<MemberDirectoryModel>;
+                                final Map<String, List<MemberDirectoryModel>>
+                                membersByRegion =
+                                    fullData['membersByRegion']
+                                        as Map<
+                                          String,
+                                          List<MemberDirectoryModel>
+                                        >;
 
-                              return CustomScrollView(
-                                controller: scrollController,
-                                slivers: [
-                                  // Header Section (Party details)
-                                  SliverToBoxAdapter(
-                                    child: Column(
-                                      children: [
-                                        ///--------Party, followers, follow, like....
-                                        AnimatedSize(
-                                          duration: const Duration(
-                                            milliseconds: 250,
-                                          ),
-                                          curve: Curves.easeOutCubic,
-                                          alignment: Alignment.topCenter,
-                                          child: ClipRect(
-                                            child: Align(
-                                              alignment: Alignment.topCenter,
-                                              heightFactor: showPartyDetails
-                                                  ? 1.0
-                                                  : 0.0,
-                                              child: PartyDetailsSection(
-                                                key: const ValueKey(
-                                                  'party_details',
-                                                ),
-                                                partyData: widget.partyData,
+                                return CustomScrollView(
+                                  controller: scrollController,
+                                  slivers: [
+                                    // Header Section (Party details)
+                                    SliverToBoxAdapter(
+                                      child: AnimatedSize(
+                                        duration: const Duration(
+                                          milliseconds: 250,
+                                        ),
+                                        curve: Curves.easeOutCubic,
+                                        alignment: Alignment.topCenter,
+                                        child: ClipRect(
+                                          child: Align(
+                                            alignment: Alignment.topCenter,
+                                            heightFactor: showPartyDetails
+                                                ? 1.0
+                                                : 0.0,
+                                            child: PartyDetailsSection(
+                                              key: const ValueKey(
+                                                'party_details',
                                               ),
+                                              partyData: widget.partyData,
                                             ),
                                           ),
                                         ),
-                                        Container(
-                                          width: MediaQuery.of(
-                                            context,
-                                          ).size.width,
-                                          height:
-                                              MediaQuery.of(
-                                                context,
-                                              ).size.height *
-                                              0.01,
-                                          color: const Color(
-                                            0xFF000000,
-                                          ).withOpacity(0.08),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  // Pinned TabBar
-                                  SliverPersistentHeader(
-                                    pinned: true,
-                                    delegate: _SliverTabBarDelegate(
-                                      TabBar(
-                                        controller: _tabController,
-                                        tabAlignment: TabAlignment.center,
-                                        overlayColor: WidgetStateProperty.all(Colors.transparent),
-                                        padding: EdgeInsets.only(
-                                          left:
-                                              MediaQuery.of(
-                                                context,
-                                              ).size.width *
-                                              0.02,
-                                        ),
-                                        isScrollable: true,
-                                        labelStyle: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          letterSpacing: 0.25,
-                                        ),
-                                        unselectedLabelStyle: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400,
-                                          letterSpacing: 0.25,
-                                        ),
-                                        labelColor: const Color(0xFF000000),
-                                        unselectedLabelColor: const Color(
-                                          0xFF666666,
-                                        ),
-                                        indicatorColor: Colors.red,
-                                        dividerColor: ColorScheme.of(
-                                          context,
-                                        ).onSurface.withOpacity(0.2),
-                                        tabs: [
-                                          Tab(text: PartyPageData.info),
-                                          Tab(text: PartyPageData.symbol),
-                                          Tab(text: PartyPageData.journey),
-                                          Tab(text: PartyPageData.leadership),
-                                          Tab(text: PartyPageData.feed),
-                                          Tab(text: PartyPageData.event,),
-                                          Tab(text: PartyPageData.manifesto,),
-                                        ],
                                       ),
                                     ),
-                                  ),
 
-                                  // Dynamic Tab Body Content
-                                  SliverToBoxAdapter(
-                                    child: _buildActiveTabContent(
-                                      party: party,
-                                      symbol: symbol,
-                                      journey: journey,
-                                      leaders: leaders,
-                                      members: members,
-                                      membersByRegion: membersByRegion,
-                                      scrollController: scrollController,
+                                    // Pinned TabBar
+                                    SliverPersistentHeader(
+                                      pinned: true,
+                                      delegate: _SliverTabBarDelegate(
+                                        TabBar(
+                                          controller: _tabController,
+                                          tabAlignment: TabAlignment.center,
+                                          overlayColor: WidgetStateProperty.all(Colors.transparent),
+                                          padding: EdgeInsets.only(
+                                            left:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.width *
+                                                0.02,
+                                          ),
+                                          isScrollable: true,
+                                          labelStyle: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.25,
+                                          ),
+                                          unselectedLabelStyle: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                            letterSpacing: 0.25,
+                                          ),
+                                          labelColor: const Color(0xFF000000),
+                                          unselectedLabelColor: const Color(
+                                            0xFF666666,
+                                          ),
+                                          indicatorColor: Colors.red,
+                                          dividerColor: ColorScheme.of(
+                                            context,
+                                          ).onSurface.withOpacity(0.2),
+                                          tabs: [
+                                            Tab(text: PartyPageData.info),
+                                            Tab(text: PartyPageData.symbol),
+                                            Tab(text: PartyPageData.journey),
+                                            Tab(text: PartyPageData.leadership),
+                                            Tab(text: PartyPageData.feed),
+                                            Tab(text: PartyPageData.event,),
+                                            Tab(text: PartyPageData.manifesto,),
+                                          ],
+                                        ),
+                                        dividerHeight:
+                                        MediaQuery.of(context).size.height * 0.01,
+                                        ),
                                     ),
-                                  ),
-                                ],
-                              );
-                            },
+
+                                    // Dynamic Tab Body Content
+                                    SliverToBoxAdapter(
+                                      child: _buildActiveTabContent(
+                                        party: party,
+                                        symbol: symbol,
+                                        journey: journey,
+                                        leaders: leaders,
+                                        members: members,
+                                        membersByRegion: membersByRegion,
+                                        scrollController: scrollController,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                   if ((_tabController.index == 4 || _tabController.index == 5 || _tabController.index==6) &&
                       isAdmin == true)
@@ -606,26 +597,50 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
 class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar tabBar;
   final Color backgroundColor;
+  final double dividerHeight;
 
-  _SliverTabBarDelegate(this.tabBar, {this.backgroundColor = Colors.white});
+  _SliverTabBarDelegate(
+      this.tabBar, {
+        this.backgroundColor = Colors.white,
+        this.dividerHeight = 8.0,
+      });
 
   @override
   Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Container(color: backgroundColor, child: tabBar);
+      BuildContext context,
+      double shrinkOffset,
+      bool overlapsContent,
+      ) {
+    return Container(
+      color: backgroundColor,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: dividerHeight,
+            child: ColoredBox(
+              color: const Color(0xFF000000).withOpacity(0.08),
+            ),
+          ),
+          tabBar,
+        ],
+      ),
+    );
   }
 
   @override
-  double get maxExtent => tabBar.preferredSize.height;
+  double get maxExtent =>
+      tabBar.preferredSize.height + dividerHeight;
 
   @override
-  double get minExtent => tabBar.preferredSize.height;
+  double get minExtent =>
+      tabBar.preferredSize.height + dividerHeight;
 
   @override
   bool shouldRebuild(_SliverTabBarDelegate oldDelegate) {
-    return false;
+    return oldDelegate.tabBar != tabBar ||
+        oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.dividerHeight != dividerHeight;
   }
 }
