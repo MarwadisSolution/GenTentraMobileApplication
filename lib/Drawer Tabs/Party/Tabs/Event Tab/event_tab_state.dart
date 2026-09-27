@@ -67,6 +67,7 @@ final int? joiningEventId;
    final bool isEventUpdated;
    final List<Tagged> removeTags;
    final bool removeBackgroundImage;
+   final DateTime? lastFetchedAt;
  const EventTabState({
   this.status=EventStatus.initial,
    this.event,
@@ -121,6 +122,7 @@ final int? joiningEventId;
    this.isEventUpdated = false,
    this.removeTags = const [],
    this.removeBackgroundImage = false,
+   this.lastFetchedAt,
  });
 
 EventTabState copyWith({
@@ -184,7 +186,7 @@ EventTabState copyWith({
   bool? isEventUpdated,
   List<Tagged>? removeTags,
   bool? removeBackgroundImage,
-
+  DateTime? lastFetchedAt,
 }) {
   return EventTabState(
     status: status ?? this.status,
@@ -316,6 +318,7 @@ EventTabState copyWith({
     removeTags: removeTags ?? this.removeTags,
     removeBackgroundImage:
     removeBackgroundImage ?? this.removeBackgroundImage,
+    lastFetchedAt: lastFetchedAt ?? this.lastFetchedAt,
   );
 }
 }

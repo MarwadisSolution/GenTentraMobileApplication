@@ -75,6 +75,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
             feeds: newFeeds,
             currentPage: 0,
             hasMore: hasMore,
+            lastFetchedAt: DateTime.now(),
           ),
         );
       } else {
@@ -136,6 +137,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           isPostSuccess: true,
           isOfflineQueued: true,
           errorMessage: '',
+         // lastFetchedAt: DateTime.now(),
         )
         );
 
@@ -166,6 +168,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
             hasMore: feed.length == 20,
             isLoadingMore: false,
             errorMessage: '',
+            lastFetchedAt: DateTime.now(),
           ),
         );
 
@@ -242,6 +245,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           hasMore: feed.length == 20,
           isLoadingMore: false,
           errorMessage: message,
+          lastFetchedAt: DateTime.now(),
         ),
       );
     } catch (e, stackTrace) {
@@ -379,6 +383,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           isPostSuccess: true,
           feeds: updatedFeeds,
           errorMessage: '',
+          lastFetchedAt: DateTime.now(),
         ),
       );
 

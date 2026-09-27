@@ -16,6 +16,7 @@ class _PartyPageState extends State<PartyPage> {
   late Future<List<dynamic>> partiesFuture;
   final apiService = PartyPageApis();
   bool _isLoadingParty = false;
+
   @override
   void initState() {
     super.initState();

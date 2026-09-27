@@ -99,6 +99,10 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
           hasMore: response.hasNext,
 
           isLoadingMore: false,
+          lastFetchedAt: isFirstPage
+              ? DateTime.now()
+              : state.lastFetchedAt,
+
         ),
       );
     } catch (e) {

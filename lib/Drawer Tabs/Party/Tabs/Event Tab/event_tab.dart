@@ -2,13 +2,11 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/event_tab_bloc.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/event_tab_state.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/full_event_desc.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/reusable_functions.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
-import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../Reusable Functions/reusable_functions.dart';
@@ -35,7 +33,6 @@ class EventTab extends StatefulWidget {
 class _EventTabState extends State<EventTab> {
   int? selectedIndex;
   bool isAdmin = false;
-
   List<EventModel> _getFilteredEvents(
     List<EventModel> events,
     int selectedTab,
@@ -152,15 +149,46 @@ class _EventTabState extends State<EventTab> {
   // ------------------------------------------------------------
   // INIT STATE
   // ------------------------------------------------------------
+  // @override
+  // void initState() {
+  //   super.initState();
+  //
+  //   widget.scrollController.addListener(_onScroll);
+  //
+  //   context.read<EventsBloc>().add(
+  //     GetEventEvent(partyId: widget.partyId, page: 0, size: 20),
+  //   );
+  //   checkAdmin();
+  // }
+
   @override
   void initState() {
     super.initState();
 
     widget.scrollController.addListener(_onScroll);
 
-    context.read<EventsBloc>().add(
-      GetEventEvent(partyId: widget.partyId, page: 0, size: 20),
-    );
+    final eventBloc = context.read<EventsBloc>();
+    final eventState = eventBloc.state;
+
+    const refreshAfter = Duration(minutes: 2);
+
+    final shouldFetch =
+        eventState.events.isEmpty ||
+            eventState.lastFetchedAt == null ||
+            DateTime.now().difference(eventState.lastFetchedAt!) >
+                refreshAfter;
+
+    if (shouldFetch &&
+        eventState.status != EventStatus.loading) {
+      eventBloc.add(
+        GetEventEvent(
+          partyId: widget.partyId,
+          page: 0,
+          size: 20,
+        ),
+      );
+    }
+
     checkAdmin();
   }
 
@@ -249,7 +277,7 @@ class _EventTabState extends State<EventTab> {
         // --------------------------------------------------------
         // LOADING
         // --------------------------------------------------------
-        if (state.status == EventStatus.loading) {
+        if (state.status == EventStatus.loading &&  state.events.isEmpty) {
           return Center(
             child: Padding(
               padding: EdgeInsets.all(h * 0.1),
@@ -580,162 +608,6 @@ class _EventTabState extends State<EventTab> {
                                         );
                                   },
                                 ),
-                          // child: Stack(
-                          //   children: [
-                          //     if (eventData.bgImageUrl != null &&
-                          //         eventData.bgImageUrl!.isNotEmpty)
-                          //       Container(
-                          //         margin: const EdgeInsets.symmetric(horizontal: 12),
-                          //         height: w*1.2 ,
-                          //         decoration: BoxDecoration(
-                          //           borderRadius: BorderRadius.circular(20),
-                          //           color: ColorScheme.of(context).surface,
-                          //         ),
-                          //         clipBehavior: Clip.antiAlias,
-                          //         child: SizedBox(
-                          //           width: double.infinity,
-                          //           child: buildImageWidget(
-                          //             eventData.bgImageUrl!,
-                          //             width: double.infinity,
-                          //             height: h,
-                          //             fit: BoxFit.cover,
-                          //           ),
-                          //         ),
-                          //       ),
-                          //     Positioned(
-                          //         top:
-                          //             eventData.bgImageUrl != null &&
-                          //                 eventData.bgImageUrl!.isNotEmpty
-                          //             ? h * 0.25
-                          //             : 0,
-                          //         left:
-                          //             eventData.bgImageUrl != null &&
-                          //                 eventData.bgImageUrl!.isNotEmpty
-                          //             ? w * 0.04
-                          //             : 0,
-                          //         right:
-                          //             eventData.bgImageUrl != null &&
-                          //                 eventData.bgImageUrl!.isNotEmpty
-                          //             ? w * 0.04
-                          //             : 0,
-                          //
-                          //       child: ReusableEventCard(
-                          //         eventData: eventData,
-                          //
-                          //         isAdmin: isAdmin,
-                          //
-                          //         fromTime: eventData.timeFrom.toString(),
-                          //
-                          //         isJoining:
-                          //         state.joiningEventId == eventData.id,
-                          //
-                          //         onShare: () {
-                          //           shareFeed(eventData);
-                          //         },
-                          //
-                          //         onJoin: () {
-                          //           context.read<EventsBloc>().add(
-                          //             joinUnJoinButtonEvent(
-                          //               eventId: eventData.id!,
-                          //             ),
-                          //           );
-                          //         },
-                          //
-                          //         onEdit: () async {
-                          //           if (_hasEventStarted(eventData)) {
-                          //             ScaffoldMessenger.of(context).showSnackBar(
-                          //               const SnackBar(
-                          //                 backgroundColor: Colors.red,
-                          //                 content: Text(
-                          //                   "This event cannot be edited because it has already started.",
-                          //                 ),
-                          //               ),
-                          //             );
-                          //
-                          //             return;
-                          //           }
-                          //
-                          //           final bool? updated = await Navigator.push<bool>(
-                          //             context,
-                          //             MaterialPageRoute(
-                          //               builder: (_) {
-                          //                 return BlocProvider(
-                          //                   create: (_) => EventsBloc(EventApis()),
-                          //                   child: AddEvent(
-                          //                     partyId: widget.partyId,
-                          //                     eventToEdit: eventData,
-                          //                   ),
-                          //                 );
-                          //               },
-                          //             ),
-                          //           );
-                          //
-                          //           if (updated == true && mounted) {
-                          //             context.read<EventsBloc>().add(
-                          //               GetEventEvent(
-                          //                 partyId: widget.partyId,
-                          //                 page: 0,
-                          //                 size: 20,
-                          //               ),
-                          //             );
-                          //           }
-                          //         },
-                          //         onDelete: () async {
-                          //           final shouldDelete = await showGeneralDialog<bool>(
-                          //             context: context,
-                          //             barrierDismissible: true,
-                          //             barrierLabel: 'Delete',
-                          //             barrierColor: Colors.black.withOpacity(0.25),
-                          //             transitionDuration: const Duration(milliseconds: 250),
-                          //             pageBuilder: (dialogContext, _, __) {
-                          //               return popUpMessageForDeleteOrCancel(
-                          //                 dialogContext,
-                          //                 PartyPageData.calenderIcon,
-                          //                 "Would you like to Delete Event?",
-                          //                 "Once deleted, this event will be permanently removed.",
-                          //                     () {},
-                          //               );
-                          //             },
-                          //             transitionBuilder: (
-                          //                 context,
-                          //                 animation,
-                          //                 secondaryAnimation,
-                          //                 child,
-                          //                 ) {
-                          //               return SlideTransition(
-                          //                 position: Tween<Offset>(
-                          //                   begin: const Offset(0, 1),
-                          //                   end: Offset.zero,
-                          //                 ).animate(
-                          //                   CurvedAnimation(
-                          //                     parent: animation,
-                          //                     curve: Curves.easeOutCubic,
-                          //                   ),
-                          //                 ),
-                          //                 child: child,
-                          //               );
-                          //             },
-                          //           );
-                          //
-                          //           if (shouldDelete == true && mounted) {
-                          //             if (eventData.id == null) {
-                          //               ScaffoldMessenger.of(context).showSnackBar(
-                          //                 const SnackBar(
-                          //                   content: Text("Unable to delete event"),
-                          //                 ),
-                          //               );
-                          //               return;
-                          //             }
-                          //
-                          //             context.read<EventsBloc>().add(
-                          //               DeleteEvent(eventData.id!),
-                          //             );
-                          //           }
-                          //         },
-                          //       )
-                          //     ),
-                          //   ],
-                          // ),
                         );
                       },
 

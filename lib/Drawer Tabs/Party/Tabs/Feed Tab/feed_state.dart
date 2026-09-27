@@ -15,8 +15,9 @@ class FeedState extends Equatable{
   final bool isLoadingMore;
   final Set<int> viewedPostIds;
   final Set<int> reportingViewIds;
+  final DateTime? lastFetchedAt;
   const FeedState({
-    this.isLoading=true,
+    this.isLoading=false,
     this.isError=false,
     this.isPosting=false,
     this.isPostSuccess = false,
@@ -29,6 +30,7 @@ class FeedState extends Equatable{
     this.isLoadingMore = false,
     this.viewedPostIds = const {},
     this.reportingViewIds = const {},
+    this.lastFetchedAt,
 });
   FeedState copyWith({
     bool? isLoading,
@@ -46,6 +48,7 @@ class FeedState extends Equatable{
     bool?isSuccessInJoining,
     Set<int>? viewedPostIds,
     Set<int>? reportingViewIds,
+    DateTime? lastFetchedAt,
 }){
     return FeedState(
       isLoading: isLoading??this.isLoading,
@@ -61,6 +64,7 @@ class FeedState extends Equatable{
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       viewedPostIds: viewedPostIds ?? this.viewedPostIds,
       reportingViewIds: reportingViewIds ?? this.reportingViewIds,
+      lastFetchedAt: lastFetchedAt ?? this.lastFetchedAt,
     );
   }
   factory FeedState.initial()=> FeedState();
@@ -80,5 +84,6 @@ class FeedState extends Equatable{
         isLoadingMore,
         viewedPostIds,
         reportingViewIds,
+        lastFetchedAt,
       ];
 }

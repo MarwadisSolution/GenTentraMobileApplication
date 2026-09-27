@@ -40,57 +40,27 @@ class _ManifestoTabState extends State<ManifestoTab> {
   }
 
   int? _selectedYear;
-
-  // Widget _yearFilterChip({
-  //   required BuildContext context,
-  //   required String title,
-  //   required int? year,
-  // }) {
-  //   final bool isSelected = _selectedYear == year;
-  //
-  //   final w = MediaQuery.of(context).size.width;
-  //   final h = MediaQuery.of(context).size.height;
-  //
-  //   return GestureDetector(
-  //     onTap: () {
-  //       filterByYear(year);
-  //     },
-  //     child: Container(
-  //       margin: EdgeInsets.only(
-  //         right: w * 0.025,
-  //       ),
-  //       padding: EdgeInsets.symmetric(
-  //         horizontal: w * 0.055,
-  //       ),
-  //       decoration: BoxDecoration(
-  //         color: isSelected
-  //             ? const Color(0xFFFF4B3A)
-  //             : const Color(0xFFBDBDBD),
-  //         borderRadius: BorderRadius.circular(30),
-  //       ),
-  //       alignment: Alignment.center,
-  //       child: Text(
-  //         title,
-  //         style: TextStyle(
-  //           color: Colors.white,
-  //           fontSize: h * 0.018,
-  //           fontWeight: FontWeight.w500,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
   @override
   void initState() {
     super.initState();
 
-    // Use the controller provided by PartyFetchedData.
     widget.scrollController.addListener(_onScroll);
 
-    // Initial GET
-    context.read<ManifestoBloc>().add(
-      GetManifestosEvent(partyId: widget.partyId),
-    );
+    final bloc = context.read<ManifestoBloc>();
+    final state = bloc.state;
+
+    final bool shouldFetch =
+        state.manifestos.isEmpty ||
+            state.lastFetchedAt == null ||
+            DateTime.now().difference(state.lastFetchedAt!) >
+                const Duration(minutes: 60) ||
+            state.partyId != widget.partyId;
+
+    if (shouldFetch && state.status != ManifestoStatus.loading) {
+      bloc.add(
+        GetManifestosEvent(partyId: widget.partyId),
+      );
+    }
   }
 
   void filterByYear(int? year) {
@@ -116,12 +86,20 @@ class _ManifestoTabState extends State<ManifestoTab> {
   // ==========================================================
 
   void _onScroll() {
-    if (!widget.scrollController.hasClients) {
+    if (!widget.scrollController.hasClients) return;
+
+    final state = context.read<ManifestoBloc>().state;
+
+    if (state.isLoadingMore ||
+        state.status == ManifestoStatus.loading ||
+        !state.hasNext) {
       return;
     }
 
     if (widget.scrollController.position.extentAfter < 500) {
-      context.read<ManifestoBloc>().add(const LoadMoreManifestosEvent());
+      context.read<ManifestoBloc>().add(
+        const LoadMoreManifestosEvent(),
+      );
     }
   }
 

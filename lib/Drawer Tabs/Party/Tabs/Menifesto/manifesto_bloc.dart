@@ -49,7 +49,7 @@ class ManifestoBloc extends Bloc<ManifestoEvent, ManifestoState> {
     emit(
       state.copyWith(
         status: ManifestoStatus.loading,
-        manifestos: [],
+        // manifestos: [],
         currentPage: 0,
         hasNext: true,
         partyId: event.partyId,
@@ -57,6 +57,7 @@ class ManifestoBloc extends Bloc<ManifestoEvent, ManifestoState> {
         year: event.year,
         kind: event.kind,
         search: event.search ?? '',
+        lastFetchedAt: DateTime.now(),
       ),
     );
 
@@ -177,6 +178,7 @@ class ManifestoBloc extends Bloc<ManifestoEvent, ManifestoState> {
         currentPage: 0,
         hasNext: true,
         search: event.search,
+        lastFetchedAt: DateTime.now(),
       ),
     );
 

@@ -17,15 +17,8 @@ enum ManifestoActionStatus {
 }
 
 class ManifestoState extends Equatable {
-  // ==========================================================
-  // LIST
-  // ==========================================================
 
   final List<ManifestoModel> manifestos;
-
-  // ==========================================================
-  // GET STATUS
-  // ==========================================================
 
   final ManifestoStatus status;
 
@@ -38,9 +31,6 @@ class ManifestoState extends Equatable {
   final bool hasNext;
   final bool isLoadingMore;
 
-  // ==========================================================
-  // FILTERS
-  // ==========================================================
 
   final int? partyId;
   final int? politicianId;
@@ -48,25 +38,13 @@ class ManifestoState extends Equatable {
   final String? kind;
   final String search;
 
-  // ==========================================================
-  // POST STATUS
-  // ==========================================================
-
   final ManifestoActionStatus postStatus;
-
-  // ==========================================================
-  // UPDATE STATUS
-  // ==========================================================
 
   final ManifestoActionStatus updateStatus;
 
-  // ==========================================================
-  // MESSAGE
-  // ==========================================================
-
   final String? message;
   final ManifestoActionStatus deleteStatus;
-
+  final DateTime? lastFetchedAt;
   const ManifestoState({
     this.manifestos = const [],
     this.status = ManifestoStatus.initial,
@@ -83,6 +61,7 @@ class ManifestoState extends Equatable {
     this.updateStatus = ManifestoActionStatus.initial,
     this.message,
     this.deleteStatus = ManifestoActionStatus.initial,
+    this.lastFetchedAt,
   });
 
   ManifestoState copyWith({
@@ -105,6 +84,7 @@ class ManifestoState extends Equatable {
     // Allows explicitly clearing nullable values.
     bool clearMessage = false,
     ManifestoActionStatus? deleteStatus,
+    DateTime? lastFetchedAt,
   }) {
     return ManifestoState(
       manifestos: manifestos ?? this.manifestos,
@@ -128,6 +108,7 @@ class ManifestoState extends Equatable {
           : message ?? this.message,
       deleteStatus:
       deleteStatus ?? this.deleteStatus,
+      lastFetchedAt: lastFetchedAt ?? this.lastFetchedAt,
     );
   }
 
@@ -148,5 +129,6 @@ class ManifestoState extends Equatable {
     updateStatus,
     message,
     deleteStatus,
+    lastFetchedAt,
   ];
 }

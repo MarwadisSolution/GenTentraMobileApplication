@@ -102,7 +102,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
     super.dispose();
   }
 
-  Widget _buildActiveTabContent({
+  Widget _buildTabContent({
+    required int index,
     required PartyProfileModel party,
     required SymbolModel symbol,
     required List<JourneyModel> journey,
@@ -111,7 +112,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
     required Map<String, List<MemberDirectoryModel>> membersByRegion,
     required ScrollController scrollController,
   }) {
-    switch (_tabController.index) {
+    switch (index) {
       case 0:
         return InfoTab(party: party);
       case 1:
@@ -126,16 +127,21 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
         );
       case 4:
         return FeedTab(
+          key: const ValueKey('feed_tab'),
+          partyId: widget.partyData["id"],
+          scrollController: scrollController,
+          isVisible: _tabController.index == 4,
+        );
+      case 5:
+        return EventTab(
           partyId: widget.partyData["id"],
           scrollController: scrollController,
         );
-      case 5:
-        return EventTab(partyId: widget.partyData["id"],
-            scrollController: scrollController,);
       case 6:
-        return ManifestoTab(partyId: widget.partyData["id"],
+        return ManifestoTab(
+          partyId: widget.partyData["id"],
           scrollController: scrollController,
-        isAdmin: isAdmin??false,
+          isAdmin: isAdmin ?? false,
         );
       default:
         return const SizedBox.shrink();
@@ -369,14 +375,36 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
 
                                     // Dynamic Tab Body Content
                                     SliverToBoxAdapter(
-                                      child: _buildActiveTabContent(
-                                        party: party,
-                                        symbol: symbol,
-                                        journey: journey,
-                                        leaders: leaders,
-                                        members: members,
-                                        membersByRegion: membersByRegion,
-                                        scrollController: scrollController,
+                                      child: Stack(
+                                        children: [
+                                          // Keep FeedTab mounted so its video controllers survive tab changes.
+                                          Offstage(
+                                            offstage: _tabController.index != 4,
+                                            child: _buildTabContent(
+                                              index: 4,
+                                              party: party,
+                                              symbol: symbol,
+                                              journey: journey,
+                                              leaders: leaders,
+                                              members: members,
+                                              membersByRegion: membersByRegion,
+                                              scrollController: scrollController,
+                                            ),
+                                          ),
+
+                                          // Build only the selected non-Feed tab.
+                                          if (_tabController.index != 4)
+                                            _buildTabContent(
+                                              index: _tabController.index,
+                                              party: party,
+                                              symbol: symbol,
+                                              journey: journey,
+                                              leaders: leaders,
+                                              members: members,
+                                              membersByRegion: membersByRegion,
+                                              scrollController: scrollController,
+                                            ),
+                                        ],
                                       ),
                                     ),
                                   ],

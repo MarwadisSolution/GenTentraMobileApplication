@@ -22,7 +22,8 @@ import 'functions.dart';
 class FeedTab extends StatefulWidget {
   final int partyId;
   final ScrollController scrollController;
-  const FeedTab({super.key, required this.partyId,required this.scrollController,});
+  final bool isVisible;
+  const FeedTab({super.key, required this.partyId,required this.scrollController,required this.isVisible});
 
   @override
   State<FeedTab> createState() => _FeedTabState();
@@ -31,6 +32,32 @@ class FeedTab extends StatefulWidget {
 class _FeedTabState extends State<FeedTab> {
   int? selectedIndex;
   bool? isAdmin;
+
+  void _refreshIfNeeded() {
+    if (!widget.isVisible) return;
+
+    final feedBloc = context.read<FeedBloc>();
+    final feedState = feedBloc.state;
+
+    const refreshAfter = Duration(seconds: 30);
+
+    final shouldFetch =
+        feedState.feeds.isEmpty ||
+            feedState.lastFetchedAt == null ||
+            DateTime.now().difference(feedState.lastFetchedAt!) >
+                refreshAfter;
+
+    if (shouldFetch && !feedState.isLoading) {
+      feedBloc.add(
+        LoadFeedEvent(
+          partyId: widget.partyId,
+          page: 0,
+          size: 20,
+        ),
+      );
+    }
+  }
+
   Future<void> isAdminChecking() async {
     final prefs = await SharedPreferences.getInstance();
     final String? adminPartyId = prefs.getString("AdminOfParty");
@@ -62,18 +89,26 @@ class _FeedTabState extends State<FeedTab> {
     }
   }
   @override
+  void didUpdateWidget(covariant FeedTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (!oldWidget.isVisible && widget.isVisible) {
+      _refreshIfNeeded();
+    }
+  }
+  @override
   void initState() {
     super.initState();
 
     isAdminChecking();
 
-    context.read<FeedBloc>().add(
-      LoadFeedEvent(
-        partyId: widget.partyId,
-        page: 0,
-        size: 20,
-      ),
-    );
+    if (widget.isVisible) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _refreshIfNeeded();
+        }
+      });
+    }
 
     widget.scrollController.addListener(_onScroll);
   }
@@ -200,7 +235,7 @@ class _FeedTabState extends State<FeedTab> {
         }
       },
       builder: (context, state) {
-        if (state.isLoading) {
+        if (state.isLoading  && state.feeds.isEmpty) {
           return Padding(
             padding: EdgeInsets.only(top: h * 0.1),
             child: const Center(
