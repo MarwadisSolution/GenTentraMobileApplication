@@ -4,10 +4,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill_extensions/flutter_quill_extensions.dart' show FlutterQuillEmbeds, QuillEditorImageEmbedConfig;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_tab.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/journey_tab.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/leadership_tab.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Leadership%20Tab/leadership_tab.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_apis.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
@@ -914,28 +915,43 @@ class _ExpandableQuillContentState extends State<ExpandableQuillContent> {
                 ? const BoxConstraints()
                 : const BoxConstraints(maxHeight: 75),
             child: QuillEditor.basic(
-
               controller: controller,
               config: QuillEditorConfig(
                 showCursor: false,
                 scrollable: false,
+
+                embedBuilders: [
+                  ...FlutterQuillEmbeds.editorBuilders(
+                    imageEmbedConfig: QuillEditorImageEmbedConfig(
+                      imageProviderBuilder: (context, imageUrl) {
+                        return NetworkImage(imageUrl);
+                      },
+                      imageErrorWidgetBuilder: (context, imageUrl, error) {
+                        return const Icon(
+                          Icons.broken_image,
+                          size: 40,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+
                 customStyles: DefaultStyles(
                   paragraph: DefaultTextBlockStyle(
-                     TextStyle(
+                    TextStyle(
                       fontSize: MediaQuery.of(context).size.width * 0.04,
                       fontWeight: FontWeight.w400,
-                     color: Colors.black,
+                      color: Colors.black,
                       letterSpacing: 0.81,
-                       height: 1.25
+                      height: 1.25,
                     ),
                     const HorizontalSpacing(0, 0),
                     const VerticalSpacing(0, 0),
                     const VerticalSpacing(0, 0),
                     null,
                   ),
-                )
+                ),
               ),
-
             ),
           ),
         ),

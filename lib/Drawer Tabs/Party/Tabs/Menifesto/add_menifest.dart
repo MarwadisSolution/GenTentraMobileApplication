@@ -24,7 +24,6 @@ class AddManifest extends StatefulWidget {
 }
 
 class _AddManifestState extends State<AddManifest> {
-  late final ManifestoBloc _manifestoBloc;
   final TextEditingController titleController = TextEditingController();
   final TextEditingController yearController = TextEditingController();
   String? selectedKind;
@@ -52,7 +51,10 @@ class _AddManifestState extends State<AddManifest> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.red,
-          content: Text('Unable to select PDF',style: TextStyle(color: ColorScheme.of(context).surface),),
+          content: Text(
+            'Unable to select PDF', style: TextStyle(color: ColorScheme
+              .of(context)
+              .surface),),
         ),
       );
     }
@@ -64,14 +66,16 @@ class _AddManifestState extends State<AddManifest> {
       selectedFilePath = null;
     });
   }
+
   @override
   void initState() {
     super.initState();
-    _manifestoBloc = ManifestoBloc(ManifestoApis());
+
     if (widget.manifesto != null) {
       _initializeEdit();
     }
   }
+
   void _initializeEdit() {
     final manifesto = widget.manifesto!;
 
@@ -84,13 +88,14 @@ class _AddManifestState extends State<AddManifest> {
     // represents a locally selected file.
     selectedFilePath = null;
   }
+
   @override
   void dispose() {
-    _manifestoBloc.close();
     titleController.dispose();
     yearController.dispose();
     super.dispose();
   }
+
   void _submitManifesto() {
     final title =
     titleController.text.trim();
@@ -100,11 +105,15 @@ class _AddManifestState extends State<AddManifest> {
 
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(
-           backgroundColor: ColorScheme.of(context).error,
+        SnackBar(
+          backgroundColor: ColorScheme
+              .of(context)
+              .error,
           content: Text(
-            "Please enter manifesto title",
-              style: TextStyle(color: ColorScheme.of(context).surface)
+              "Please enter manifesto title",
+              style: TextStyle(color: ColorScheme
+                  .of(context)
+                  .surface)
           ),
         ),
       );
@@ -113,11 +122,15 @@ class _AddManifestState extends State<AddManifest> {
 
     if (yearText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(
-           backgroundColor: ColorScheme.of(context).error,
+        SnackBar(
+          backgroundColor: ColorScheme
+              .of(context)
+              .error,
           content: Text(
-            "Please enter manifesto year",
-              style: TextStyle(color: ColorScheme.of(context).surface)
+              "Please enter manifesto year",
+              style: TextStyle(color: ColorScheme
+                  .of(context)
+                  .surface)
           ),
         ),
       );
@@ -129,10 +142,14 @@ class _AddManifestState extends State<AddManifest> {
 
     if (year == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(
-          backgroundColor: ColorScheme.of(context).error,
+        SnackBar(
+          backgroundColor: ColorScheme
+              .of(context)
+              .error,
           content: Text(
-            "Please enter a valid year",  style: TextStyle(color: ColorScheme.of(context).surface)
+              "Please enter a valid year", style: TextStyle(color: ColorScheme
+              .of(context)
+              .surface)
 
           ),
         ),
@@ -153,7 +170,7 @@ class _AddManifestState extends State<AddManifest> {
         kind: "ELECTION",
       );
 
-      _manifestoBloc.add(
+      context.read<ManifestoBloc>().add(
         UpdateManifestoEvent(
           manifesto: updatedManifesto,
           filePath: selectedFilePath,
@@ -169,11 +186,15 @@ class _AddManifestState extends State<AddManifest> {
 
     if (selectedFilePath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(
-          backgroundColor: ColorScheme.of(context).error,
+        SnackBar(
+          backgroundColor: ColorScheme
+              .of(context)
+              .error,
           content: Text(
-            "Please select manifesto PDF",
-              style: TextStyle(color: ColorScheme.of(context).surface)
+              "Please select manifesto PDF",
+              style: TextStyle(color: ColorScheme
+                  .of(context)
+                  .surface)
           ),
         ),
       );
@@ -188,7 +209,7 @@ class _AddManifestState extends State<AddManifest> {
       authorPartyId: widget.partyId,
     );
 
-    _manifestoBloc.add(
+    context.read<ManifestoBloc>().add(
       PostManifestoEvent(
         manifesto: manifesto,
         filePath: selectedFilePath,
@@ -198,24 +219,30 @@ class _AddManifestState extends State<AddManifest> {
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
+    final w = MediaQuery
+        .of(context)
+        .size
+        .width;
+    final h = MediaQuery
+        .of(context)
+        .size
+        .height;
 
-    return BlocProvider.value(value: _manifestoBloc,
-    child: BlocConsumer<ManifestoBloc, ManifestoState>(
+    return BlocConsumer<ManifestoBloc, ManifestoState>(
       listener: (context, state) {
         if (state.postStatus ==
             ManifestoActionStatus.success) {
-
           ScaffoldMessenger.of(context)
               .hideCurrentSnackBar();
 
           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(
-               backgroundColor: Colors.green,
+            SnackBar(
+              backgroundColor: Colors.green,
               content: Text(
-                "Manifesto uploaded successfully",
-                  style: TextStyle(color: ColorScheme.of(context).surface)
+                  "Manifesto uploaded successfully",
+                  style: TextStyle(color: ColorScheme
+                      .of(context)
+                      .surface)
               ),
             ),
           );
@@ -225,16 +252,19 @@ class _AddManifestState extends State<AddManifest> {
 
         if (state.postStatus ==
             ManifestoActionStatus.error) {
-
           ScaffoldMessenger.of(context)
               .hideCurrentSnackBar();
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              backgroundColor: ColorScheme.of(context).error,
+              backgroundColor: ColorScheme
+                  .of(context)
+                  .error,
               content: Text(
-                    "Failed to upload manifesto",
-                  style: TextStyle(color: ColorScheme.of(context).surface)
+                  "Failed to upload manifesto",
+                  style: TextStyle(color: ColorScheme
+                      .of(context)
+                      .surface)
               ),
             ),
           );
@@ -245,16 +275,17 @@ class _AddManifestState extends State<AddManifest> {
 
         if (state.updateStatus ==
             ManifestoActionStatus.success) {
-
           ScaffoldMessenger.of(context)
               .hideCurrentSnackBar();
 
           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(
-               backgroundColor: Colors.green,
+            SnackBar(
+              backgroundColor: Colors.green,
               content: Text(
-                "Manifesto updated successfully",
-                  style: TextStyle(color: ColorScheme.of(context).surface)
+                  "Manifesto updated successfully",
+                  style: TextStyle(color: ColorScheme
+                      .of(context)
+                      .surface)
               ),
             ),
           );
@@ -268,25 +299,28 @@ class _AddManifestState extends State<AddManifest> {
 
         if (state.updateStatus ==
             ManifestoActionStatus.error) {
-
           ScaffoldMessenger.of(context)
               .hideCurrentSnackBar();
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              backgroundColor: ColorScheme.of(context).error,
+              backgroundColor: ColorScheme
+                  .of(context)
+                  .error,
               content: Text(
-                    "Failed to update manifesto",
-                  style: TextStyle(color: ColorScheme.of(context).surface)
+                  "Failed to update manifesto",
+                  style: TextStyle(color: ColorScheme
+                      .of(context)
+                      .surface)
               ),
             ),
           );
         }
       },
-        builder: (context,state){
-          final bool isSubmitting = widget.isEdit
-              ? state.updateStatus == ManifestoActionStatus.loading
-              : state.postStatus == ManifestoActionStatus.loading;
+      builder: (context, state) {
+        final bool isSubmitting = widget.isEdit
+            ? state.updateStatus == ManifestoActionStatus.loading
+            : state.postStatus == ManifestoActionStatus.loading;
         return GestureDetector(
           onTap: () {
             FocusScope.of(context).unfocus();
@@ -295,7 +329,9 @@ class _AddManifestState extends State<AddManifest> {
             body: CustomScrollView(
               slivers: [
                 ReusableSliverAppBar(
-                  title:  widget.isEdit?"UPDATE ${PartyPageData.manifesto}":"ADD ${PartyPageData.manifesto}",
+                  title: widget.isEdit
+                      ? "UPDATE ${PartyPageData.manifesto}"
+                      : "ADD ${PartyPageData.manifesto}",
                   automaticallyImplyLeading: false,
                   isMenuNeeded: false,
                   height: h * 0.06,
@@ -362,7 +398,9 @@ class _AddManifestState extends State<AddManifest> {
                                     isRequired: true,
                                     textStyle: TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      color: ColorScheme.of(context).onSurface,
+                                      color: ColorScheme
+                                          .of(context)
+                                          .onSurface,
                                     ),
                                   ),
 
@@ -374,7 +412,9 @@ class _AddManifestState extends State<AddManifest> {
                                     labelText: PartyPageData.year,
                                     textStyle: TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      color: ColorScheme.of(context).onSurface,
+                                      color: ColorScheme
+                                          .of(context)
+                                          .onSurface,
                                     ),
                                   ),
 
@@ -394,7 +434,7 @@ class _AddManifestState extends State<AddManifest> {
 
                                   // PDF picker
                                   InkWell(
-                                    onTap:  pickPdf,
+                                    onTap: pickPdf,
                                     child: Container(
                                       width: double.infinity,
                                       constraints: BoxConstraints(
@@ -407,7 +447,8 @@ class _AddManifestState extends State<AddManifest> {
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: ColorScheme.of(context)
+                                          color: ColorScheme
+                                              .of(context)
                                               .onSurface
                                               .withOpacity(0.3),
                                           width: 1,
@@ -426,12 +467,14 @@ class _AddManifestState extends State<AddManifest> {
                                                   vertical: h * 0.012,
                                                 ),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFFEDEDED),
+                                                  color: const Color(
+                                                      0xFFEDEDED),
                                                   borderRadius:
                                                   BorderRadius.circular(25),
                                                 ),
                                                 child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize: MainAxisSize
+                                                      .min,
                                                   children: [
 
                                                     // PDF filename
@@ -439,7 +482,8 @@ class _AddManifestState extends State<AddManifest> {
                                                       child: Text(
                                                         selectedPdf!.name,
                                                         maxLines: 1,
-                                                        overflow: TextOverflow.ellipsis,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                         style: TextStyle(
                                                           fontSize: h * 0.017,
                                                           color: Colors.black87,
@@ -462,54 +506,62 @@ class _AddManifestState extends State<AddManifest> {
                                                 ),
                                               ),
                                             )
-                                          else if (widget.isEdit &&
-                                              widget.manifesto?.fileUrl != null &&
-                                              widget.manifesto!.fileUrl!.isNotEmpty)
-                                            Expanded(
-                                              child: Container(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: w * 0.035,
-                                                  vertical: h * 0.012,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFFEDEDED),
-                                                  borderRadius: BorderRadius.circular(25),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.picture_as_pdf,
-                                                      color: Colors.redAccent,
-                                                      size: h * 0.025,
-                                                    ),
+                                          else
+                                            if (widget.isEdit &&
+                                                widget.manifesto?.fileUrl !=
+                                                    null &&
+                                                widget.manifesto!.fileUrl!
+                                                    .isNotEmpty)
+                                              Expanded(
+                                                child: Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: w * 0.035,
+                                                    vertical: h * 0.012,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(
+                                                        0xFFEDEDED),
+                                                    borderRadius: BorderRadius
+                                                        .circular(25),
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.picture_as_pdf,
+                                                        color: Colors.redAccent,
+                                                        size: h * 0.025,
+                                                      ),
 
-                                                    SizedBox(width: w * 0.02),
+                                                      SizedBox(width: w * 0.02),
 
-                                                    Expanded(
-                                                      child: Text(
-                                                        'Existing manifesto PDF',
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow.ellipsis,
-                                                        style: TextStyle(
-                                                          fontSize: h * 0.017,
-                                                          color: Colors.black87,
+                                                      Expanded(
+                                                        child: Text(
+                                                          'Existing manifesto PDF',
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style: TextStyle(
+                                                            fontSize: h * 0.017,
+                                                            color: Colors
+                                                                .black87,
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                            )
+                                              )
 
-                                          else
-                                            const Spacer(),
+                                            else
+                                              const Spacer(),
 
                                           SizedBox(width: w * 0.03),
 
                                           // Add PDF icon
                                           InkWell(
                                             onTap: pickPdf,
-                                            borderRadius: BorderRadius.circular(20),
+                                            borderRadius: BorderRadius.circular(
+                                                20),
                                             child: Padding(
                                               padding: const EdgeInsets.all(4),
                                               child: SvgPicture.asset(
@@ -523,59 +575,88 @@ class _AddManifestState extends State<AddManifest> {
                                       ),
                                     ),
                                   ),
-                                  if(widget.isEdit) SizedBox(height: h*0.04,),
-                                 if(widget.isEdit)...[
-                                   InkWell(
-                                     onTap: () {
-                                       final fileUrl = widget.manifesto?.fileUrl;
+                                  if(widget.isEdit) SizedBox(height: h * 0.04,),
+                                  if(widget.isEdit)...[
+                                    InkWell(
+                                      onTap: () {
+                                        final fileUrl = widget.manifesto
+                                            ?.fileUrl;
 
-                                       if (fileUrl == null || fileUrl.isEmpty) {
-                                         ScaffoldMessenger.of(context).showSnackBar(
+                                        if (fileUrl == null ||
+                                            fileUrl.isEmpty) {
+                                          ScaffoldMessenger
+                                              .of(context)
+                                              .showSnackBar(
 
-                                           SnackBar(
-                                               backgroundColor: ColorScheme.of(context).error,
-                                               content: Text("Manifesto PDF is not available",style: TextStyle(color: ColorScheme.of(context).surface))),
-                                         );
-                                         return;
-                                       }
+                                            SnackBar(
+                                                backgroundColor: ColorScheme
+                                                    .of(context)
+                                                    .error,
+                                                content: Text(
+                                                    "Manifesto PDF is not available",
+                                                    style: TextStyle(
+                                                        color: ColorScheme
+                                                            .of(context)
+                                                            .surface))),
+                                          );
+                                          return;
+                                        }
 
-                                       Navigator.push(
-                                         context,
-                                         MaterialPageRoute(
-                                           builder: (_) =>
-                                               ManifestoPdfViewer(fileUrl: fileUrl, title: widget.manifesto!.title),
-                                         ),
-                                       );
-                                     },
-                                     child: Row(
-                                       children: [
-                                         Image.asset(PartyPageData.pdfIcon,width: w*0.2,),
-                                         SizedBox(width: w*0.06,),
-                                         Text("Manifesto ${ widget.manifesto?.year??"-"}",style: TextStyle(fontWeight: FontWeight.w600),)
-                                       ],
-                                     ),
-                                   )
-                            ],
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                ManifestoPdfViewer(
+                                                    fileUrl: fileUrl,
+                                                    title: widget.manifesto!
+                                                        .title),
+                                          ),
+                                        );
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Image.asset(PartyPageData.pdfIcon,
+                                            width: w * 0.2,),
+                                          SizedBox(width: w * 0.06,),
+                                          Text("Manifesto ${ widget.manifesto
+                                              ?.year ?? "-"}", style: TextStyle(
+                                              fontWeight: FontWeight.w600),)
+                                        ],
+                                      ),
+                                    )
+                                  ],
 
-                                  SizedBox(height: h*0.04,),
+                                  SizedBox(height: h * 0.04,),
                                   InkWell(
-                                    onTap:  isSubmitting ? null : _submitManifesto,
+                                    onTap: isSubmitting
+                                        ? null
+                                        : _submitManifesto,
 
                                     child: Center(
                                       child: Container(
-                                        height: MediaQuery.of(context).size.height * 0.05,
-                                        width: MediaQuery.of(context).size.width * 0.3,
+                                        height: MediaQuery
+                                            .of(context)
+                                            .size
+                                            .height * 0.05,
+                                        width: MediaQuery
+                                            .of(context)
+                                            .size
+                                            .width * 0.3,
                                         decoration: BoxDecoration(
-                                          gradient: GradientColors.primaryGradient,
+                                          gradient: GradientColors
+                                              .primaryGradient,
                                           borderRadius: BorderRadius.circular(
-                                            MediaQuery.of(context).size.height * 0.03,
+                                            MediaQuery
+                                                .of(context)
+                                                .size
+                                                .height * 0.03,
                                           ),
                                           border: Border.all(
                                             color: const Color(0xFFFF2164),
                                           ),
                                         ),
                                         child: Center(
-                                          child:  isSubmitting
+                                          child: isSubmitting
                                               ? const SizedBox(
                                             width: 22,
                                             height: 22,
@@ -584,25 +665,41 @@ class _AddManifestState extends State<AddManifest> {
                                               color: Colors.white,
                                             ),
                                           )
-                                              :Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                              : Row(
+                                            mainAxisAlignment: MainAxisAlignment
+                                                .center,
                                             children: [
                                               SvgPicture.asset(
                                                 PartyPageData.addIcon,
-                                                color: ColorScheme.of(context).surface,
-                                                height: MediaQuery.of(context).size.height * 0.02,
+                                                color: ColorScheme
+                                                    .of(context)
+                                                    .surface,
+                                                height: MediaQuery
+                                                    .of(context)
+                                                    .size
+                                                    .height * 0.02,
                                               ),
                                               SizedBox(
-                                                width: MediaQuery.of(context).size.width * 0.02,
+                                                width: MediaQuery
+                                                    .of(context)
+                                                    .size
+                                                    .width * 0.02,
                                               ),
                                               Text(
 
-                                                widget.isEdit?"UPDATE":PartyPageData.publish,
+                                                widget.isEdit
+                                                    ? "UPDATE"
+                                                    : PartyPageData.publish,
                                                 textAlign: TextAlign.center,
                                                 style: TextStyle(
-                                                  color: ColorScheme.of(context).surface,
+                                                  color: ColorScheme
+                                                      .of(context)
+                                                      .surface,
                                                   fontWeight: FontWeight.w500,
-                                                  fontSize: (MediaQuery.of(context).size.width * 0.04)
+                                                  fontSize: (MediaQuery
+                                                      .of(context)
+                                                      .size
+                                                      .width * 0.04)
                                                       .clamp(14.0, 16.0),
                                                 ),
                                               ),
@@ -625,9 +722,7 @@ class _AddManifestState extends State<AddManifest> {
             ),
           ),
         );
-        },
-
-    ),
+      },
     );
   }
 }

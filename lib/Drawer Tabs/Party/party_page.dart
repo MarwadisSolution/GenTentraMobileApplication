@@ -90,29 +90,13 @@ class _PartyPageState extends State<PartyPage> {
                                 }
 
                                 if (snapshot.hasError) {
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          duration: Duration(seconds: 2),
-                                          backgroundColor: Colors.red,
-                                          content: Text(
-                                              snapshot.error.toString().contains(
-                                                  "has a status code of 530")
-                                                  ? "Please contact the owner"
-                                                  : snapshot.error.toString().contains(
-                                                  "The connection errored") ?
-                                              "You are offline"
-                                                  : snapshot.error.toString()),
-                                        )
-                                    );
-                                  });
-
                                   return Center(
                                     child: Text(
-                                      "Something went wrong", style: TextStyle(
-                                        color: ColorScheme
-                                            .of(context)
-                                            .onSurface),),
+                                      "Something went wrong",
+                                      style: TextStyle(
+                                        color: ColorScheme.of(context).onSurface,
+                                      ),
+                                    ),
                                   );
                                 }
 

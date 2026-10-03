@@ -44,10 +44,6 @@ class EventApis{
 
       eventJson["authorPartyId"] = partyId;
 
-      // ----------------------------------------------------------
-      // IMPORTANT:
-      // bgImage is already included by EventModel.toJson()
-      // ----------------------------------------------------------
 
       print("========== EVENT JSON ==========");
       print(jsonEncode(eventJson));

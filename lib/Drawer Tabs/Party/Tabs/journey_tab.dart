@@ -49,31 +49,43 @@ class _JourneyTabState extends State<JourneyTab> {
   void dispose() {
     _pageController.dispose();
     _timelineController.dispose();
-    _textController.dispose(); // Added missing disposal
+    _textController.dispose();
+
     super.dispose();
   }
 
   // Helper to keep all 3 PageView controllers synchronized
   void _onYearChanged(int newIndex) {
+    if (!mounted) return;
+    if (newIndex < 0 || newIndex >= journeys.length) return;
     if (selectedIndex == newIndex) return;
 
     setState(() {
       selectedIndex = newIndex;
     });
 
-    void animateIfNeeded(PageController controller) {
-      if (controller.hasClients && controller.page?.round() != newIndex) {
-        controller.animateToPage(
-          newIndex,
-          duration: const Duration(milliseconds: 550),
-          curve: Curves.easeInOut,
-        );
-      }
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
 
-    animateIfNeeded(_pageController);
-    animateIfNeeded(_timelineController);
-    animateIfNeeded(_textController);
+      void animateIfNeeded(PageController controller) {
+        if (!controller.hasClients) return;
+
+        final currentPage = controller.page;
+        if (currentPage == null) return;
+
+        if ((currentPage - newIndex).abs() > 0.01) {
+          controller.animateToPage(
+            newIndex,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
+
+      animateIfNeeded(_pageController);
+      animateIfNeeded(_timelineController);
+      animateIfNeeded(_textController);
+    });
   }
 
   @override

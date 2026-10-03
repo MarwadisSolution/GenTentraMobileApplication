@@ -27,7 +27,7 @@ import 'Tabs/Menifesto/manifesto_bloc.dart' show ManifestoBloc;
 import 'Tabs/Menifesto/manifesto_event.dart';
 import 'Tabs/info_tab.dart';
 import 'Tabs/journey_tab.dart';
-import 'Tabs/leadership_tab.dart';
+import 'Tabs/Leadership Tab/leadership_tab.dart';
 import 'Tabs/symbol_tab.dart';
 
 class PartyFetchedData extends StatefulWidget {
