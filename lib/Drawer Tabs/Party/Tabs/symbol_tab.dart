@@ -6,16 +6,11 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_mod
 import '../../../Reusable Functions/reusable_functions.dart';
 import '../reusable_functions.dart';
 
-class SymbolTab extends StatefulWidget {
+class SymbolTab extends StatelessWidget {
   final SymbolModel symbol;
 
   const SymbolTab({super.key, required this.symbol});
 
-  @override
-  State<SymbolTab> createState() => _SymbolTabState();
-}
-
-class _SymbolTabState extends State<SymbolTab> {
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
@@ -30,13 +25,13 @@ class _SymbolTabState extends State<SymbolTab> {
         ? 2
         : 1;
     final size = MediaQuery.of(context).size.width;
-    final String label = widget.symbol.logoDescription ?? "";
+    final String label = symbol.logoDescription ?? "";
     return Padding(
       padding: EdgeInsets.all(MediaQuery.sizeOf(context).width * 0.05),
       child: Column(
         children: [
           ExpandableQuillContent(content: label),
-          if (widget.symbol.partyLogo.isNotEmpty) ...[
+          if (symbol.partyLogo.isNotEmpty) ...[
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -51,9 +46,9 @@ class _SymbolTabState extends State<SymbolTab> {
                 mainAxisSpacing: isMobile ? 20 : 30,
                 childAspectRatio: isMobile ? 1.95 : 2.05,
               ),
-              itemCount: widget.symbol.partyLogo.length,
+              itemCount: symbol.partyLogo.length,
               itemBuilder: (context, index) {
-                final logo = widget.symbol.partyLogo[index];
+                final logo = symbol.partyLogo[index];
                 final double radius = isDesktop
                     ? 100
                     : isTablet
@@ -76,16 +71,16 @@ class _SymbolTabState extends State<SymbolTab> {
     // if (widget.symbol.downloadEnabled == "NO") ...[
     //   SizedBox(height: h*0.7),
     //   ],
-            if (widget.symbol.downloadEnabled == "YES") ...[
+            if (symbol.downloadEnabled == "YES") ...[
               SizedBox(height: MediaQuery.of(context).size.width * 0.02),
 
               Align(
                 alignment: Alignment.center,
                 child: InkWell(
                   onTap: () async {
-                    if (widget.symbol.downloadEnabled == true ||
-                        widget.symbol.downloadEnabled == "YES") {
-                      for (final logo in widget.symbol.partyLogo) {
+                    if (symbol.downloadEnabled == true ||
+                        symbol.downloadEnabled == "YES") {
+                      for (final logo in symbol.partyLogo) {
                         await downloadImage(
                           logo.startsWith("/api/") ? "$api$logo" : logo,
                           context,
@@ -100,13 +95,13 @@ class _SymbolTabState extends State<SymbolTab> {
                     ),
                     decoration: BoxDecoration(
                       color:
-                          (widget.symbol.downloadEnabled == true ||
-                              widget.symbol.downloadEnabled == "YES")
+                          (symbol.downloadEnabled == true ||
+                              symbol.downloadEnabled == "YES")
                           ? null
                           : const Color(0xFF666666),
                       gradient:
-                          (widget.symbol.downloadEnabled == true ||
-                              widget.symbol.downloadEnabled == "YES")
+                          (symbol.downloadEnabled == true ||
+                              symbol.downloadEnabled == "YES")
                           ? GradientColors.primaryGradient
                           : null,
                       borderRadius: const BorderRadius.all(Radius.circular(20)),
@@ -116,7 +111,7 @@ class _SymbolTabState extends State<SymbolTab> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            widget.symbol.partyLogo.length == 1
+                            symbol.partyLogo.length == 1
                                 ? "Download Logo"
                                 : "Download Logos",
                             textAlign: TextAlign.center,

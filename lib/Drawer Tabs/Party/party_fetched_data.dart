@@ -44,10 +44,11 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
   final apiService = PartyPageApis();
   late Future<Map<String, dynamic>> partyFullFuture;
   late TabController _tabController;
-  int _lastTabIndex = 0;
+ // int _lastTabIndex = 0;
   bool showPartyDetails = true;
   bool _isUserScrolling = false;
   bool? isAdmin;
+  final ValueNotifier<int> _selectedTabIndex = ValueNotifier<int>(0);
   final ValueNotifier<double> _sheetProgress = ValueNotifier(0.0);
   Future<void> isAdminChecking() async {
     final prefs = await SharedPreferences.getInstance();
@@ -83,10 +84,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
     _tabController.addListener(() {
       if (!mounted) return;
 
-      if (_tabController.index != _lastTabIndex) {
-        _lastTabIndex = _tabController.index;
-
-        setState(() {});
+      if (!_tabController.indexIsChanging) {
+        _selectedTabIndex.value = _tabController.index;
       }
     });
 
@@ -98,6 +97,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
   @override
   void dispose() {
     _sheetProgress.dispose();
+    _selectedTabIndex.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -375,36 +375,118 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
 
                                     // Dynamic Tab Body Content
                                     SliverToBoxAdapter(
-                                      child: Stack(
-                                        children: [
-                                          // Keep FeedTab mounted so its video controllers survive tab changes.
-                                          Offstage(
-                                            offstage: _tabController.index != 4,
-                                            child: _buildTabContent(
-                                              index: 4,
-                                              party: party,
-                                              symbol: symbol,
-                                              journey: journey,
-                                              leaders: leaders,
-                                              members: members,
-                                              membersByRegion: membersByRegion,
-                                              scrollController: scrollController,
-                                            ),
-                                          ),
+                                      child: ValueListenableBuilder<int>(
+                                        valueListenable: _selectedTabIndex,
+                                        builder: (context, selectedIndex, child) {
+                                          return Stack(
+                                            children: [
+                                              // INFO
+                                              Offstage(
+                                                offstage: selectedIndex != 0,
+                                                child: _buildTabContent(
+                                                  index: 0,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion: membersByRegion,
+                                                  scrollController: scrollController,
+                                                ),
+                                              ),
 
-                                          // Build only the selected non-Feed tab.
-                                          if (_tabController.index != 4)
-                                            _buildTabContent(
-                                              index: _tabController.index,
-                                              party: party,
-                                              symbol: symbol,
-                                              journey: journey,
-                                              leaders: leaders,
-                                              members: members,
-                                              membersByRegion: membersByRegion,
-                                              scrollController: scrollController,
-                                            ),
-                                        ],
+                                              // SYMBOL
+                                              Offstage(
+                                                offstage: selectedIndex != 1,
+                                                child: _buildTabContent(
+                                                  index: 1,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion: membersByRegion,
+                                                  scrollController: scrollController,
+                                                ),
+                                              ),
+
+                                              // JOURNEY
+                                              Offstage(
+                                                offstage: selectedIndex != 2,
+                                                child: _buildTabContent(
+                                                  index: 2,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion: membersByRegion,
+                                                  scrollController: scrollController,
+                                                ),
+                                              ),
+
+                                              // LEADERSHIP
+                                              Offstage(
+                                                offstage: selectedIndex != 3,
+                                                child: _buildTabContent(
+                                                  index: 3,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion: membersByRegion,
+                                                  scrollController: scrollController,
+                                                ),
+                                              ),
+
+                                              // FEED
+                                              Offstage(
+                                                offstage: selectedIndex != 4,
+                                                child: _buildTabContent(
+                                                  index: 4,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion: membersByRegion,
+                                                  scrollController: scrollController,
+                                                ),
+                                              ),
+
+                                              // EVENT
+                                              Offstage(
+                                                offstage: selectedIndex != 5,
+                                                child: _buildTabContent(
+                                                  index: 5,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion: membersByRegion,
+                                                  scrollController: scrollController,
+                                                ),
+                                              ),
+
+                                              // MANIFESTO
+                                              Offstage(
+                                                offstage: selectedIndex != 6,
+                                                child: _buildTabContent(
+                                                  index: 6,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion: membersByRegion,
+                                                  scrollController: scrollController,
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
                                       ),
                                     ),
                                   ],
@@ -416,158 +498,186 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                       },
                     ),
                   ),
-                  if ((_tabController.index == 4 || _tabController.index == 5 || _tabController.index==6) &&
-                      isAdmin == true)
-                    Positioned(
-                      bottom: MediaQuery.of(context).size.height * 0.03,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: InkWell(
-                          onTap: () async{
-                            isAddSelected.value = true;
-                          await  showGeneralDialog(
-                              context: context,
-                              barrierDismissible: true,
-                              barrierLabel: 'Close',
-                              barrierColor: Colors.black.withOpacity(0.4),
-                              pageBuilder: (_, __, ___) {
-                                return Stack(
-                                  children: [
-                                    Positioned(
-                                      bottom:
-                                          MediaQuery.of(context).size.height *
+                ValueListenableBuilder<int>(
+                    valueListenable: _selectedTabIndex,
+                    builder: (context, selectedIndex, child) {
+                      if ((selectedIndex == 4 ||
+                          selectedIndex == 5 ||
+                          selectedIndex == 6) &&
+                          isAdmin == true) {
+                        return Positioned(
+                          bottom: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.03,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: InkWell(
+                              onTap: () async {
+                                isAddSelected.value = true;
+                                await showGeneralDialog(
+                                  context: context,
+                                  barrierDismissible: true,
+                                  barrierLabel: 'Close',
+                                  barrierColor: Colors.black.withOpacity(0.4),
+                                  pageBuilder: (_, __, ___) {
+                                    return Stack(
+                                      children: [
+                                        Positioned(
+                                          bottom:
+                                          MediaQuery
+                                              .of(context)
+                                              .size
+                                              .height *
                                               0.03 +
-                                          MediaQuery.of(context).size.width *
-                                              0.2 +
-                                          20,
-                                      left: 0,
-                                      right: 0,
-                                      child: Center(
-                                        child: VerticalActionMenu(
-                                          height: MediaQuery.of(context).size.height*0.35,
-                                          items: [
-                                            ActionMenuItem(
-                                              imageIcon:
+                                              MediaQuery
+                                                  .of(context)
+                                                  .size
+                                                  .width *
+                                                  0.2 +
+                                              20,
+                                          left: 0,
+                                          right: 0,
+                                          child: Center(
+                                            child: VerticalActionMenu(
+                                              height: MediaQuery
+                                                  .of(context)
+                                                  .size
+                                                  .height * 0.35,
+                                              items: [
+                                                ActionMenuItem(
+                                                  imageIcon:
                                                   PartyPageData.addFeedIcon,
-                                              title: PartyPageData.feed,
-                                              onTap: () {
-                                                Navigator.pop(context);
+                                                  title: PartyPageData.feed,
+                                                  onTap: () {
+                                                    Navigator.pop(context);
 
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) =>
-                                                        BlocProvider.value(
-                                                          value: context
-                                                              .read<FeedBloc>(),
-                                                          child: AddingFeed(
-                                                            partyId: widget
-                                                                .partyData["id"],
-                                                            editFeed: null,
-                                                          ),
-                                                        ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                            ActionMenuItem(
-                                              imageIcon:
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            BlocProvider.value(
+                                                              value: context
+                                                                  .read<
+                                                                  FeedBloc>(),
+                                                              child: AddingFeed(
+                                                                partyId: widget
+                                                                    .partyData["id"],
+                                                                editFeed: null,
+                                                              ),
+                                                            ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                                ActionMenuItem(
+                                                  imageIcon:
                                                   PartyPageData.addQuoteIcon,
-                                              title: PartyPageData.quotes,
-                                              onTap: () {
-                                                Navigator.pop(context);
+                                                  title: PartyPageData.quotes,
+                                                  onTap: () {
+                                                    Navigator.pop(context);
 
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) =>
-                                                        BlocProvider.value(
-                                                          value: context
-                                                              .read<FeedBloc>(),
-                                                          child: AddingQuote(
-                                                            partyId: widget
-                                                                .partyData["id"],
-                                                            editQuote: null,
-                                                          ),
-                                                        ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            BlocProvider.value(
+                                                              value: context
+                                                                  .read<
+                                                                  FeedBloc>(),
+                                                              child: AddingQuote(
+                                                                partyId: widget
+                                                                    .partyData["id"],
+                                                                editQuote: null,
+                                                              ),
+                                                            ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
 
-                                            ActionMenuItem(
-                                              imageIcon:
+                                                ActionMenuItem(
+                                                  imageIcon:
                                                   PartyPageData.eventIcon,
-                                              title: PartyPageData.event,
-                                              onTap: () {
-                                                Navigator.pop(context);
+                                                  title: PartyPageData.event,
+                                                  onTap: () {
+                                                    Navigator.pop(context);
 
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) =>
-                                                        BlocProvider.value(
-                                                          value: context
-                                                              .read<EventsBloc>(),
-                                                          child: AddEvent(
-                                                            partyId: widget
-                                                                .partyData["id"],
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            BlocProvider.value(
+                                                              value: context
+                                                                  .read<
+                                                                  EventsBloc>(),
+                                                              child: AddEvent(
+                                                                partyId: widget
+                                                                    .partyData["id"],
 
-                                                          ),
-                                                        ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
+                                                              ),
+                                                            ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
 
-                                            ActionMenuItem(
-                                              imageIcon:
+                                                ActionMenuItem(
+                                                  imageIcon:
                                                   PartyPageData.newGroupIcon,
-                                              title: PartyPageData.newGroup,
-                                              onTap: () {
-                                                // New Group action
-                                              },
-                                            ),
-                                            ActionMenuItem(
-                                              imageIcon: PartyPageData.calenderIcon,
-                                              title: PartyPageData.manifesto,
-                                              onTap: () async {
-                                                // Close the action menu first
-                                                Navigator.pop(context);
+                                                  title: PartyPageData.newGroup,
+                                                  onTap: () {
+                                                    // New Group action
+                                                  },
+                                                ),
+                                                ActionMenuItem(
+                                                  imageIcon: PartyPageData
+                                                      .calenderIcon,
+                                                  title: PartyPageData
+                                                      .manifesto,
+                                                  onTap: () async {
+                                                    // Close the action menu first
+                                                    Navigator.pop(context);
 
-                                                final result = await Navigator.push<bool>(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) => AddManifest(
-                                                      partyId: widget.partyData["id"],
-                                                    ),
-                                                  ),
-                                                );
+                                                    final result = await Navigator
+                                                        .push<bool>(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            AddManifest(
+                                                              partyId: widget
+                                                                  .partyData["id"],
+                                                            ),
+                                                      ),
+                                                    );
 
-                                                // Manifesto was successfully added
-                                                if (result == true && context.mounted) {
-                                                  context.read<ManifestoBloc>().add(
-                                                    GetManifestosEvent(
-                                                      partyId: widget.partyData["id"],
-                                                    ),
-                                                  );
-                                                }
-                                              },
+                                                    // Manifesto was successfully added
+                                                    if (result == true &&
+                                                        context.mounted) {
+                                                      context.read<
+                                                          ManifestoBloc>().add(
+                                                        GetManifestosEvent(
+                                                          partyId: widget
+                                                              .partyData["id"],
+                                                        ),
+                                                      );
+                                                    }
+                                                  },
+                                                ),
+                                              ],
                                             ),
-                                          ],
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                              transitionDuration: const Duration(
-                                milliseconds: 650,
-                              ),
-                              transitionBuilder: (_, animation, __, child) {
-                                return SlideTransition(
-                                  position:
+                                      ],
+                                    );
+                                  },
+                                  transitionDuration: const Duration(
+                                    milliseconds: 650,
+                                  ),
+                                  transitionBuilder: (_, animation, __, child) {
+                                    return SlideTransition(
+                                      position:
                                       Tween<Offset>(
                                         begin: const Offset(0, 1),
                                         end: Offset.zero,
@@ -577,39 +687,52 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                           curve: Curves.easeInOutCubic,
                                         ),
                                       ),
-                                  child: child,
+                                      child: child,
+                                    );
+                                  },
                                 );
+                                isAddSelected.value = false;
                               },
-                            );
-                            isAddSelected.value = false;
-                          },
-                          child: ValueListenableBuilder(
-                            valueListenable: isAddSelected,
-                            builder: (context, isSelected, child) {
-                              return Container(
-                                height: MediaQuery.of(context).size.width * 0.18,
-                                decoration: BoxDecoration(
-                                  gradient: GradientColors.primaryGradient,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    isSelected
-                                        ? PartyPageData.crossIconLight
-                                        : PartyPageData.addIconLight,
-                                    height:
-                                        MediaQuery.of(context).size.width *
-                                        0.06,
-                                    width:
-                                        MediaQuery.of(context).size.width *
-                                        0.06,
-                                  ),
-                                ),
-                              );
-                            },
+                              child: ValueListenableBuilder(
+                                valueListenable: isAddSelected,
+                                builder: (context, isSelected, child) {
+                                  return Container(
+                                    height: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width * 0.18,
+                                    decoration: BoxDecoration(
+                                      gradient: GradientColors.primaryGradient,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: SvgPicture.asset(
+                                        isSelected
+                                            ? PartyPageData.crossIconLight
+                                            : PartyPageData.addIconLight,
+                                        height:
+                                        MediaQuery
+                                            .of(context)
+                                            .size
+                                            .width *
+                                            0.06,
+                                        width:
+                                        MediaQuery
+                                            .of(context)
+                                            .size
+                                            .width *
+                                            0.06,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }
                     ),
                 ],
               ),

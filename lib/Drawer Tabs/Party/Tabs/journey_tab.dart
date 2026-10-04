@@ -14,6 +14,7 @@ class JourneyTab extends StatefulWidget {
 
 class _JourneyTabState extends State<JourneyTab> {
   int selectedIndex = 0;
+  bool _isSynchronizingPages = false;
   late List<JourneyModel> journeys;
   late PageController _pageController;
   late PageController _timelineController;
@@ -64,28 +65,52 @@ class _JourneyTabState extends State<JourneyTab> {
       selectedIndex = newIndex;
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (_isSynchronizingPages) return;
+
+    _isSynchronizingPages = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
-      void animateIfNeeded(PageController controller) {
-        if (!controller.hasClients) return;
-
-        final currentPage = controller.page;
-        if (currentPage == null) return;
-
-        if ((currentPage - newIndex).abs() > 0.01) {
-          controller.animateToPage(
+      try {
+        await Future.wait([
+          _animateToPageIfNeeded(
+            _pageController,
             newIndex,
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeInOut,
-          );
+          ),
+          _animateToPageIfNeeded(
+            _timelineController,
+            newIndex,
+          ),
+          _animateToPageIfNeeded(
+            _textController,
+            newIndex,
+          ),
+        ]);
+      } finally {
+        if (mounted) {
+          _isSynchronizingPages = false;
         }
       }
-
-      animateIfNeeded(_pageController);
-      animateIfNeeded(_timelineController);
-      animateIfNeeded(_textController);
     });
+  }
+  Future<void> _animateToPageIfNeeded(
+      PageController controller,
+      int index,
+      ) async {
+    if (!controller.hasClients) return;
+
+    final currentPage = controller.page;
+
+    if (currentPage == null) return;
+
+    if ((currentPage - index).abs() < 0.01) return;
+
+    await controller.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override

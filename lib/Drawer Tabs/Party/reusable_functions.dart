@@ -928,7 +928,7 @@ class _ExpandableQuillContentState extends State<ExpandableQuillContent> {
                       },
                       imageErrorWidgetBuilder: (context, imageUrl, error) {
                         return const Icon(
-                          Icons.broken_image,
+                          Icons.image,
                           size: 40,
                         );
                       },
