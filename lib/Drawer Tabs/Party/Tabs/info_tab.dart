@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
+import '../../../Reusable Functions/rich_text_editor.dart';
 import '../party_page_modal.dart';
 import '../reusable_functions.dart';
 
@@ -26,9 +27,7 @@ class InfoTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ExpandableQuillContent(
-              content: party.info?.isNotEmpty == true ? party.info! : "-",
-          ),
+          AppRichTextEditor( fieldKey: 'info', value: party.info?.isNotEmpty == true ? party.info : '-', readOnly: true, ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.03),
 
           infoData(

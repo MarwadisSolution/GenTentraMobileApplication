@@ -863,119 +863,119 @@ Widget detailCard({required String title, required String value}) {
   );
 }
 ///----------------------------Info, vision text
-class ExpandableQuillContent extends StatefulWidget {
-  final String content;
-
-  const ExpandableQuillContent({super.key, required this.content});
-
-  @override
-  State<ExpandableQuillContent> createState() => _ExpandableQuillContentState();
-}
-
-class _ExpandableQuillContentState extends State<ExpandableQuillContent> {
-  bool isExpanded = false;
-  late QuillController controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    controller = QuillController(
-      document: _buildDocument(widget.content),
-      selection: const TextSelection.collapsed(offset: 0),
-    );
-  }
-
-  Document _buildDocument(String content) {
-    if (content.isEmpty) {
-      return Document();
-    }
-
-    try {
-      return Document.fromJson(jsonDecode(content));
-    } catch (_) {
-      return Document()..insert(0, content);
-    }
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRect(
-          child: ConstrainedBox(
-            constraints: isExpanded
-                ? const BoxConstraints()
-                : const BoxConstraints(maxHeight: 75),
-            child: QuillEditor.basic(
-              controller: controller,
-              config: QuillEditorConfig(
-                showCursor: false,
-                scrollable: false,
-
-                embedBuilders: [
-                  ...FlutterQuillEmbeds.editorBuilders(
-                    imageEmbedConfig: QuillEditorImageEmbedConfig(
-                      imageProviderBuilder: (context, imageUrl) {
-                        return NetworkImage(imageUrl);
-                      },
-                      imageErrorWidgetBuilder: (context, imageUrl, error) {
-                        return const Icon(
-                          Icons.image,
-                          size: 40,
-                        );
-                      },
-                    ),
-                  ),
-                ],
-
-                customStyles: DefaultStyles(
-                  paragraph: DefaultTextBlockStyle(
-                    TextStyle(
-                      fontSize: MediaQuery.of(context).size.width * 0.04,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.black,
-                      letterSpacing: 0.81,
-                      height: 1.25,
-                    ),
-                    const HorizontalSpacing(0, 0),
-                    const VerticalSpacing(0, 0),
-                    const VerticalSpacing(0, 0),
-                    null,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: MediaQuery.of(context).size.height * 0.008),
-        if (widget.content.isNotEmpty && widget.content.length>500 )
-          GestureDetector(
-            onTap: () {
-
-              setState(() {
-                isExpanded = !isExpanded;
-              });
-            },
-            child: Text(
-              isExpanded ? "Read Less" : "Read More",
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: Color(0xFFFE3A31),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
+// class ExpandableQuillContent extends StatefulWidget {
+//   final String content;
+//
+//   const ExpandableQuillContent({super.key, required this.content});
+//
+//   @override
+//   State<ExpandableQuillContent> createState() => _ExpandableQuillContentState();
+// }
+//
+// class _ExpandableQuillContentState extends State<ExpandableQuillContent> {
+//   bool isExpanded = false;
+//   late QuillController controller;
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//
+//     controller = QuillController(
+//       document: _buildDocument(widget.content),
+//       selection: const TextSelection.collapsed(offset: 0),
+//     );
+//   }
+//
+//   Document _buildDocument(String content) {
+//     if (content.isEmpty) {
+//       return Document();
+//     }
+//
+//     try {
+//       return Document.fromJson(jsonDecode(content));
+//     } catch (_) {
+//       return Document()..insert(0, content);
+//     }
+//   }
+//
+//   @override
+//   void dispose() {
+//     controller.dispose();
+//     super.dispose();
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         ClipRect(
+//           child: ConstrainedBox(
+//             constraints: isExpanded
+//                 ? const BoxConstraints()
+//                 : const BoxConstraints(maxHeight: 75),
+//             child: QuillEditor.basic(
+//               controller: controller,
+//               config: QuillEditorConfig(
+//                 showCursor: false,
+//                 scrollable: false,
+//
+//                 embedBuilders: [
+//                   ...FlutterQuillEmbeds.editorBuilders(
+//                     imageEmbedConfig: QuillEditorImageEmbedConfig(
+//                       imageProviderBuilder: (context, imageUrl) {
+//                         return NetworkImage(imageUrl);
+//                       },
+//                       imageErrorWidgetBuilder: (context, imageUrl, error) {
+//                         return const Icon(
+//                           Icons.image,
+//                           size: 40,
+//                         );
+//                       },
+//                     ),
+//                   ),
+//                 ],
+//
+//                 customStyles: DefaultStyles(
+//                   paragraph: DefaultTextBlockStyle(
+//                     TextStyle(
+//                       fontSize: MediaQuery.of(context).size.width * 0.04,
+//                       fontWeight: FontWeight.w400,
+//                       color: Colors.black,
+//                       letterSpacing: 0.81,
+//                       height: 1.25,
+//                     ),
+//                     const HorizontalSpacing(0, 0),
+//                     const VerticalSpacing(0, 0),
+//                     const VerticalSpacing(0, 0),
+//                     null,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ),
+//         SizedBox(height: MediaQuery.of(context).size.height * 0.008),
+//         if (widget.content.isNotEmpty && widget.content.length>500 )
+//           GestureDetector(
+//             onTap: () {
+//
+//               setState(() {
+//                 isExpanded = !isExpanded;
+//               });
+//             },
+//             child: Text(
+//               isExpanded ? "Read Less" : "Read More",
+//               style: const TextStyle(
+//                 fontWeight: FontWeight.w600,
+//                 color: Color(0xFFFE3A31),
+//               ),
+//             ),
+//           ),
+//       ],
+//     );
+//   }
+// }
 ///--------------Reusabel container
 class FeedQuoteTab extends StatelessWidget {
   final String title;

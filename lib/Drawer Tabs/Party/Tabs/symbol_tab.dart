@@ -4,6 +4,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_dat
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_modal.dart';
 
 import '../../../Reusable Functions/reusable_functions.dart';
+import '../../../Reusable Functions/rich_text_editor.dart';
 import '../reusable_functions.dart';
 
 class SymbolTab extends StatelessWidget {
@@ -30,7 +31,9 @@ class SymbolTab extends StatelessWidget {
       padding: EdgeInsets.all(MediaQuery.sizeOf(context).width * 0.05),
       child: Column(
         children: [
-          ExpandableQuillContent(content: label),
+          AppRichTextEditor( fieldKey: 'symbol', value: label, readOnly: true, ),
+
+        //  ExpandableQuillContent(content: label),
           if (symbol.partyLogo.isNotEmpty) ...[
             GridView.builder(
               shrinkWrap: true,
