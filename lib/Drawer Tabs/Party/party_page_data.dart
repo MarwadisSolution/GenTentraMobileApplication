@@ -93,8 +93,29 @@ static final eventName ="Event Name/Title";
 static final year="Year";
 static final uploadManifesto="Upload Manifesto";
 static final docAddIcon ="Assets/PartyPage/docAddIcon.svg";
+static final educationIcon ="Assets/PartyPage/educationIcon.svg";
 static final calenderIcon="Assets/PartyPage/calenderIcon.svg";
 static final addressIcon ="Assets/PartyPage/addressIcon.svg";
 static final pdfIcon="Assets/PartyPage/pdfIcon.png";
 static final addIconMenifesto ="Assets/PartyPage/addIconMenifesto.svg";
+
+// Politician Profile
+static final development = "DEVELOPMENT";
+static final gender = "GENDER";
+static final dobAge = "DOB / AGE";
+static final birthPlace = "BIRTH PLACE";
+static final politicalParty = "POLITICAL PARTY";
+static final constituency = "CONSTITUENCY";
+static final politicianAddress = "ADDRESS";
+static final follow = "Follow";
+static final designationPrefix = "Designation - ";
+
+// Politician Profile SVGs / Icons
+static final genderIcon = "Assets/LeadershipPage/Info/Gender.svg";
+static final dobIcon = "Assets/LeadershipPage/Info/DoB.svg";
+static final birthPlaceIcon = "Assets/LeadershipPage/Info/BirthPlace.svg";
+static final politicalPartyIcon = "Assets/LeadershipPage/Info/PoliticalParty.svg";
+static final constituencyIcon = "Assets/LeadershipPage/Info/Constituency.svg";
+static final politicianAddressIcon = "Assets/LeadershipPage/Info/Address.svg";
+static final politicianEducationIcon = "Assets/LeadershipPage/Info/Education.svg";
 }
