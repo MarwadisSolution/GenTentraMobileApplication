@@ -245,7 +245,7 @@ class _JourneyTabState extends State<JourneyTab> {
                 Container(
                  // width: MediaQuery.of(context).size.width * 0.25,
                   height: MediaQuery.of(context).size.width * 0.20,
-                  decoration: const BoxDecoration(
+                  decoration:  BoxDecoration(
                     color: Colors.black,
                     shape: BoxShape.circle,
                   ),

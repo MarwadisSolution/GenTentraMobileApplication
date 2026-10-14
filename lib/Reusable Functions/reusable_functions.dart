@@ -7,15 +7,12 @@ import 'package:flutter_svg/svg.dart';
 import 'package:gal/gal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 // String temporarySavingOtp="";
 String api = "https://gentantrabackend-production.up.railway.app";
-// https://gentantrabackend-production.up.railway.app/api/v1/events
 
 
-// class ApiConfig {
-//   static String baseUrl =
-//
-// }
 class AdminChecking {
   static Future<bool> isAdmin(int partyId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -64,6 +61,12 @@ Future<void> logoutUser() async {
   await prefs.remove("role");
   await prefs.remove("loginTime");
   await prefs.setBool("isLogged", false);
+  // Clear Flutter's in-memory image cache.
+  PaintingBinding.instance.imageCache.clear();
+  PaintingBinding.instance.imageCache.clearLiveImages();
+
+
+  await DefaultCacheManager().emptyCache();
 }
 //----------------------------------------------
 class AppbarPage extends StatelessWidget implements PreferredSizeWidget {
@@ -255,38 +258,82 @@ Widget buildImageWidget(
       double? height,
       BoxFit fit = BoxFit.cover,
     }) {
-  // Relative path from API
-  if (imagePath.startsWith("/api/")) {
-    return Image.network(
-      "$api$imagePath",
+  final path = imagePath.trim();
+
+  // Empty image path.
+  if (path.isEmpty) {
+    return _imagePlaceholder(width: width, height: height);
+  }
+
+  // Network image: relative API path or complete URL.
+  if (path.startsWith('/api/') || path.startsWith('http://') ||
+      path.startsWith('https://')) {
+    final imageUrl = path.startsWith('/api/') ? '$api$path' : path;
+
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
       width: width,
       height: height,
       fit: fit,
-      errorBuilder: (_, __, ___) =>
-      const Center(child: Icon(Icons.image)),
+
+      // Reduce memory used when decoding large original images.
+      memCacheWidth: 600,
+
+      // Display a lightweight placeholder during loading.
+      placeholder: (context, url) => _imagePlaceholder(
+        width: width,
+        height: height,
+      ),
+
+      // Handle failed network requests.
+      errorWidget: (context, url, error) => _imagePlaceholder(
+        width: width,
+        height: height,
+        showError: true,
+      ),
+
+      fadeInDuration: Duration.zero,
+      fadeOutDuration: Duration.zero,
     );
   }
 
-  // Full network URL
-  if (imagePath.startsWith("http")) {
-    return Image.network(
-      imagePath,
-      width: width,
-      height: height,
-      fit: fit,
-      errorBuilder: (_, __, ___) =>
-      const Center(child: Icon(Icons.image)),
-    );
-  }
-
-  // Local file selected from gallery
+  // Local image selected from the gallery.
   return Image.file(
-    File(imagePath),
+    File(path),
     width: width,
     height: height,
     fit: fit,
+    cacheWidth: 600,
+    errorBuilder: (context, error, stackTrace) {
+      return _imagePlaceholder(
+        width: width,
+        height: height,
+        showError: true,
+      );
+    },
   );
 }
+
+Widget _imagePlaceholder({
+  double? width,
+  double? height,
+  bool showError = false,
+}) {
+  return SizedBox(
+    width: width,
+    height: height,
+    child: ColoredBox(
+      color: Colors.grey.shade200,
+      child: Center(
+        child: Icon(
+          showError ? Icons.image : Icons.person_outline,
+          color: Colors.grey,
+        ),
+      ),
+    ),
+  );
+}
+
 Future<void> launchWebsite(String url) async {
   if (url.trim().isEmpty || url == '-') return;
 

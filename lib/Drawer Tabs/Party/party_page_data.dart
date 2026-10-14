@@ -17,6 +17,7 @@ class PartyPageData {
   static final website="OFFICIAL WEBSITE";
   static final favoriteIcon="Assets/PartyPage/favourite.svg";
   static final flagIcon="Assets/PartyPage/flagIcon.svg";
+  static final searchPersonIcon="Assets/PartyPage/searchPersonIcon.svg";
   static final foundedIcon="Assets/PartyPage/foundedIcon.svg";
   static final websiteIcon="Assets/PartyPage/websiteIcon.svg";
   static final headquarterIcon="Assets/PartyPage/headquarterIcon.svg";
@@ -97,4 +98,7 @@ static final calenderIcon="Assets/PartyPage/calenderIcon.svg";
 static final addressIcon ="Assets/PartyPage/addressIcon.svg";
 static final pdfIcon="Assets/PartyPage/pdfIcon.png";
 static final addIconMenifesto ="Assets/PartyPage/addIconMenifesto.svg";
+static final viewAll="View\n All Members";
+static final viewAllIcon="Assets/PartyPage/viewAll.svg";
+static final indiaPresence= "INDIA PRESENCE";
 }

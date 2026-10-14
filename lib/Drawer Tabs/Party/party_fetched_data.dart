@@ -45,7 +45,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
   late Future<Map<String, dynamic>> partyFullFuture;
   late TabController _tabController;
  // int _lastTabIndex = 0;
-  bool showPartyDetails = true;
+  final ValueNotifier<bool> _showPartyDetails = ValueNotifier<bool>(true);
   bool _isUserScrolling = false;
   bool? isAdmin;
   final ValueNotifier<int> _selectedTabIndex = ValueNotifier<int>(0);
@@ -96,6 +96,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
 
   @override
   void dispose() {
+    _showPartyDetails.dispose();
     _sheetProgress.dispose();
     _selectedTabIndex.dispose();
     _tabController.dispose();
@@ -213,38 +214,33 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                             ScrollNotification
                         >(
                           onNotification: (notification) {
+                            if (!mounted || notification.depth != 0) {
+                              return false;
+                            }
 
-                            if (!mounted) return false;
-                            if (notification.depth != 0) return false;
                             if (notification is ScrollStartNotification) {
                               _isUserScrolling = notification.dragDetails != null;
                             }
+
                             if (notification is ScrollEndNotification) {
                               _isUserScrolling = false;
                             }
-                            // Only respond to actual user scroll direction.
+
                             if (notification is UserScrollNotification &&
                                 _isUserScrolling) {
                               if (notification.direction == ScrollDirection.reverse) {
-                                // User scrolls up: hide party details.
-                                if (showPartyDetails) {
-                                  setState(() {
-                                    showPartyDetails = false;
-                                  });
+                                if (_showPartyDetails.value) {
+                                  _showPartyDetails.value = false;
                                 }
                               } else if (notification.direction ==
                                   ScrollDirection.forward) {
-                                // User scrolls down: show party details.
-                                if (!showPartyDetails) {
-                                  setState(() {
-                                    showPartyDetails = true;
-                                  });
+                                if (!_showPartyDetails.value) {
+                                  _showPartyDetails.value = true;
                                 }
                               }
                             }
 
                             return false;
-
                           },
                           child: Container(
                             clipBehavior: Clip.antiAlias,
@@ -301,25 +297,25 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                   slivers: [
                                     // Header Section (Party details)
                                     SliverToBoxAdapter(
-                                      child: AnimatedSize(
-                                        duration: const Duration(
-                                          milliseconds: 250,
-                                        ),
-                                        curve: Curves.easeOutCubic,
-                                        alignment: Alignment.topCenter,
-                                        child: ClipRect(
-                                          child: Align(
+                                      child: ValueListenableBuilder<bool>(
+                                        valueListenable: _showPartyDetails,
+                                        builder: (context, showDetails, child) {
+                                          return AnimatedSize(
+                                            duration: const Duration(milliseconds: 180),
+                                            curve: Curves.easeOutCubic,
                                             alignment: Alignment.topCenter,
-                                            heightFactor: showPartyDetails
-                                                ? 1.0
-                                                : 0.0,
-                                            child: PartyDetailsSection(
-                                              key: const ValueKey(
-                                                'party_details',
+                                            child: ClipRect(
+                                              child: Align(
+                                                alignment: Alignment.topCenter,
+                                                heightFactor: showDetails ? 1.0 : 0.0,
+                                                child: child,
                                               ),
-                                              partyData: widget.partyData,
                                             ),
-                                          ),
+                                          );
+                                        },
+                                        child: PartyDetailsSection(
+                                          key: const ValueKey('party_details'),
+                                          partyData: widget.partyData,
                                         ),
                                       ),
                                     ),

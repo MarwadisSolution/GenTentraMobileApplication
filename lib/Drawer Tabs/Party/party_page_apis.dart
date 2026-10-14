@@ -13,8 +13,7 @@ class PartyPageApis{
       final response = await _dio.get(
         "$api/api/v1/profile/parties",
       );
-      print("All Parties");
-      print(response.data);
+
       if (response.statusCode == 200) {
         final items = response.data['data']['items'] as List;
 
@@ -41,6 +40,7 @@ class PartyPageApis{
       if (response.statusCode == 200|| response.statusCode==201) {
 
         final fullParty = response.data['data'];
+
         final partyDetails = PartyProfileModel.fromJson(fullParty['party']);
         SymbolModel symbol = SymbolModel();
         List<JourneyModel> journey = [];
@@ -117,17 +117,7 @@ class PartyPageApis{
   }
   
   
-  ///-------------------View Apis
-//   Future<void>viewCountIncreament(String type,int partyId)async{
-//     try{
-//       final response=await _dio.post("$api/api/v1/stats/views/$type/$partyId");
-//       print("View");
-// print(response);
-//     }
-//     catch(e){
-//       print("Error in viewing:- $e");
-//     }
-//   }
+
   Future<int>getViewCount(String type,int partyId)async{
     try{
       final response=await _dio.get("$api/api/v1/stats/views/$type/$partyId");
@@ -193,13 +183,11 @@ class PartyPageApis{
     try{
       final response=await _dio.get("$api/api/v1/social/following",);
       if(response.statusCode==200 || response.statusCode==201){
-        print(response.data["data"].runtimeType);
         return response.data["data"];
       }
       else return ["Error"];
     }
         catch(e){
-      print("Follower Error- $e");
       return ["Error"];
 
         }
