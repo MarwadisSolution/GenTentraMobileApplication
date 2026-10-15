@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class PartyProfileModel {
   final int? id;
   final String partyName;
@@ -213,15 +211,15 @@ class JourneyModel {
 
   static const _noChange = Object();
 
-  factory JourneyModel.fromJson(Map<String, dynamic>json){
+  factory JourneyModel.fromJson(Map<String, dynamic> json) {
     return JourneyModel(
       id: json['id'],
       ownerType: json['ownerType'],
       ownerId: json['ownerId'],
-      title: json['title'] ?? '',
-      year: json['year'].toString() ?? '',
-      description: json['body'] ?? '',
-      imagePath: json['mediaUrl'] ?? '',
+      title: json['title']?.toString() ?? '',
+      year: json['year']?.toString() ?? '',
+      description: (json['body'] ?? json['description'] ?? '').toString(),
+      imagePath: (json['mediaUrl'] ?? json['imagePath'] ?? json['imageUrl'] ?? '').toString(),
     );
   }
 

@@ -29,14 +29,24 @@ class PoliticianProfileRepository {
             );
 
             // Merge journeys from data if not present inside politician map
-            if (politicianMap['journeys'] == null &&
-                rawData['journeys'] != null) {
-              politicianMap['journeys'] = rawData['journeys'];
+            final rawJourneys = rawData['journeys'] ?? rawData['journey'];
+            if ((politicianMap['journeys'] == null ||
+                    (politicianMap['journeys'] is List &&
+                        (politicianMap['journeys'] as List).isEmpty)) &&
+                rawJourneys != null) {
+              politicianMap['journeys'] = rawJourneys;
             }
+
             // Merge party from data if not present inside politician map
             if (politicianMap['party'] == null && rawData['party'] != null) {
               politicianMap['party'] = rawData['party'];
             }
+
+            // Merge top-level stats if not in politician map
+            politicianMap['viewCount'] ??= rawData['viewCount'];
+            politicianMap['followerCount'] ??= rawData['followerCount'];
+            politicianMap['isFollowing'] ??= rawData['isFollowing'];
+            politicianMap['isFavorite'] ??= rawData['isFavorite'];
           } else {
             politicianMap = Map<String, dynamic>.from(rawData);
           }

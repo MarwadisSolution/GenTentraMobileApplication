@@ -8,6 +8,9 @@ import '../journey_tab.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../../../Reusable Functions/rich_text_editor.dart';
 import 'politician_page_data.dart';
+import 'politician_profile_bloc.dart';
+import 'politician_profile_event.dart';
+import 'politician_profile_state.dart';
 
 class PoliticianInfoIcons {
   static final String gender = PoliticianPageData.genderIcon;
@@ -292,26 +295,31 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
           Positioned(
             top: screenHeight * 0.04,
             left: screenWidth * 0.05,
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: InkWell(
-                onTap: () => Navigator.pop(context),
-                borderRadius: BorderRadius.circular(20),
-                child: Center(
-                  child: Transform.rotate(
-                    angle: 3.141592653589793,
-                    child: SvgPicture.asset(
-                      PoliticianPageData.arrow,
-                      colorFilter: const ColorFilter.mode(
-                        Colors.white,
-                        BlendMode.srcIn,
+            child: Builder(
+              builder: (context) {
+                final double buttonSize = 40;
+                return SizedBox(
+                  width: buttonSize,
+                  height: buttonSize,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context),
+                    borderRadius: BorderRadius.circular(buttonSize / 2),
+                    child: Center(
+                      child: Transform.rotate(
+                        angle: 3.141592653589793,
+                        child: SvgPicture.asset(
+                          PoliticianPageData.arrow,
+                          colorFilter: const ColorFilter.mode(
+                            Colors.white,
+                            BlendMode.srcIn,
+                          ),
+                          height: screenWidth * 0.035,
+                        ),
                       ),
-                      height: screenWidth * 0.035,
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
 
@@ -528,7 +536,22 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
                   // JOURNEY
                   Offstage(
                     offstage: selectedIndex != 1,
-                    child: JourneyTab(journeys: politician.journeys),
+                    child: politician.journeys.isEmpty
+                        ? _buildPlaceholderTab(
+                            context,
+                            icon: Icons.timeline_rounded,
+                            title: "No Journey Available",
+                            subtitle:
+                                "Journey timeline for this politician will appear here.",
+                            h: screenHeight,
+                            w: screenWidth,
+                          )
+                        : JourneyTab(
+                            key: ValueKey(
+                              'politician_journey_${politician.id}_${politician.journeys.length}',
+                            ),
+                            journeys: politician.journeys,
+                          ),
                   ),
 
                   // FEED

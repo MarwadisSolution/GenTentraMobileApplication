@@ -47,6 +47,23 @@ class _JourneyTabState extends State<JourneyTab> {
   }
 
   @override
+  void didUpdateWidget(covariant JourneyTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.journeys != widget.journeys) {
+      setState(() {
+        journeys = List.from(widget.journeys);
+        journeys.sort(
+          (a, b) =>
+              (int.tryParse(a.year) ?? 0).compareTo(int.tryParse(b.year) ?? 0),
+        );
+        if (selectedIndex >= journeys.length) {
+          selectedIndex = 0;
+        }
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
     _timelineController.dispose();
@@ -118,10 +135,16 @@ class _JourneyTabState extends State<JourneyTab> {
     final size = MediaQuery.of(context).size.width;
     final height=MediaQuery.of(context).size.height;
     if (journeys.isEmpty) {
-      return Center(
-        child: Text(
-          "No journey available",
-          style: TextStyle(color: ColorScheme.of(context).onSurface),
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: height * 0.08),
+        child: Center(
+          child: Text(
+            "No journey available",
+            style: TextStyle(
+              color: ColorScheme.of(context).onSurface.withValues(alpha: 0.6),
+              fontSize: 15,
+            ),
+          ),
         ),
       );
     }
@@ -133,18 +156,18 @@ class _JourneyTabState extends State<JourneyTab> {
       child: Column(
         children: [
           /// 1. IMAGE CAROUSEL
-          SizedBox(height: size*0.02,),
+          SizedBox(height: size * 0.02),
 
           SizedBox(
             height: size < 360 ? size * 0.70 : size * 0.9,
-
             child: PageView.builder(
               controller: _pageController,
-              //physics: const NeverScrollableScrollPhysics(),
               itemCount: journeys.length,
               onPageChanged: _onYearChanged,
               itemBuilder: (context, index) {
                 final item = journeys[index];
+                final hasImage = item.imagePath != null && item.imagePath!.trim().isNotEmpty;
+
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   margin: EdgeInsets.symmetric(
@@ -155,16 +178,21 @@ class _JourneyTabState extends State<JourneyTab> {
                     borderRadius: BorderRadius.circular(18),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: Image.network(
-                    item.imagePath == null
-                        ? ""
-                        : item.imagePath!.startsWith("/api/")
-                        ? "$api${item.imagePath}"
-                        : item.imagePath!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
-                    const Center(child: Icon(Icons.image)),
-                  ),
+                  child: hasImage
+                      ? buildImageWidget(
+                          item.imagePath!,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          color: const Color(0xFFEEEEEE),
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              size: 40,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
                 );
               },
             ),
@@ -223,7 +251,7 @@ class _JourneyTabState extends State<JourneyTab> {
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: size*0.04,
-                          color: const Color(0xFF000000).withOpacity(0.6),
+                          color: const Color(0xFF000000).withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -284,7 +312,7 @@ class _JourneyTabState extends State<JourneyTab> {
                                 : FontWeight.w300,
                             color: isSelected
                                 ? Colors.white
-                                : const Color(0xFF000000).withOpacity(0.4),
+                                : const Color(0xFF000000).withValues(alpha: 0.4),
                           ),
                           child: Text(journeys[index].year),
                         ),

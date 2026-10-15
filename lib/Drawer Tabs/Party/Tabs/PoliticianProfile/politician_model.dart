@@ -108,8 +108,9 @@ class PoliticianModel {
 
   factory PoliticianModel.fromJson(Map<String, dynamic> json) {
     List<JourneyModel> journeyList = [];
-    if (json['journeys'] != null && json['journeys'] is List) {
-      journeyList = (json['journeys'] as List)
+    final rawJourneys = json['journeys'] ?? json['journey'];
+    if (rawJourneys != null && rawJourneys is List) {
+      journeyList = rawJourneys
           .map(
             (e) => JourneyModel.fromJson(Map<String, dynamic>.from(e as Map)),
           )

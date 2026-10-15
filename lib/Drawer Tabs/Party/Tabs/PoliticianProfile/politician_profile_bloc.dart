@@ -1,62 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'politician_model.dart';
+import 'politician_profile_event.dart';
 import 'politician_profile_repository.dart';
-
-// ============================================================================
-// EVENTS
-// ============================================================================
-
-abstract class PoliticianProfileEvent {
-  const PoliticianProfileEvent();
-}
-
-class FetchPoliticianProfileEvent extends PoliticianProfileEvent {
-  final int politicianId;
-  const FetchPoliticianProfileEvent(this.politicianId);
-}
-
-class RefreshPoliticianProfileEvent extends PoliticianProfileEvent {
-  final int politicianId;
-  const RefreshPoliticianProfileEvent(this.politicianId);
-}
-
-// ============================================================================
-// STATES
-// ============================================================================
-
-enum PoliticianProfileStatus { initial, loading, success, failure }
-
-class PoliticianProfileState {
-  final PoliticianProfileStatus status;
-  final PoliticianModel? politician;
-  final String? errorMessage;
-  final int? politicianId;
-
-  const PoliticianProfileState({
-    this.status = PoliticianProfileStatus.initial,
-    this.politician,
-    this.errorMessage,
-    this.politicianId,
-  });
-
-  PoliticianProfileState copyWith({
-    PoliticianProfileStatus? status,
-    PoliticianModel? politician,
-    String? errorMessage,
-    int? politicianId,
-  }) {
-    return PoliticianProfileState(
-      status: status ?? this.status,
-      politician: politician ?? this.politician,
-      errorMessage: errorMessage ?? this.errorMessage,
-      politicianId: politicianId ?? this.politicianId,
-    );
-  }
-}
-
-// ============================================================================
-// BLOC
-// ============================================================================
+import 'politician_profile_state.dart';
 
 class PoliticianProfileBloc
     extends Bloc<PoliticianProfileEvent, PoliticianProfileState> {
