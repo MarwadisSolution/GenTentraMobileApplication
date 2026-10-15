@@ -25,6 +25,7 @@ class LeadershipTab extends StatefulWidget {
 class _LeadershipTabState extends State<LeadershipTab> {
   @override
   Widget build(BuildContext context) {
+
     final size = MediaQuery.sizeOf(context);
     final w = size.width;
     final h = size.height;
@@ -36,10 +37,13 @@ class _LeadershipTabState extends State<LeadershipTab> {
         : w * (280 / 360);
 
     if (widget.leaders.isEmpty) {
-      return const Center(
-        child: Text(
-          'No Groups Present',
-          style: TextStyle(color: Colors.black, fontSize: 16),
+      return  Padding(
+        padding:  EdgeInsets.only(top: h*0.05),
+        child: Center(
+          child: Text(
+            'No Groups Present',
+            style: TextStyle(color: Colors.black, fontSize: w*0.045),
+          ),
         ),
       );
     }
@@ -47,8 +51,10 @@ class _LeadershipTabState extends State<LeadershipTab> {
     // Display leaders from the first group.
     final firstGroupLeaders = widget.leaders.first;
     final leaders = firstGroupLeaders.leaders;
-    final secondGroupLeaders = widget.leaders[2];
-    final secondLeaders = secondGroupLeaders.leaders;
+    final List<LeaderModel> secondLeaders =
+    widget.leaders.length > 1
+        ? widget.leaders[1].leaders
+        : [];
 
     if (leaders.isEmpty) {
       return Center(
@@ -133,7 +139,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
         ),
 
         SizedBox(height: h * 0.01),
-
+ //widget.leaders.length>1?
         GridView.builder(
           padding: EdgeInsets.symmetric(
             horizontal: w * 0.025,
@@ -239,7 +245,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                 Text(
                   leader.name,
 
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: w * 0.04,
@@ -250,7 +256,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                 Text(
                   leader.designation,
 
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: w * 0.04,
@@ -296,7 +302,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                     ),
                   ),
                   subtitle: Text(
-                    "10020",
+                    '${widget.members.length}',
                     style: TextStyle(
                       fontSize: w * 0.045,
                       fontWeight: FontWeight.w700,
