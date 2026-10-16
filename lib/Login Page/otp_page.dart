@@ -24,67 +24,80 @@ class _OtpPageState extends State<OtpPage> {
   bool otpButtonPressed = false;
   String selectedCountryCode = "+91";
   int phoneMaxLength = 10;
+  late LoginBloc loginBloc;
   final TextEditingController phoneController = TextEditingController();
 
 @override
   void initState(){
     // TODO: implement initState
     super.initState();
-    //clearCacheFirst();
-
+    loginBloc = context.read<LoginBloc>();
   }
   @override
   Widget build(BuildContext context) {
     return BlocListener<LoginBloc, LoginState>(
+      listenWhen: (previous, current) {
+        final newError =
+            !previous.isError &&
+                current.isError &&
+                current.errorMessage.isNotEmpty;
+
+        final shouldNavigate =
+            !previous.navigateToOtp && current.navigateToOtp;
+
+        return newError || shouldNavigate;
+      },
       listener: (context, state) {
         if (state.navigateToOtp) {
-          print("NAVIGATING TO VERIFY PAGE");
-
-          // Stop the loader before navigating
           setState(() {
             otpButtonPressed = false;
           });
 
-          context.read<LoginBloc>().add(
-            ResetNavigationEvent(),
-          );
-
-          context.read<LoginBloc>().add(
-            ClearOtpStatusEvent(),
-          );
+          context.read<LoginBloc>().add(ResetNavigationEvent());
+          context.read<LoginBloc>().add(ClearOtpStatusEvent());
 
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => BlocProvider.value(
-                value: context.read<LoginBloc>(),
-                child:  VerifyOtpPage(
+                value: loginBloc,
+                child: VerifyOtpPage(
                   fromWhereICame: 'From OTP page',
                 ),
               ),
             ),
           );
+          return;
         }
-        else if (state.isError && otpButtonPressed && ModalRoute
-            .of(context)
-            ?.isCurrent == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 2),
-              content: Text(
-                  state.errorMessage.contains("has a status code of 429")
-                      ? "You have made too many requests. Please wait ${state.resendTimer}s."
-                      : state.errorMessage.contains("has a status code of 530")?"Please contact the owner":
-                   state.errorMessage.contains("Failed host lookup:")?"Please start the server":
-                  state.errorMessage.contains("The connection errored")
-                      ? "You are offline":
-                     state.errorMessage),
-            ),
-          );
+
+        if (state.isError &&
+            otpButtonPressed &&
+            ModalRoute.of(context)?.isCurrent == true) {
           setState(() {
             otpButtonPressed = false;
           });
+
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 2),
+                content: Text(
+                  state.errorMessage.contains('has a status code of 429')
+                      ? 'You have made too many requests. Please wait ${state.resendTimer}s.'
+                      : state.errorMessage.contains('has a status code of 530')
+                      ? 'Please contact the owner'
+                      : state.errorMessage.contains('Failed host lookup:')
+                      ? 'Please start the server'
+                      : state.errorMessage.contains(
+                    'The connection errored',
+                  )
+                      ? 'You are offline'
+                      : state.errorMessage,
+                ),
+              ),
+            );
         }
       },
       child: GestureDetector(
@@ -138,12 +151,6 @@ class _OtpPageState extends State<OtpPage> {
                             .withOpacity(0.6),
                       ),
                     ),
-                    // SizedBox(
-                    //   height: MediaQuery
-                    //       .of(context)
-                    //       .size
-                    //       .height * 0.08,
-                    // ),
 
                     SizedBox(height: MediaQuery
                         .of(context)
@@ -334,7 +341,6 @@ class _OtpPageState extends State<OtpPage> {
                 ),
               ),
             ),
-
           ),
           bottomNavigationBar: Padding(
             padding: EdgeInsets.only(
@@ -361,14 +367,16 @@ class _OtpPageState extends State<OtpPage> {
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
-                        context, MaterialPageRoute(builder: (_) =>
-                        BlocProvider(create: (_) =>
-                            LoginBloc(LoginRepository(LoginApi()),
-                            ),
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BlocProvider.value(
+                          value: loginBloc,
                           child: const SignupPage(),
-                        )
-                    ));
+                        ),
+                      ),
+                          (route) => false,
+                    );
                   },
                   child: Text(
                     LoginPageData.signUp,

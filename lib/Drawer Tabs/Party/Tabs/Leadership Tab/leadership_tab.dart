@@ -57,11 +57,11 @@ class _LeadershipTabState extends State<LeadershipTab> {
         : [];
 
     if (leaders.isEmpty) {
-      return Center(
-        child: Text(
-          'No Leaders Present',
-          style: TextStyle(color: Colors.black, fontSize: w * 0.016),
-        ),
+      return Padding(
+        padding: EdgeInsets.all(h * 0.045),
+        child:  Center(child: Text("No leaders found",
+          style: TextStyle(color: ColorScheme.of(context).onSurface,fontSize: w*0.045),
+        )),
       );
     }
 

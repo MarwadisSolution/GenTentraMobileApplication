@@ -26,64 +26,7 @@ class PasswordVerificationPage extends StatefulWidget {
 }
 
 class _PasswordVerificationPageState extends State<PasswordVerificationPage> {
-  Future<void> login() async {
-    try {
-      final result = await LoginApi().passwordVerification(
-        widget.verificationToken,
-        passwordController.text,
-      );
 
-      final auth = result["auth"];
-      print("Result = $result");
-      print("Auth = $auth");
-      final prefs = await SharedPreferences.getInstance();
-
-      await prefs.setString("accessToken", auth["accessToken"]);
-      await prefs.setString("refreshToken", auth["refreshToken"]);
-      await prefs.setString("userUuid", auth["userUuid"]);
-      await prefs.setString("role", auth['role']);
-      if(auth['role']=="ROLE_PARTY_ADMIN") {
-        await prefs.setString("AdminOfParty", result["partyId"].toString());
-      }
-      print("profile");
-      print(prefs.getString("AdminOfParty"));
-      print("Roles3");
-      print(prefs.getString("role"));
-      await prefs.setInt(
-        "loginTime",
-        DateTime.now().millisecondsSinceEpoch,
-      );
-      await prefs.setBool("isLogged", true);
-
-      if (!mounted) return;
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                create: (_) => BottomNavBloc(),
-              ),
-              BlocProvider(
-                create: (_) => DrawerBloc(),
-              ),
-            ],
-            child: MainPage(),
-          ),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.toString(),
-            style: const TextStyle(color: Colors.white),
-          ),
-        ),
-      );
-    }
-  }
   final TextEditingController passwordController = TextEditingController();
   @override
   void dispose() {
@@ -97,18 +40,51 @@ class _PasswordVerificationPageState extends State<PasswordVerificationPage> {
     return BlocProvider(
       create: (_) => LoginBloc(LoginRepository(LoginApi())),
       child: BlocListener<LoginBloc, LoginState>(
+        listenWhen: (previous, current) {
+          return (!previous.isError && current.isError) ||
+              (!previous.isSuccess && current.isSuccess);
+        },
         listener: (context, state) {
-          if (state.isError) {
+          if (state.isError && state.errorMessage.isNotEmpty) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
+                backgroundColor: Colors.red,
                 content: Text(
-                  state.errorMessage,
-                  style: TextStyle(color: ColorScheme.of(context).onPrimary),
+                    state.errorMessage.contains("has a status code of 400")
+                        ? "Please enter correct password"
+                        : state.errorMessage.contains("has a status code of 530")?"Please contact the owner":
+                    state.errorMessage.contains("Failed host lookup:")?"Please start the server":
+                    state.errorMessage.contains("The connection errored")
+                        ? "You are offline":
+                    state.errorMessage,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            );
+          }
+
+          if (state.isSuccess) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (_) => BottomNavBloc(),
+                    ),
+                    BlocProvider(
+                      create: (_) => DrawerBloc(),
+                    ),
+                  ],
+                  child: MainPage(),
                 ),
               ),
             );
           }
         },
+
         child: Scaffold(
           body: SafeArea(
             child: Center(
@@ -150,7 +126,10 @@ class _PasswordVerificationPageState extends State<PasswordVerificationPage> {
 
                                     },
                                     onSubmitted: (_)async{
-                                      await login();
+                                      if(!state.isLoading) {
+                                        context.read<LoginBloc>().passwordLogin( widget.verificationToken,
+                                          passwordController.text,);
+                                      }
                                     },
                                     keyboardType:
                                     TextInputType.visiblePassword,
@@ -216,77 +195,11 @@ class _PasswordVerificationPageState extends State<PasswordVerificationPage> {
                                   padding: const EdgeInsets.only(top: 20.0),
                                   child: Center(
                                     child: InkWell(
-                                      onTap: () async {
-                                        try {
-                                          final result = await LoginApi().passwordVerification(
-                                            widget.verificationToken,
-                                            passwordController.text,
-                                          );
-                                          final auth = result["auth"];
-
-                                          final prefs = await SharedPreferences.getInstance();
-
-                                          await prefs.setString(
-                                            "accessToken",
-                                            auth["accessToken"],
-                                          );
-
-                                          await prefs.setString(
-                                            "refreshToken",
-                                            auth["refreshToken"],
-                                          );
-
-                                          await prefs.setString(
-                                            "userUuid",
-                                            auth["userUuid"],
-                                          );
-                                          await prefs.setString("role", auth['role']);
-                                          if(auth['role']=="ROLE_PARTY_ADMIN") await prefs.setString("AdminOfParty", result["partyId"].toString());
-                                          print("profile4");
-                                          print(prefs.getString("AdminOfParty"));
-                                          print("Roles4");
-                                          print(prefs.getString("role"));
-                                          await prefs.setInt(
-                                            "loginTime",
-                                            DateTime.now().millisecondsSinceEpoch,
-                                          );
-
-                                          await prefs.setBool(
-                                            "isLogged",
-                                            true,
-                                          );
-                                          print(result);
-                                          print("===== PASSWORD SAVED =====");
-                                          print("Saved accessToken = ${prefs.getString("accessToken")}");
-                                          print("Saved refreshToken = ${prefs.getString("refreshToken")}");
-                                          print("Saved userUuid = ${prefs.getString("userUuid")}");
-                                          print("Saved Roles:- ${prefs.getString("role")}");
-                                          print("Saved isLogged = ${prefs.getBool("isLogged")}");
-
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => MultiBlocProvider(
-                                                providers: [
-                                                  BlocProvider(
-                                                    create: (_) => BottomNavBloc(),
-                                                  ),
-                                                  BlocProvider(
-                                                    create: (_) => DrawerBloc(),
-                                                  ),
-                                                ],
-                                                child: MainPage(),
-                                              ),
-                                            ),
-                                          );
-                                        } catch (e) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              backgroundColor: Colors.red,
-                                              content: Text(e.toString(),style: TextStyle(color: Colors.white),),
-                                            ),
-                                          );
-                                        }
+                                      onTap:state.isLoading?null: () async {
+                                        await context.read<LoginBloc>().passwordLogin(
+                                          widget.verificationToken,
+                                          passwordController.text,
+                                        );
                                       },
                                       child: Container(
                                         height: MediaQuery.of(context).size.height * 0.054,
@@ -296,28 +209,41 @@ class _PasswordVerificationPageState extends State<PasswordVerificationPage> {
                                           borderRadius: BorderRadius.circular(
                                             30,
                                           ),
-                                          gradient:
-                                          GradientColors.primaryGradient,
+                                          gradient:passwordController.text.isNotEmpty?
+                                          GradientColors.primaryGradient:null,
+                                          color: passwordController.text.isNotEmpty?null:ColorScheme.of(context).onSurface.withOpacity(0.3)
                                         ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              LoginPageData.login,
-                                              style: TextStyle(
-                                                fontSize:MediaQuery.textScalerOf(context).scale(14),
-                                                fontWeight: FontWeight.w600,
-                                                letterSpacing: 0.5,
-                                                color: ColorScheme.of(context).surface,
+                                        child: Center(
+                                          child: state.isLoading?
+                                              SizedBox(
+                                                //height: 22,width: 22,
+                                                height:  MediaQuery.of(context).size.width*0.06,
+                                                width:   MediaQuery.of(context).size.width*0.06,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor: AlwaysStoppedAnimation<Color>(ColorScheme.of(context).surface),
+                                                ),
+                                              )
+                                              :Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                LoginPageData.login,
+                                                style: TextStyle(
+                                                  fontSize:MediaQuery.textScalerOf(context).scale(14),
+                                                  fontWeight: FontWeight.w600,
+                                                  letterSpacing: 0.5,
+                                                  color: ColorScheme.of(context).surface,
+                                                ),
                                               ),
-                                            ),
-                                            SizedBox(width: MediaQuery.of(context).size.width*0.02,),
-                                            Transform.rotate(
-                                                angle: math.pi/180,
-                                                child: SvgPicture.asset(
-                                                  LoginPageData.arrowIcon,
-                                                  color: Colors.white,)),
-                                          ],
+                                              SizedBox(width: MediaQuery.of(context).size.width*0.02,),
+                                              Transform.rotate(
+                                                  angle: math.pi/180,
+                                                  child: SvgPicture.asset(
+                                                    LoginPageData.arrowIcon,
+                                                    color: Colors.white,)),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),

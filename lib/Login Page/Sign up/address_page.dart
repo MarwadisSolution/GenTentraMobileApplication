@@ -64,16 +64,16 @@ class _AddressPageState extends State<AddressPage> {
               }
 
               if (state.navigateToHome) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      state.errorMessage.isEmpty
-                          ? "Account created successfully"
-                          : state.errorMessage,
-                    ),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                // ScaffoldMessenger.of(context).showSnackBar(
+                //   SnackBar(
+                //     content: Text(
+                //       state.errorMessage.isEmpty
+                //           ? "Account created successfully"
+                //           : state.errorMessage,
+                //     ),
+                //     backgroundColor: Colors.green,
+                //   ),
+                // );
 
                 context.read<LoginBloc>().add(ResetNavigationEvent());
 

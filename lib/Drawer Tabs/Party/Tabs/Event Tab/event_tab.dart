@@ -304,10 +304,14 @@ class _EventTabState extends State<EventTab> {
         // NO EVENTS
         // --------------------------------------------------------
         if (state.events.isEmpty) {
-          return Center(
-            child: Text(
-              "No events found",
-              style: TextStyle(color: ColorScheme.of(context).onSurface),
+
+          return Padding(
+            padding:  EdgeInsets.all(h * 0.045),
+            child: Center(
+              child: Text(
+                "No events found",
+                style: TextStyle(color: ColorScheme.of(context).onSurface,fontSize: w*0.045),
+              ),
             ),
           );
         }

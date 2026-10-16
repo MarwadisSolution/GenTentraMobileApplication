@@ -58,7 +58,7 @@ class _MemberDirectoryState extends State<MemberDirectory> {
   }
   List<MemberDirectoryModel> getDisplayedMembers(String region) {
     if (region == 'All') return widget.members;
-    return widget.membersByRegion[region] ?? [];
+    return widget.membersByRegion[AutofillHints.addressCityAndState] ?? [];
   }
 
   List<String> get regions {
@@ -452,7 +452,7 @@ decoration: BoxDecoration(
                                   ),
                                 ),
                                 subtitle: Text(
-                                  member.region,
+                                  member.designation,
                                   style: TextStyle(
                                     color: ColorScheme.of(context)
                                         .onSurface

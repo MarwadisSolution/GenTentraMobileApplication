@@ -323,7 +323,12 @@ class _ManifestoTabState extends State<ManifestoTab> {
         final years = _availableYears(state.manifestos);
 
         final filteredManifestos = _filteredManifestos(state.manifestos);
-        return Container(
+        return  filteredManifestos.isEmpty?  Padding(
+          padding: EdgeInsets.all(h * 0.045),
+          child:  Center(child: Text("No manifesto found",
+            style: TextStyle(color: ColorScheme.of(context).onSurface,fontSize: w*0.045),
+            )),
+        ): Container(
           width: w,
           color: ColorScheme
               .of(context)
@@ -359,13 +364,7 @@ class _ManifestoTabState extends State<ManifestoTab> {
                 ),
               ),
 
-              //SizedBox(height: h * 0.0),
-              if (filteredManifestos.isEmpty)
-                Padding(
-                  padding: EdgeInsets.all(h * 0.04),
-                  child: const Center(child: Text("No manifesto found")),
-                )
-              else
+
                 ListView.separated(
                   shrinkWrap: true,
 

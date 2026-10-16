@@ -118,11 +118,11 @@ class _JourneyTabState extends State<JourneyTab> {
     final size = MediaQuery.of(context).size.width;
     final height=MediaQuery.of(context).size.height;
     if (journeys.isEmpty) {
-      return Center(
-        child: Text(
-          "No journey available",
-          style: TextStyle(color: ColorScheme.of(context).onSurface),
-        ),
+      return Padding(
+        padding: EdgeInsets.all(height * 0.045),
+        child:  Center(child: Text("No journey found",
+          style: TextStyle(color: ColorScheme.of(context).onSurface,fontSize: size*0.045),
+        )),
       );
     }
 

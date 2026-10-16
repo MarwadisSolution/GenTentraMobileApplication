@@ -54,45 +54,50 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
 
   @override
   Widget build(BuildContext context) {
-    // print("VERIFY PAGE BUILD");
+
     return BlocListener<LoginBloc, LoginState>(
-      listenWhen: (previous, current) =>
-          previous.isError != current.isError ||
-          previous.navigateToNewUser != current.navigateToNewUser ||
-          previous.navigateToOldUser != current.navigateToOldUser ||
-          previous.otpResent != current.otpResent,
+      listenWhen: (previous, current) {
+        final newError =
+            !previous.isError &&
+                current.isError &&
+                current.errorMessage.isNotEmpty;
+
+        final navigationChanged =
+            previous.navigateToNewUser != current.navigateToNewUser ||
+                previous.navigateToOldUser != current.navigateToOldUser;
+
+        final otpResent =
+            previous.otpResent != current.otpResent;
+
+        return newError || navigationChanged || otpResent;
+      },
       listener: (context, state) async {
-        print("Listener called: otpResent=${state.otpResent}");
-        print(
-          "Listener => "
-          "success=${state.isSuccess}, "
-          "error=${state.isError}, "
-          "newUser=${state.navigateToNewUser}, "
-          "oldUser=${state.navigateToOldUser}, "
-          "message=${state.errorMessage}, "
-          "require password=${state.requirePassword}",
-        );
+
         if (state.otpResent) {
 
           context.read<LoginBloc>().add(ClearOtpResentEvent());
         }
         if (state.isError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.errorMessage.contains(
-                      "The status code of 401 has the following meaning:",
-                    )
-                    ? "OTP is wrong"
-                    : state.errorMessage.contains("has a status code of 530")
-                    ? "Please contact the owner"
-                    : state.errorMessage.contains("The connection errored")
-                    ? "You are offline"
-                    : state.errorMessage.contains("Failed host lookup:")?"Please contact the owner":state.errorMessage
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(
+                  state.errorMessage.contains(
+                    'The status code of 401 has the following meaning:',
+                  )
+                      ? 'OTP is wrong'
+                      : state.errorMessage.contains('has a status code of 530')
+                      ? 'Please contact the owner'
+                      : state.errorMessage.contains('The connection errored')
+                      ? 'You are offline'
+                      : state.errorMessage.contains('Failed host lookup:')
+                      ? 'Please contact the owner'
+                      : state.errorMessage,
+                ),
+                backgroundColor: Colors.red,
               ),
-              backgroundColor: Colors.red,
-            ),
-          );
+            );
         }
 
         if (state.navigateToNewUser) {
@@ -115,16 +120,23 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
               ),
             );
           } else {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BlocProvider.value(
-                  value: loginBloc,
-                  child: const SignupPage(),
+            if (widget.fromWhereICame == "From SignUp page") {
+              // The original SignupPage is still underneath VerifyOtpPage.
+              // Return to it without destroying the LoginBloc.
+              Navigator.pop(context);
+            } else {
+              // Replace only VerifyOtpPage, keeping the route that owns
+              // LoginBloc alive.
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider.value(
+                    value: loginBloc,
+                    child: const SignupPage(),
+                  ),
                 ),
-              ),
-                  (route) => false,
-            );
+              );
+            }
           }
 
           return;
@@ -163,17 +175,13 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
             if(auth['role']=="ROLE_PARTY_ADMIN") {
               await prefs.setString("AdminOfParty", result["data"]["partyId"].toString());
             }
-            print("profile3");
-            print(prefs.getString("AdminOfParty"));
-            print("Roles5");
-            print(prefs.getString("role"));
+
             await prefs.setInt(
               "loginTime",
               DateTime.now().millisecondsSinceEpoch,
             );
             await prefs.setBool("isLogged", true);
-            print("No required password accessToken = ${prefs.getString("accessToken")}");
-            print("No required password refreshToken = ${prefs.getString("refreshToken")}");
+
             if (!mounted) return;
 
             Navigator.pushAndRemoveUntil(

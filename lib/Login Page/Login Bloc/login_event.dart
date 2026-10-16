@@ -81,3 +81,10 @@ class AddressSignUpEvent extends LoginEvent {
     signUpData,
   ];
 }
+///------------Password loading
+class PasswordLoginLoadingEvent extends LoginEvent{
+  final bool isLoading;
+  const PasswordLoginLoadingEvent(this.isLoading);
+  @override
+  List<Object?> get props=>[isLoading];
+}

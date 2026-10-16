@@ -249,11 +249,11 @@ class _FeedTabState extends State<FeedTab> {
         }
 
         if (state.feeds.isEmpty) {
-          return const Center(
-            child: Text(
-              "No Feed Available",
-              style: TextStyle(color: Colors.black),
-            ),
+          return Padding(
+            padding: EdgeInsets.all(h * 0.045),
+            child:  Center(child: Text("No Feeds found",
+              style: TextStyle(color: ColorScheme.of(context).onSurface,fontSize: w*0.045),
+            )),
           );
         }
 
