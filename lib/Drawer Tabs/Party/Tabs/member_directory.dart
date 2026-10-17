@@ -5,6 +5,7 @@ import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_ba
 
 import '../../../Reusable Functions/reusable_functions.dart';
 import '../party_page_modal.dart';
+import 'PoliticianProfile/politician_page_data.dart';
 
 class MemberDirectory extends StatefulWidget {
   final List<LeaderGroupModel> leaders;
@@ -320,33 +321,44 @@ decoration: BoxDecoration(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 // Fixed circle position and size.
-                                SizedBox(
-                                  width: w * 0.2,
-                                  height: w * 0.2,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.white,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child: ClipOval(
-                                      child: leader.imagePath == null ||
-                                          leader.imagePath!.isEmpty
-                                          ? ColoredBox(
-                                        color: Colors.grey.shade200,
-                                        child: Icon(
-                                          Icons.person,
-                                          color: Colors.grey,
-                                          size: w * 0.08,
+                                InkWell(
+                                  onTap:(){
+                                    PoliticianPageData.navigateTo(
+                                      context,
+                                      politicianId: leader.politicianId,
+                                      photoUrl: leader.imagePath,
+                                      name: leader.name,
+                                    );
+
+                                  },
+                                  child: SizedBox(
+                                    width: w * 0.2,
+                                    height: w * 0.2,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 2,
                                         ),
-                                      )
-                                          : buildImageWidget(
-                                        leader.imagePath!,
-                                        width: w * 0.2,
-                                        height: w * 0.2,
-                                        fit: BoxFit.contain,
+                                      ),
+                                      child: ClipOval(
+                                        child: leader.imagePath == null ||
+                                            leader.imagePath!.isEmpty
+                                            ? ColoredBox(
+                                          color: Colors.grey.shade200,
+                                          child: Icon(
+                                            Icons.person,
+                                            color: Colors.grey,
+                                            size: w * 0.08,
+                                          ),
+                                        )
+                                            : buildImageWidget(
+                                          leader.imagePath!,
+                                          width: w * 0.2,
+                                          height: w * 0.2,
+                                          fit: BoxFit.contain,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -427,38 +439,49 @@ decoration: BoxDecoration(
                             child: Card(
                               color: Colors.white,
                               elevation: 0,
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  radius: w * 0.07,
-                                  backgroundColor: Colors.white,
-                                  child: ClipOval(
-                                    child: SizedBox.expand(
-                                      child: buildImageWidget(
-                                        member.imagePath,
-                                        width: double.infinity,
-                                        height: double.infinity,
-                                        fit: BoxFit.contain,
+                              child: InkWell(
+                                onTap:(){
+                                  PoliticianPageData.navigateTo(
+                                    context,
+                                    politicianId: member.politicianId,
+                                    photoUrl: member.imagePath,
+                                    name: member.personName,
+                                  );
+
+                                },
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    radius: w * 0.07,
+                                    backgroundColor: Colors.white,
+                                    child: ClipOval(
+                                      child: SizedBox.expand(
+                                        child: buildImageWidget(
+                                          member.imagePath,
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                          fit: BoxFit.contain,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                title: Text(
-                                  member.personName,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: w * 0.039,
-                                    letterSpacing: 0.31,
-                                    color: ColorScheme.of(context).onSurface,
+                                  title: Text(
+                                    member.personName,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: w * 0.039,
+                                      letterSpacing: 0.31,
+                                      color: ColorScheme.of(context).onSurface,
+                                    ),
                                   ),
-                                ),
-                                subtitle: Text(
-                                  member.designation,
-                                  style: TextStyle(
-                                    color: ColorScheme.of(context)
-                                        .onSurface
-                                        .withOpacity(0.6),
-                                    fontSize: w * 0.039,
-                                    letterSpacing: 0.31,
+                                  subtitle: Text(
+                                    member.designation,
+                                    style: TextStyle(
+                                      color: ColorScheme.of(context)
+                                          .onSurface
+                                          .withOpacity(0.6),
+                                      fontSize: w * 0.039,
+                                      letterSpacing: 0.31,
+                                    ),
                                   ),
                                 ),
                               ),

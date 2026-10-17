@@ -27,7 +27,7 @@ class _JourneyTabState extends State<JourneyTab> {
     journeys = List.from(widget.journeys);
 
     journeys.sort(
-          (a, b) =>
+      (a, b) =>
           (int.tryParse(a.year) ?? 0).compareTo(int.tryParse(b.year) ?? 0),
     );
 
@@ -41,9 +41,24 @@ class _JourneyTabState extends State<JourneyTab> {
       viewportFraction: 0.22,
     );
 
-    _textController = PageController(
-      initialPage: selectedIndex,
-    );
+    _textController = PageController(initialPage: selectedIndex);
+  }
+
+  @override
+  void didUpdateWidget(covariant JourneyTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.journeys != widget.journeys) {
+      setState(() {
+        journeys = List.from(widget.journeys);
+        journeys.sort(
+          (a, b) =>
+              (int.tryParse(a.year) ?? 0).compareTo(int.tryParse(b.year) ?? 0),
+        );
+        if (selectedIndex >= journeys.length) {
+          selectedIndex = 0;
+        }
+      });
+    }
   }
 
   @override
@@ -86,9 +101,9 @@ class _JourneyTabState extends State<JourneyTab> {
   }
 
   Future<void> _animateToPageIfNeeded(
-      PageController controller,
-      int index,
-      ) async {
+    PageController controller,
+    int index,
+  ) async {
     if (!controller.hasClients) return;
 
     final currentPage = controller.page;
@@ -142,7 +157,7 @@ class _JourneyTabState extends State<JourneyTab> {
               children: [
                 /// 1. IMAGE CAROUSEL
                 Container(
-                  height: height*0.01,
+                  height: height * 0.01,
                   width: size,
                   color: Colors.white,
                 ),
@@ -161,7 +176,7 @@ class _JourneyTabState extends State<JourneyTab> {
                           vertical: selectedIndex == index ? 0 : 16,
                         ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(size*0.04),
+                          borderRadius: BorderRadius.circular(size * 0.04),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: Image.network(
@@ -172,7 +187,7 @@ class _JourneyTabState extends State<JourneyTab> {
                               : item.imagePath!,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) =>
-                          const Center(child: Icon(Icons.image)),
+                              const Center(child: Icon(Icons.image)),
                         ),
                       );
                     },
@@ -180,7 +195,7 @@ class _JourneyTabState extends State<JourneyTab> {
                 ),
 
                 /// 2. TEXT CONTENT PAGEVIEW
-                SizedBox(height: height*0.02,),
+                SizedBox(height: height * 0.02),
                 SizedBox(
                   height: availableHeight * 0.25,
                   child: PageView.builder(
@@ -211,7 +226,7 @@ class _JourneyTabState extends State<JourneyTab> {
 
                             /// Red Line Divider
                             Container(
-                              height: height*0.004,
+                              height: height * 0.004,
                               width: size * 0.09,
                               decoration: const BoxDecoration(
                                 color: Color(0xFFFB5051),
@@ -229,7 +244,9 @@ class _JourneyTabState extends State<JourneyTab> {
                                   style: TextStyle(
                                     fontWeight: FontWeight.w400,
                                     fontSize: size * 0.04,
-                                    color: const Color(0xFF000000).withOpacity(0.6),
+                                    color: const Color(
+                                      0xFF000000,
+                                    ).withOpacity(0.6),
                                   ),
                                 ),
                               ),
@@ -280,14 +297,20 @@ class _JourneyTabState extends State<JourneyTab> {
                                 duration: const Duration(milliseconds: 200),
                                 style: TextStyle(
                                   fontSize: isSelected
-                                      ? MediaQuery.textScalerOf(context).scale(20)
-                                      : MediaQuery.textScalerOf(context).scale(16),
+                                      ? MediaQuery.textScalerOf(
+                                          context,
+                                        ).scale(20)
+                                      : MediaQuery.textScalerOf(
+                                          context,
+                                        ).scale(16),
                                   fontWeight: isSelected
                                       ? FontWeight.w500
                                       : FontWeight.w300,
                                   color: isSelected
                                       ? Colors.white
-                                      : const Color(0xFF000000).withOpacity(0.4),
+                                      : const Color(
+                                          0xFF000000,
+                                        ).withOpacity(0.4),
                                 ),
                                 child: Text(journeys[index].year),
                               ),

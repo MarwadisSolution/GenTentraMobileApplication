@@ -4,13 +4,13 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_dat
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_modal.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
+import '../PoliticianProfile/politician_page_data.dart';
 import '../member_directory.dart';
 
 class LeadershipTab extends StatefulWidget {
   final List<LeaderGroupModel> leaders;
   final List<MemberDirectoryModel> members;
   final Map<String, List<MemberDirectoryModel>> membersByRegion;
-
   const LeadershipTab({
     super.key,
     required this.leaders,
@@ -25,7 +25,6 @@ class LeadershipTab extends StatefulWidget {
 class _LeadershipTabState extends State<LeadershipTab> {
   @override
   Widget build(BuildContext context) {
-
     final size = MediaQuery.sizeOf(context);
     final w = size.width;
     final h = size.height;
@@ -37,12 +36,12 @@ class _LeadershipTabState extends State<LeadershipTab> {
         : w * (280 / 360);
 
     if (widget.leaders.isEmpty) {
-      return  Padding(
-        padding:  EdgeInsets.only(top: h*0.05),
+      return Padding(
+        padding: EdgeInsets.only(top: h * 0.05),
         child: Center(
           child: Text(
             'No Groups Present',
-            style: TextStyle(color: Colors.black, fontSize: w*0.045),
+            style: TextStyle(color: Colors.black, fontSize: w * 0.045),
           ),
         ),
       );
@@ -51,17 +50,22 @@ class _LeadershipTabState extends State<LeadershipTab> {
     // Display leaders from the first group.
     final firstGroupLeaders = widget.leaders.first;
     final leaders = firstGroupLeaders.leaders;
-    final List<LeaderModel> secondLeaders =
-    widget.leaders.length > 1
+    final List<LeaderModel> secondLeaders = widget.leaders.length > 1
         ? widget.leaders[1].leaders
         : [];
 
     if (leaders.isEmpty) {
       return Padding(
         padding: EdgeInsets.all(h * 0.045),
-        child:  Center(child: Text("No leaders found",
-          style: TextStyle(color: ColorScheme.of(context).onSurface,fontSize: w*0.045),
-        )),
+        child: Center(
+          child: Text(
+            "No leaders found",
+            style: TextStyle(
+              color: ColorScheme.of(context).onSurface,
+              fontSize: w * 0.045,
+            ),
+          ),
+        ),
       );
     }
 
@@ -87,20 +91,33 @@ class _LeadershipTabState extends State<LeadershipTab> {
                     Expanded(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(w * 0.05),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: imagePath == null || imagePath.isEmpty
-                              ? ColoredBox(
-                                  color: Colors.grey.shade200,
-                                  child: Center(
-                                    child: Icon(
-                                      Icons.person,
-                                      size: w * 0.6,
-                                      color: Colors.grey,
+                        child: InkWell(
+                          onTap: () {
+                            PoliticianPageData.navigateTo(
+                              context,
+                              politicianId: leader.politicianId,
+                              photoUrl: leader.imagePath,
+                              name: leader.name,
+                            );
+                          },
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: imagePath == null || imagePath.isEmpty
+                                ? ColoredBox(
+                                    color: Colors.grey.shade200,
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.person,
+                                        size: w * 0.6,
+                                        color: Colors.grey,
+                                      ),
                                     ),
+                                  )
+                                : buildImageWidget(
+                                    imagePath,
+                                    fit: BoxFit.cover,
                                   ),
-                                )
-                              : buildImageWidget(imagePath, fit: BoxFit.cover),
+                          ),
                         ),
                       ),
                     ),
@@ -139,7 +156,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
         ),
 
         SizedBox(height: h * 0.01),
- //widget.leaders.length>1?
+        //widget.leaders.length>1?
         GridView.builder(
           padding: EdgeInsets.symmetric(
             horizontal: w * 0.025,
@@ -222,23 +239,33 @@ class _LeadershipTabState extends State<LeadershipTab> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: (w * 0.353).clamp(90.0, 127.0),
-                  height: ((w * 0.353).clamp(90.0, 127.0)) * (105 / 100),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(w * 0.04),
-                    child: imagePath == null || imagePath.isEmpty
-                        ? ColoredBox(
-                            color: Colors.grey.shade200,
-                            child: Center(
-                              child: Icon(
-                                Icons.person,
-                                size: w * 0.4,
-                                color: Colors.grey,
+                InkWell(
+                  onTap: () {
+                    PoliticianPageData.navigateTo(
+                      context,
+                      politicianId: leader.politicianId,
+                      photoUrl: leader.imagePath,
+                      name: leader.name,
+                    );
+                  },
+                  child: SizedBox(
+                    width: (w * 0.353).clamp(90.0, 127.0),
+                    height: ((w * 0.353).clamp(90.0, 127.0)) * (105 / 100),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(w * 0.04),
+                      child: imagePath == null || imagePath.isEmpty
+                          ? ColoredBox(
+                              color: Colors.grey.shade200,
+                              child: Center(
+                                child: Icon(
+                                  Icons.person,
+                                  size: w * 0.4,
+                                  color: Colors.grey,
+                                ),
                               ),
-                            ),
-                          )
-                        : buildImageWidget(imagePath, fit: BoxFit.fill),
+                            )
+                          : buildImageWidget(imagePath, fit: BoxFit.fill),
+                    ),
                   ),
                 ),
                 SizedBox(height: w * 0.007),
@@ -343,18 +370,20 @@ class _LeadershipTabState extends State<LeadershipTab> {
           return Material(
             color: Theme.of(context).colorScheme.surface,
             child: ListTile(
-
               onTap: () {
                 final groupPoliticianIds = group.leaders
                     .map((leader) => leader.politicianId)
                     .toSet();
 
                 final groupMembers = widget.members
-                    .where((member) => groupPoliticianIds.contains(member.politicianId))
+                    .where(
+                      (member) =>
+                          groupPoliticianIds.contains(member.politicianId),
+                    )
                     .toList();
 
-
-                final groupMembersByRegion = <String, List<MemberDirectoryModel>>{};
+                final groupMembersByRegion =
+                    <String, List<MemberDirectoryModel>>{};
 
                 for (final member in groupMembers) {
                   groupMembersByRegion
@@ -380,8 +409,8 @@ class _LeadershipTabState extends State<LeadershipTab> {
                     .where(
                       (member) => group.leaders.any(
                         (leader) => leader.politicianId == member.politicianId,
-                  ),
-                )
+                      ),
+                    )
                     .toList(),
                 context,
               ),
@@ -412,16 +441,13 @@ class _LeadershipTabState extends State<LeadershipTab> {
                   ),
                 ),
               ),
-
             ),
           );
-
         }),
       ],
     );
   }
 }
-
 
 Widget buildMembersPreview(
   List<MemberDirectoryModel> members,

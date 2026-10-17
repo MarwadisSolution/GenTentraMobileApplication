@@ -81,7 +81,13 @@ class InfoTab extends StatelessWidget {
   }
 }
 
-Widget infoData(BuildContext context, String icon, String title, String data) {
+Widget infoData(
+  BuildContext context,
+  String icon,
+  String title,
+  String data, {
+  ColorFilter? colorFilter,
+}) {
   final screenWidth = MediaQuery.of(context).size.width;
 
   return Row(
@@ -97,6 +103,7 @@ Widget infoData(BuildContext context, String icon, String title, String data) {
             child: SvgPicture.asset(
               icon,
               height: MediaQuery.of(context).size.height * 0.026,
+              colorFilter: colorFilter,
             ),
           ),
         ),
