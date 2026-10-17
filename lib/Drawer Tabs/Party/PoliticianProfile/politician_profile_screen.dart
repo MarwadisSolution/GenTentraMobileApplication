@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../Feed Tab/apis.dart';
-import '../Feed Tab/feed_bloc.dart';
-import '../Feed Tab/feed_tab.dart';
-import '../journey_tab.dart';
+
+import '../Tabs/Feed Tab/apis.dart';
+import '../Tabs/Feed Tab/feed_bloc.dart';
+import '../Tabs/Feed Tab/feed_tab.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../../../Reusable Functions/rich_text_editor.dart';
+import '../Tabs/journey_tab.dart';
 import 'politician_page_data.dart';
 import 'politician_profile_bloc.dart';
 import 'politician_profile_event.dart';

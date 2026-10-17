@@ -1,4 +1,6 @@
-import '../../party_page_modal.dart';
+
+
+import '../party_page_modal.dart';
 
 class PoliticianPartyModel {
   final int? id;

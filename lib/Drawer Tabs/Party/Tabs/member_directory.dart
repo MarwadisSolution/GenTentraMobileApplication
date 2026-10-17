@@ -4,8 +4,9 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_dat
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_bar_reusable.dart';
 
 import '../../../Reusable Functions/reusable_functions.dart';
+import '../PoliticianProfile/politician_page_data.dart';
 import '../party_page_modal.dart';
-import 'PoliticianProfile/politician_page_data.dart';
+
 
 class MemberDirectory extends StatefulWidget {
   final List<LeaderGroupModel> leaders;

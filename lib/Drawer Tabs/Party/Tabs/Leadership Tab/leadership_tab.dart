@@ -4,7 +4,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_dat
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_modal.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
-import '../PoliticianProfile/politician_page_data.dart';
+import '../../PoliticianProfile/politician_page_data.dart';
 import '../member_directory.dart';
 
 class LeadershipTab extends StatefulWidget {
