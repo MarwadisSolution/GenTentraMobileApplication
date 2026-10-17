@@ -18,7 +18,7 @@ class _JourneyTabState extends State<JourneyTab> {
   late List<JourneyModel> journeys;
   late PageController _pageController;
   late PageController _timelineController;
-  late PageController _textController; // Added missing controller
+  late PageController _textController;
 
   @override
   void initState() {
@@ -38,7 +38,7 @@ class _JourneyTabState extends State<JourneyTab> {
 
     _timelineController = PageController(
       initialPage: selectedIndex,
-      viewportFraction: 0.22
+      viewportFraction: 0.22,
     );
 
     _textController = PageController(
@@ -55,7 +55,6 @@ class _JourneyTabState extends State<JourneyTab> {
     super.dispose();
   }
 
-  // Helper to keep all 3 PageView controllers synchronized
   void _onYearChanged(int newIndex) {
     if (!mounted) return;
     if (newIndex < 0 || newIndex >= journeys.length) return;
@@ -74,18 +73,9 @@ class _JourneyTabState extends State<JourneyTab> {
 
       try {
         await Future.wait([
-          _animateToPageIfNeeded(
-            _pageController,
-            newIndex,
-          ),
-          _animateToPageIfNeeded(
-            _timelineController,
-            newIndex,
-          ),
-          _animateToPageIfNeeded(
-            _textController,
-            newIndex,
-          ),
+          _animateToPageIfNeeded(_pageController, newIndex),
+          _animateToPageIfNeeded(_timelineController, newIndex),
+          _animateToPageIfNeeded(_textController, newIndex),
         ]);
       } finally {
         if (mounted) {
@@ -94,6 +84,7 @@ class _JourneyTabState extends State<JourneyTab> {
       }
     });
   }
+
   Future<void> _animateToPageIfNeeded(
       PageController controller,
       int index,
@@ -116,13 +107,20 @@ class _JourneyTabState extends State<JourneyTab> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size.width;
-    final height=MediaQuery.of(context).size.height;
+    final height = MediaQuery.of(context).size.height;
+
     if (journeys.isEmpty) {
       return Padding(
         padding: EdgeInsets.all(height * 0.045),
-        child:  Center(child: Text("No journey found",
-          style: TextStyle(color: ColorScheme.of(context).onSurface,fontSize: size*0.045),
-        )),
+        child: Center(
+          child: Text(
+            "No journey found",
+            style: TextStyle(
+              color: ColorScheme.of(context).onSurface,
+              fontSize: size * 0.045,
+            ),
+          ),
+        ),
       );
     }
 
@@ -130,175 +128,180 @@ class _JourneyTabState extends State<JourneyTab> {
       onTap: () {
         FocusScope.of(context).unfocus();
       },
-      child: Column(
-        children: [
-          /// 1. IMAGE CAROUSEL
-          SizedBox(height: size*0.02,),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Calculate available height safely from constraints
+          final availableHeight = constraints.hasBoundedHeight
+              ? constraints.maxHeight
+              : height * 0.8;
 
-          SizedBox(
-            height: size < 360 ? size * 0.70 : size * 0.9,
-
-            child: PageView.builder(
-              controller: _pageController,
-              //physics: const NeverScrollableScrollPhysics(),
-              itemCount: journeys.length,
-              onPageChanged: _onYearChanged,
-              itemBuilder: (context, index) {
-                final item = journeys[index];
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: selectedIndex == index ? 0 : 20,
+          return SizedBox(
+            height: availableHeight,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                /// 1. IMAGE CAROUSEL
+                Container(
+                  height: height*0.01,
+                  width: size,
+                  color: Colors.white,
+                ),
+                SizedBox(
+                  height: availableHeight * 0.6,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: journeys.length,
+                    onPageChanged: _onYearChanged,
+                    itemBuilder: (context, index) {
+                      final item = journeys[index];
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: selectedIndex == index ? 0 : 16,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(size*0.04),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Image.network(
+                          item.imagePath == null
+                              ? ""
+                              : item.imagePath!.startsWith("/api/")
+                              ? "$api${item.imagePath}"
+                              : item.imagePath!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                          const Center(child: Icon(Icons.image)),
+                        ),
+                      );
+                    },
                   ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Image.network(
-                    item.imagePath == null
-                        ? ""
-                        : item.imagePath!.startsWith("/api/")
-                        ? "$api${item.imagePath}"
-                        : item.imagePath!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
-                    const Center(child: Icon(Icons.image)),
-                  ),
-                );
-              },
-            ),
-          ),
+                ),
 
-          SizedBox(height: MediaQuery.of(context).size.height*0.03),
+                /// 2. TEXT CONTENT PAGEVIEW
+                SizedBox(height: height*0.02,),
+                SizedBox(
+                  height: availableHeight * 0.25,
+                  child: PageView.builder(
+                    controller: _textController,
+                    itemCount: journeys.length,
+                    onPageChanged: _onYearChanged,
+                    itemBuilder: (context, index) {
+                      final item = journeys[index];
 
-          /// 2. TEXT CONTENT PAGEVIEW (Title, Red Line, Description)
-          SizedBox(
-            height: MediaQuery.of(context).size.height*0.2,
-            child: PageView.builder(
-              controller: _textController,
-            //  physics: NeverScrollableScrollPhysics(),
-              itemCount: journeys.length,
-              onPageChanged: _onYearChanged,
-              itemBuilder: (context, index) {
-                final item = journeys[index];
+                      return Padding(
+                        padding: EdgeInsets.symmetric(horizontal: size * 0.05),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            /// Title
+                            Text(
+                              item.title,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: size * 0.052,
+                                letterSpacing: 0.31,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF070707),
+                              ),
+                            ),
+                            SizedBox(height: availableHeight * 0.01),
 
-                return Padding(
-                  padding: EdgeInsets.only(
-                    //top: MediaQuery.of(context).size.height * 0.02,
-                    left: MediaQuery.of(context).size.width * 0.05,
-                    right: MediaQuery.of(context).size.width * 0.05,
+                            /// Red Line Divider
+                            Container(
+                              height: height*0.004,
+                              width: size * 0.09,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFB5051),
+                              ),
+                            ),
+                            SizedBox(height: availableHeight * 0.015),
+
+                            /// Description
+                            Expanded(
+                              child: SingleChildScrollView(
+                                physics: const NeverScrollableScrollPhysics(),
+                                child: Text(
+                                  item.description,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: size * 0.04,
+                                    color: const Color(0xFF000000).withOpacity(0.6),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
+                ),
+
+                /// 3. CIRCULAR TIMELINE PICKER
+                SizedBox(
+                  height: availableHeight * 0.11,
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      /// Title
-                      Text(
-                        item.title,
-                        textAlign: TextAlign.center,
-                        style:  TextStyle(
-                          fontSize:size*0.052,
-                          letterSpacing: 0.31,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF070707),
-                        ),
-                      ),
-                      SizedBox(height: MediaQuery.of(context).size.height*0.01),
-
-                      /// Red Line Divider
                       Container(
-                        height: MediaQuery.of(context).size.height * 0.006,
-                        width: MediaQuery.of(context).size.width * 0.09,
+                        height: size * 0.18,
                         decoration: const BoxDecoration(
-                          color: Color(0xFFFB5051),
+                          color: Colors.black,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Align(
+                          alignment: const Alignment(0, 0.65),
+                          child: Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFE3A31),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                         ),
                       ),
-                      SizedBox(height:  MediaQuery.of(context).size.height*0.015),
+                      PageView.builder(
+                        controller: _timelineController,
+                        itemCount: journeys.length,
+                        onPageChanged: _onYearChanged,
+                        itemBuilder: (context, index) {
+                          final isSelected = index == selectedIndex;
 
-                      /// Description
-                      Text(
-                        item.description,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w400,
-                          fontSize: size*0.04,
-                          color: const Color(0xFF000000).withOpacity(0.6),
-                        ),
+                          return Center(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => _onYearChanged(index),
+                              child: AnimatedDefaultTextStyle(
+                                duration: const Duration(milliseconds: 200),
+                                style: TextStyle(
+                                  fontSize: isSelected
+                                      ? MediaQuery.textScalerOf(context).scale(20)
+                                      : MediaQuery.textScalerOf(context).scale(16),
+                                  fontWeight: isSelected
+                                      ? FontWeight.w500
+                                      : FontWeight.w300,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : const Color(0xFF000000).withOpacity(0.4),
+                                ),
+                                child: Text(journeys[index].year),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
-                );
-              },
-            ),
-          ),
-
-           //SizedBox(height: MediaQuery.of(context).size.height * 0.01),
-
-          /// 3. CIRCULAR TIMELINE PICKER
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.1,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Center Spotlight Circle with Red Indicator Dot
-                Container(
-                 // width: MediaQuery.of(context).size.width * 0.25,
-                  height: MediaQuery.of(context).size.width * 0.20,
-                  decoration:  BoxDecoration(
-                    color: Colors.black,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Align(
-                    alignment: const Alignment(0, 0.65),
-                    child: Container(
-                      width:6 ,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFE3A31),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
                 ),
-
-                // Horizontal Timeline PageView
-                PageView.builder(
-                 // physics: NeverScrollableScrollPhysics(),
-                  controller: _timelineController,
-                  itemCount: journeys.length,
-                  onPageChanged: _onYearChanged,
-                  itemBuilder: (context, index) {
-                    final isSelected = index == selectedIndex;
-
-                    return Center(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: ()=>_onYearChanged(index),
-                        child: AnimatedDefaultTextStyle(
-                          duration: const Duration(milliseconds: 200),
-                          style: TextStyle(
-                            fontSize: isSelected ? MediaQuery.textScalerOf(context).scale(20) : MediaQuery.textScalerOf(context).scale(16),
-                            fontWeight: isSelected
-                                ? FontWeight.w500
-                                : FontWeight.w300,
-                            color: isSelected
-                                ? Colors.white
-                                : const Color(0xFF000000).withOpacity(0.4),
-                          ),
-                          child: Text(journeys[index].year),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
               ],
             ),
-          ),
-SizedBox(height: MediaQuery.of(context).size.height*0.06,),
-
-        ],
+          );
+        },
       ),
     );
   }

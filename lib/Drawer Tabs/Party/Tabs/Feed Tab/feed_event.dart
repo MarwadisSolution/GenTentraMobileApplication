@@ -14,13 +14,15 @@ class LoadFeedEvent extends FeedEvent {
   final int partyId;
   final int page;
   final int size;
+  final String fromWhichPage;
   const LoadFeedEvent({
     required this.partyId,
     this.page=0,
     this.size=20,
+     required this.fromWhichPage
 });
   @override
-  List<Object?>get props=>[partyId,page, size];
+  List<Object?>get props=>[partyId,page, size,fromWhichPage];
 }
 
 class YearWiseFeedEvent extends FeedEvent {
@@ -34,13 +36,15 @@ class AddNewFeedEvent extends FeedEvent {
   final int partyId;
   final FeedModel feed;
   final List<File>mediaFiles;
+  final   String fromWhichPage;
   const AddNewFeedEvent({
     required this.partyId,
     required this.feed,
     required this.mediaFiles,
+    required this.fromWhichPage,
 });
   @override
-  List<Object?>get props=>[partyId,feed, mediaFiles];
+  List<Object?>get props=>[partyId,feed, mediaFiles,fromWhichPage];
 }
 
 class EditFeedEvent extends FeedEvent {
@@ -63,10 +67,10 @@ class EditFeedEvent extends FeedEvent {
 class DeleteFeedEvent extends FeedEvent {
   final int id;
   final int partyId;
-
-  const DeleteFeedEvent( this.id, this.partyId );
+  final String fromWhichPage;
+  const DeleteFeedEvent( this.id, this.partyId, {required this.fromWhichPage});
   @override
-  List<Object?>get props=>[id,partyId];
+  List<Object?>get props=>[id,partyId,fromWhichPage];
 }
 
 class UpdateFeedEvent extends FeedEvent {

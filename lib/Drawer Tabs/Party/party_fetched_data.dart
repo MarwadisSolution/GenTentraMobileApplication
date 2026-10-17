@@ -132,6 +132,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
           partyId: widget.partyData["id"],
           scrollController: scrollController,
           isVisible: _tabController.index == 4,
+          fromWhichPage: "Party",
         );
       case 5:
         return EventTab(
@@ -561,6 +562,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                                 partyId: widget
                                                                     .partyData["id"],
                                                                 editFeed: null,
+                                                                fromWhichPage: "Party",
                                                               ),
                                                             ),
                                                       ),
@@ -586,6 +588,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                                 partyId: widget
                                                                     .partyData["id"],
                                                                 editQuote: null,
+                                                                fromWhichPage: "Party",
                                                               ),
                                                             ),
                                                       ),

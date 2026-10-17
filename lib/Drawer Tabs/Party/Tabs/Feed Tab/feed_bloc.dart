@@ -57,12 +57,17 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     }
 
     try {
-      final newFeeds = await api.getFeeds(
+      final newFeeds = event.fromWhichPage=="Party"?await api.getFeeds(
         partyId: event.partyId,
         page: event.page,
         size: event.size,
+        fromWhichPage: "Party"
+      ):await api.getFeeds(
+          partyId: event.partyId,
+          page: event.page,
+          size: event.size,
+          fromWhichPage: "Politician"
       );
-
       // If less than 20 came back, there is no next page.
       final bool hasMore = newFeeds.length == event.size;
 
@@ -151,10 +156,16 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
 
         debugPrint("POST API SUCCESS");
 
-        final feed = await api.getFeeds(
+        final feed =event.fromWhichPage=="Party"? await api.getFeeds(
           partyId: event.partyId,
           page: 0,
           size: 20,
+          fromWhichPage: "Party"
+        ):await api.getFeeds(
+            partyId: event.partyId,
+            page: 0,
+            size: 20,
+            fromWhichPage: "Politician"
         );
 
         emit(
@@ -231,10 +242,16 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       final message = await api.deletePost(event.id);
 
       debugPrint("Delete response: $message");
-      final feed = await api.getFeeds(
+      final feed = event.fromWhichPage=="Party"?await api.getFeeds(
         partyId: event.partyId,
         page: 0,
         size: 20,
+        fromWhichPage: "Party"
+      ):await api.getFeeds(
+        partyId: event.partyId,
+        page: 0,
+        size: 20,
+        fromWhichPage: "Politician"
       );
       emit(
         state.copyWith(

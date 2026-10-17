@@ -23,7 +23,8 @@ class FeedTab extends StatefulWidget {
   final int partyId;
   final ScrollController scrollController;
   final bool isVisible;
-  const FeedTab({super.key, required this.partyId,required this.scrollController,required this.isVisible});
+  final String fromWhichPage;
+  const FeedTab({super.key, required this.partyId,required this.scrollController,required this.isVisible,required this.fromWhichPage});
 
   @override
   State<FeedTab> createState() => _FeedTabState();
@@ -53,6 +54,7 @@ class _FeedTabState extends State<FeedTab> {
           partyId: widget.partyId,
           page: 0,
           size: 20,
+            fromWhichPage: widget.fromWhichPage
         ),
       );
     }
@@ -84,6 +86,7 @@ class _FeedTabState extends State<FeedTab> {
           partyId: widget.partyId,
           page: feedState.currentPage + 1,
           size: 20,
+          fromWhichPage: widget.fromWhichPage
         ),
       );
     }
@@ -383,6 +386,7 @@ class _FeedTabState extends State<FeedTab> {
                                   child: AddingFeed(
                                     partyId: widget.partyId,
                                     editFeed: feed,
+                                    fromWhichPage: widget.fromWhichPage,
                                   ),
                                 ),
                               ),
@@ -395,6 +399,7 @@ class _FeedTabState extends State<FeedTab> {
                                   child: AddingQuote(
                                     partyId: widget.partyId,
                                     editQuote: feed,
+                                    fromWhichPage: widget.fromWhichPage,
                                   ),
                                 ),
                               ),
@@ -443,6 +448,7 @@ class _FeedTabState extends State<FeedTab> {
                                 DeleteFeedEvent(
                                   feed.id!,
                                   widget.partyId,
+                                  fromWhichPage: widget.fromWhichPage,
                                 ),
                               );
                             }

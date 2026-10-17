@@ -56,10 +56,12 @@ class FeedApis {
   required int partyId,
     int page = 0,
     int size = 20,
+    required String fromWhichPage,
   }) async {
     try {
       final response = await _dio.get(
-        "$api/api/v1/feed/parties/${partyId}/posts",
+        fromWhichPage=="Party"?
+        "$api/api/v1/feed/parties/${partyId}/posts": "$api/api/v1/feed/politicians/92/posts",
         queryParameters: {
           "page": page,
           "size": size,

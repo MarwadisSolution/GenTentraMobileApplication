@@ -20,11 +20,12 @@ import 'reusable_functions.dart';
 class AddingQuote extends StatefulWidget {
   final int partyId;
   final FeedModel? editQuote;
-
+final String fromWhichPage;
   const AddingQuote({
     super.key,
     required this.partyId,
     required this.editQuote,
+    required this.fromWhichPage,
   });
 
   bool get isEditMode => editQuote != null;
@@ -206,6 +207,7 @@ class _AddingQuoteState extends State<AddingQuote> {
             feed: feed,
             mediaFiles: mediaFiles,
             partyId: widget.partyId,
+              fromWhichPage: widget.fromWhichPage
           ),
         );
       }

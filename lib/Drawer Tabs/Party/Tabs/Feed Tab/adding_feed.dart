@@ -23,8 +23,8 @@ import 'feed_event.dart';
 class AddingFeed extends StatefulWidget {
   final int partyId;
   final FeedModel? editFeed;
-
-  const AddingFeed({super.key, required this.partyId, required this.editFeed});
+final String fromWhichPage;
+  const AddingFeed({super.key, required this.partyId, required this.editFeed,required this.fromWhichPage});
 
   bool get isEditMode => editFeed != null;
 
@@ -347,6 +347,7 @@ class _AddingFeedState extends State<AddingFeed> {
             feed: feed,
             mediaFiles: mediaFiles,
             partyId: widget.partyId,
+              fromWhichPage: widget.fromWhichPage
           ),
         );
       }
