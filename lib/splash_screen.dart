@@ -86,10 +86,6 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> checkLogin() async {
     final prefs = await SharedPreferences.getInstance();
 
-    debugPrint("refreshToken = ${prefs.getString("refreshToken")}");
-    debugPrint("accessToken = ${prefs.getString("accessToken")}");
-    debugPrint("isLogged = ${prefs.getBool("isLogged")}");
-
     await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;

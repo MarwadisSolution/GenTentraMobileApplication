@@ -6,12 +6,12 @@ import 'favourite_page_modal.dart';
 class FavouriteApi {
   final Dio _dio = apiClient;
 
-  Future<void> postFavourite(int partyId) async {
+  Future<void> postFavourite(int partyId, String type) async {
     try {
       await _dio.post(
         "$api/api/v1/social/favourites",
         data: {
-          "targetType": "PARTY",
+          "targetType": type,
           "targetId": partyId,
         },
       );
@@ -20,20 +20,20 @@ class FavouriteApi {
     }
   }
   //--------------------------Delete----
-  Future<void> deleteFavourite(int partyId) async {
+  Future<void> deleteFavourite(int partyId,String type) async {
     try {
       await _dio.delete(
-        "$api/api/v1/social/favourites/PARTY/$partyId",
+        "$api/api/v1/social/favourites/$type/$partyId",
       );
     } catch (e) {
       print(e);
     }
   }
   //------------------------------------Ids---
-  Future<List<int>> getFavouritePartyIds() async {
+  Future<List<int>> getFavouritePartyIds(String type) async {
     try {
       final response = await _dio.get(
-        "$api/api/v1/social/favourites?targetType=PARTY",
+        "$api/api/v1/social/favourites?targetType=$type",
       );
 
       if (response.data["success"] == true) {
@@ -50,9 +50,9 @@ class FavouriteApi {
       return [];
     }
   }
-  Future<List<FavouritePageModal>>getDataOfFavourite()async{
+  Future<List<FavouritePageModal>>getDataOfFavourite(String type)async{
     try{
-      final response=await _dio.get("$api/api/v1/social/favourites?targetType=PARTY"
+      final response=await _dio.get("$api/api/v1/social/favourites?targetType=$type"
       );
       if(response.data["success"]==true){
         final List data=response.data["data"];

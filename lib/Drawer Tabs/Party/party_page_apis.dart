@@ -132,6 +132,9 @@ class PartyPageApis{
       return 100;
     }
   }
+  ///-------------------------------------------------------------------------------------------------
+  ///-------------View count is updated automatically,only by super and politician it will not updated
+  ///--------------------------------------------------------------------------------------------------
   ///----------------Follow
   Future<int>getFollowCount(String type,int partyId)async{
     try{

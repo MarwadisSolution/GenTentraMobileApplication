@@ -4,7 +4,7 @@ import 'politician_profile_screen.dart';
 // Barrel exports so other files can import just this file to access the whole module
 export 'politician_model.dart';
 export 'politician_profile_bloc.dart';
-export 'politician_profile_repository.dart';
+export 'politician_profile_api.dart';
 export 'politician_profile_screen.dart';
 
 class PoliticianPageData {

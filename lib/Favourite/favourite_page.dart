@@ -23,12 +23,12 @@ class _FavouritePageState extends State<FavouritePage> {
   @override
   void initState() {
     super.initState();
-    favouriteFuture = favouriteApi.getDataOfFavourite();
+    favouriteFuture = favouriteApi.getDataOfFavourite("PARTY");
   }
 
   Future<void> refreshFavourite() async {
     setState(() {
-      favouriteFuture = favouriteApi.getDataOfFavourite();
+      favouriteFuture = favouriteApi.getDataOfFavourite("PARTY");
     });
   }
 

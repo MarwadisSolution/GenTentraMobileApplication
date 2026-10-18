@@ -411,7 +411,8 @@ class _BannerSectionState extends State<BannerSection> {
 
 class PartyDetailsSection extends StatefulWidget {
   final Map<String, dynamic> partyData;
-  const PartyDetailsSection({super.key, required this.partyData});
+  final String type;
+  const PartyDetailsSection({super.key, required this.partyData,required this.type});
 
   @override
   State<PartyDetailsSection> createState() => _PartyDetailsSectionState();
@@ -433,7 +434,7 @@ class _PartyDetailsSectionState extends State<PartyDetailsSection> {
     final id = widget.partyData["id"];
     if (id == null) return;
 
-    final favouriteIds = await apiServiceFav.getFavouritePartyIds();
+    final favouriteIds = await apiServiceFav.getFavouritePartyIds(widget.type);
 
     favorite = favouriteIds.contains(id);
 
@@ -802,9 +803,9 @@ final w=MediaQuery.of(context).size.width;
 
                         try {
                           if (favorite) {
-                            await apiServiceFav.deleteFavourite(id);
+                            await apiServiceFav.deleteFavourite(id,widget.type);
                           } else {
-                            await apiServiceFav.postFavourite(id);
+                            await apiServiceFav.postFavourite(id,widget.type);
                           }
 
                           if (mounted) {

@@ -318,6 +318,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                         child: PartyDetailsSection(
                                           key: const ValueKey('party_details'),
                                           partyData: widget.partyData,
+                                          type: "PARTY",
                                         ),
                                       ),
                                     ),
