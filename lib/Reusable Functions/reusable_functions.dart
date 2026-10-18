@@ -180,7 +180,7 @@ final bool readOnly;
                   text: labelText,
                   style: TextStyle(
                     fontSize: MediaQuery.of(context).size.width*0.044,
-                    color: ColorScheme.of(context).onSurface.withOpacity(0.3),
+                    color: ColorScheme.of(context).onSurface.withValues(alpha: 0.3),
                   ),
                 ),
                 if (isRequired)
@@ -201,19 +201,19 @@ final bool readOnly;
             children: suffixIcons!,
           ),
           labelStyle: TextStyle(
-            color: ColorScheme.of(context).onSurface.withOpacity(0.3),
+            color: ColorScheme.of(context).onSurface.withValues(alpha: 0.3),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
-              color: ColorScheme.of(context).onSurface.withOpacity(0.3),
+              color: ColorScheme.of(context).onSurface.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
-              color: ColorScheme.of(context).onSurface.withOpacity(0.3),
+              color: ColorScheme.of(context).onSurface.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -262,7 +262,7 @@ Widget buildImageWidget(
       width: width,
       height: height,
       fit: fit,
-      errorBuilder: (_, __, ___) =>
+      errorBuilder: (_, _, _) =>
       const Center(child: Icon(Icons.image)),
     );
   }
@@ -274,7 +274,7 @@ Widget buildImageWidget(
       width: width,
       height: height,
       fit: fit,
-      errorBuilder: (_, __, ___) =>
+      errorBuilder: (_, _, _) =>
       const Center(child: Icon(Icons.image)),
     );
   }
@@ -409,7 +409,7 @@ class _ActionMenuButtonState extends State<ActionMenuButton> {
                 style: TextStyle(
                   color: selected
                       ? Colors.black
-                      : const Color(0xFF000000).withOpacity(0.4),
+                      : const Color(0xFF000000).withValues(alpha: 0.4),
                   fontSize: MediaQuery.of(context).size.height * 0.015,
                   fontWeight: FontWeight.w400,
                   letterSpacing: 0.22,

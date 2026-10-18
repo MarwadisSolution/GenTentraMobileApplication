@@ -119,3 +119,23 @@ static final constituencyIcon = "Assets/LeadershipPage/Info/Constituency.svg";
 static final politicianAddressIcon = "Assets/LeadershipPage/Info/Address.svg";
 static final politicianEducationIcon = "Assets/LeadershipPage/Info/Education.svg";
 }
+
+class PartyInfoIcons {
+  static final String founded = PartyPageData.foundedIcon;
+  static final String founder = PartyPageData.flagIcon;
+  static final String president = PartyPageData.personIcon;
+  static final String generalSecretary = PartyPageData.personIcon;
+  static final String headquarters = PartyPageData.headquarterIcon;
+  static final String website = PartyPageData.websiteIcon;
+}
+
+// Used / imported for Politician Profile
+class PoliticianInfoIcons {
+  static final String gender = PartyPageData.genderIcon;
+  static final String dob = PartyPageData.dobIcon;
+  static final String birthPlace = PartyPageData.birthPlaceIcon;
+  static final String politicalParty = PartyPageData.politicalPartyIcon;
+  static final String constituency = PartyPageData.constituencyIcon;
+  static final String address = PartyPageData.politicianAddressIcon;
+}
+

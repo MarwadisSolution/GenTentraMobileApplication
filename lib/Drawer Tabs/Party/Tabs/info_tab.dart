@@ -1,14 +1,11 @@
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
 import '../../../Reusable Functions/rich_text_editor.dart';
 import '../party_page_modal.dart';
-import '../reusable_functions.dart';
 
 class InfoTab extends StatelessWidget {
   final PartyProfileModel party;

@@ -67,7 +67,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.symmetric(horizontal: w * 0.012),
-                separatorBuilder: (_, __) => SizedBox(width: w * 0.025),
+                separatorBuilder: (_, _) => SizedBox(width: w * 0.025),
                 itemCount: firstVisibleCount,
                 itemBuilder: (context, index) {
                   final leader = firstGroupLeaders.leaders[index];
@@ -123,7 +123,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                                 Positioned.fill(
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.7),
+                                      color: Colors.black.withValues(alpha: 0.7),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
@@ -259,7 +259,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                                     Positioned.fill(
                                       child: Container(
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.7),
+                                          color: Colors.black.withValues(alpha: 0.7),
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
@@ -304,7 +304,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
               height: h * 0.008,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: ColorScheme.of(context).onSurface.withOpacity(0.08),
+                color: ColorScheme.of(context).onSurface.withValues(alpha: 0.08),
               ),
             ),
             SizedBox(height: h * 0.02),

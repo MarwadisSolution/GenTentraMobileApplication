@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Menifesto/reusable_function_manifesto.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 
 import '../../reusable_functions.dart';
-import '../Event Tab/reusable_functions.dart';
-import 'add_menifest.dart';
 import 'manifesto_bloc.dart';
 import 'manifesto_event.dart';
 import 'manifesto_model.dart';

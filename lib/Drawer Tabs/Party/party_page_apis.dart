@@ -161,7 +161,7 @@ class PartyPageApis{
     try{
       final response=await _dio.post("$api/api/v1/social/follow",
       data: {
-        "followeeType": "$type",
+        "followeeType": type,
         "followeeId":partyId,
       },
       );
@@ -182,7 +182,9 @@ class PartyPageApis{
       if(response.statusCode==200 || response.statusCode==201){
         return true;
       }
-      else return false;
+      else {
+        return false;
+      }
     }
         catch(e){
       print(e);
@@ -196,7 +198,9 @@ class PartyPageApis{
         print(response.data["data"].runtimeType);
         return response.data["data"];
       }
-      else return ["Error"];
+      else {
+        return ["Error"];
+      }
     }
         catch(e){
       print("Follower Error- $e");

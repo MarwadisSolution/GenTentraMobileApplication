@@ -59,7 +59,7 @@ class FeedApis {
   }) async {
     try {
       final response = await _dio.get(
-        "$api/api/v1/feed/parties/${partyId}/posts",
+        "$api/api/v1/feed/parties/$partyId/posts",
         queryParameters: {
           "page": page,
           "size": size,
@@ -86,10 +86,8 @@ class FeedApis {
 
     final response=await _dio.get("$api/api/v1/profile/politicians?&",
         queryParameters: {
-          if(id!=null)
-            "partyId":id,
-          if(query!=null)
-            "q":query,
+          "partyId":?id,
+          "q":?query,
           // "designation":query,
           // "region":query,
           // "partyId":query,

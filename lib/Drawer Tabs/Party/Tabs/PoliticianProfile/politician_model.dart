@@ -144,8 +144,9 @@ class PoliticianModel {
       address: json['address'] as String?,
       party: partyModel,
       journeys: journeyList,
-      viewCount: (json['viewCount'] as num?)?.toInt(),
-      followerCount: (json['followerCount'] as num?)?.toInt(),
+      // Parse stats with fallbacks for different API response key names (reference from backend stats endpoints)
+      viewCount: ((json['viewCount'] ?? json['views'] ?? json['view_count']) as num?)?.toInt(),
+      followerCount: ((json['followerCount'] ?? json['followers'] ?? json['follower_count']) as num?)?.toInt(),
       isFollowing: json['isFollowing'] as bool?,
       isFavorite: json['isFavorite'] as bool?,
     );

@@ -1,9 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:gen_tentra_mobile_application/Login%20Page/login_pages_data.dart';
-import 'package:gen_tentra_mobile_application/Reusable%20Functions/Drawer/drawer.dart';
 
 import 'reusable_functions.dart';
 class ReusableSliverAppBar extends StatelessWidget {

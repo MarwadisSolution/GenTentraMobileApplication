@@ -61,3 +61,14 @@ class PoliticianPageData {
   static final addressIcon = "Assets/LeadershipPage/Info/Address.svg";
   static final educationIcon = "Assets/LeadershipPage/Info/Education.svg";
 }
+
+// Used / imported for Politician Profile
+class PoliticianInfoIcons {
+  static final String gender = PoliticianPageData.genderIcon;
+  static final String dob = PoliticianPageData.dobIcon;
+  static final String birthPlace = PoliticianPageData.birthPlaceIcon;
+  static final String politicalParty = PoliticianPageData.politicalPartyIcon;
+  static final String constituency = PoliticianPageData.constituencyIcon;
+  static final String address = PoliticianPageData.addressIcon;
+}
+

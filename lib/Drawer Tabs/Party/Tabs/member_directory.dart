@@ -40,7 +40,7 @@ class _MemberDirectoryState extends State<MemberDirectory> {
 
       body: Container(
         decoration: BoxDecoration(
-      color: Colors.black.withOpacity(0.08),
+      color: Colors.black.withValues(alpha: 0.08),
           //gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
          ),
         child: CustomScrollView(
@@ -154,11 +154,11 @@ class _MemberDirectoryState extends State<MemberDirectory> {
                                                 ),
                                               ),
                                               subtitle: Text(
-                                                "${member.region}",
+                                                member.region,
                                                 style: TextStyle(
                                                   color: ColorScheme.of(
                                                     context,
-                                                  ).onSurface.withOpacity(0.6),
+                                                  ).onSurface.withValues(alpha: 0.6),
                                                   fontSize: MediaQuery.textScalerOf(
                                                     context,
                                                   ).scale(14),

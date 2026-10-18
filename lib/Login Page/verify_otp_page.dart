@@ -274,7 +274,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                               letterSpacing: 0.31,
                               color: ColorScheme.of(
                                 context,
-                              ).onSurface.withOpacity(0.6),
+                              ).onSurface.withValues(alpha: 0.6),
                             ),
                           ),
                           SizedBox(
@@ -390,7 +390,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                                     ? null
                                     : ColorScheme.of(
                                         context,
-                                      ).onSurface.withOpacity(0.3),
+                                      ).onSurface.withValues(alpha: 0.3),
                                 gradient: state.isSuccess
                                     ? GradientColors.primaryGradient
                                     : null,

@@ -412,9 +412,9 @@ class _FeedTabState extends State<FeedTab> {
                               context: context,
                               barrierDismissible: true,
                               barrierLabel: 'Delete',
-                              barrierColor: Colors.black.withOpacity(0.25),
+                              barrierColor: Colors.black.withValues(alpha: 0.25),
                               transitionDuration: const Duration(milliseconds: 250),
-                              pageBuilder: (dialogContext,_,__) {
+                              pageBuilder: (dialogContext,_,_) {
                                 return popUpMessageForDeleteOrCancel(
                                   dialogContext,
                                  feed.kind=="POST"? PartyPageData.addFeedIcon:PartyPageData.coloredQuoteIcon,
@@ -539,7 +539,7 @@ class _FeedTabState extends State<FeedTab> {
                         children: [
                           if(feed.kind=="QUOTE"||feed.media!.isEmpty)
                             Divider(
-                              color: ColorScheme.of(context).onSurface.withOpacity(0.08),
+                              color: ColorScheme.of(context).onSurface.withValues(alpha: 0.08),
                               thickness: 1,
                             ),
                           Padding(
@@ -559,7 +559,7 @@ class _FeedTabState extends State<FeedTab> {
                                   style: TextStyle(
                                     fontSize: (w * 0.025).clamp(12.0, 15.0),
                                     fontWeight: FontWeight.w400,
-                                    color: ColorScheme.of(context).onSurface.withOpacity(0.6),
+                                    color: ColorScheme.of(context).onSurface.withValues(alpha: 0.6),
                                   ),
                                 ),
                                 const Spacer(),
@@ -584,7 +584,7 @@ class _FeedTabState extends State<FeedTab> {
                     ),
                     SizedBox(height: h * 0.01),
                     Container(
-                      color: const Color(0xFF000000).withOpacity(0.08),
+                      color: const Color(0xFF000000).withValues(alpha: 0.08),
                       width: w,
                       height: h * 0.009,
                     ),
@@ -679,7 +679,7 @@ class _LikeButtonState extends State<LikeButton> {
       child: Center(
         child:Icon(Icons.thumb_up,
         size: MediaQuery.of(context).size.height*0.028 ,
-        color: isLiked?Color(0xFFFE3A31):ColorScheme.of(context).onSurface.withOpacity(0.22),
+        color: isLiked?Color(0xFFFE3A31):ColorScheme.of(context).onSurface.withValues(alpha: 0.22),
         )
       ),
     );

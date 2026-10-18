@@ -122,7 +122,7 @@ Widget popUpMessageForDeleteOrCancel(
               fontSize: (w * 0.038).clamp(13.0, 17.0),
               color: ColorScheme.of(context)
                   .onSurface
-                  .withOpacity(0.6),
+                  .withValues(alpha: 0.6),
             ),
           ),
 
@@ -282,7 +282,7 @@ class _BannerSectionState extends State<BannerSection> {
                         ? "$api$image"
                         : image,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) {
+                    errorBuilder: (_, _, _) {
                       return const ColoredBox(
                         color: Colors.white,
                         child: Center(
@@ -299,7 +299,7 @@ class _BannerSectionState extends State<BannerSection> {
           IgnorePointer(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 80),
-              color: Colors.black.withOpacity(darkOpacity),
+              color: Colors.black.withValues(alpha: darkOpacity),
             ),
           ),
 
@@ -558,7 +558,7 @@ final w=MediaQuery.of(context).size.width;
               width: MediaQuery.of(context).size.width*0.07,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                color: ColorScheme.of(context).onSurface.withOpacity(0.16),
+                color: ColorScheme.of(context).onSurface.withValues(alpha: 0.16),
               ),
             ),
           ),
@@ -1026,7 +1026,7 @@ class FeedQuoteTab extends StatelessWidget {
               ? null
               : ColorScheme.of(context)
               .onSurface
-              .withOpacity(0.08),
+              .withValues(alpha: 0.08),
         ),
         child: Align(
           alignment: Alignment.center,

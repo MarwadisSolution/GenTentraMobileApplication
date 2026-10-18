@@ -42,9 +42,16 @@ class PoliticianProfileRepository {
               politicianMap['party'] = rawData['party'];
             }
 
-            // Merge top-level stats if not in politician map
-            politicianMap['viewCount'] ??= rawData['viewCount'];
-            politicianMap['followerCount'] ??= rawData['followerCount'];
+            // Merge top-level stats if not in politician map (support rawData, stats, counts)
+            final statsObj = rawData['stats'] ?? rawData['counts'] ?? rawData['socialStats'];
+            if (statsObj is Map) {
+              politicianMap['viewCount'] ??= statsObj['viewCount'] ?? statsObj['views'] ?? statsObj['view_count'];
+              politicianMap['followerCount'] ??= statsObj['followerCount'] ?? statsObj['followers'] ?? statsObj['follower_count'];
+              politicianMap['isFollowing'] ??= statsObj['isFollowing'];
+              politicianMap['isFavorite'] ??= statsObj['isFavorite'];
+            }
+            politicianMap['viewCount'] ??= rawData['viewCount'] ?? rawData['views'] ?? rawData['view_count'];
+            politicianMap['followerCount'] ??= rawData['followerCount'] ?? rawData['followers'] ?? rawData['follower_count'];
             politicianMap['isFollowing'] ??= rawData['isFollowing'];
             politicianMap['isFavorite'] ??= rawData['isFavorite'];
           } else {

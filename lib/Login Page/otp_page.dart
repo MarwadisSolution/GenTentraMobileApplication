@@ -135,7 +135,7 @@ class _OtpPageState extends State<OtpPage> {
                           context,
                         )
                             .onSurface
-                            .withOpacity(0.6),
+                            .withValues(alpha: 0.6),
                       ),
                     ),
                     // SizedBox(
@@ -229,7 +229,7 @@ class _OtpPageState extends State<OtpPage> {
                             context,
                           )
                               .onSurface
-                              .withOpacity(0.3),
+                              .withValues(alpha: 0.3),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -239,7 +239,7 @@ class _OtpPageState extends State<OtpPage> {
                               context,
                             )
                                 .onSurface
-                                .withOpacity(0.3),
+                                .withValues(alpha: 0.3),
                             width: 1,
                           ),
                         ),
@@ -251,7 +251,7 @@ class _OtpPageState extends State<OtpPage> {
                               context,
                             )
                                 .onSurface
-                                .withOpacity(0.3),
+                                .withValues(alpha: 0.3),
 
                             width: 1,
                           ),
@@ -292,7 +292,7 @@ class _OtpPageState extends State<OtpPage> {
                                     : null,
                                 color: isPhoneValid
                                     ? null
-                                    : Colors.black.withOpacity(0.3),
+                                    : Colors.black.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(30),
                               ),
                               child: Row(
@@ -354,7 +354,7 @@ class _OtpPageState extends State<OtpPage> {
                       context,
                     )
                         .onSurface
-                        .withOpacity(0.6),
+                        .withValues(alpha: 0.6),
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                   ),

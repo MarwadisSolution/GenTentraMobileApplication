@@ -22,12 +22,12 @@ class _BottomNavigationPageState extends State<BottomNavigationPage> {
                 vertical: 8,
               ),
               decoration: BoxDecoration(
-            color: ColorScheme.of(context).surface.withOpacity(0.96),
+            color: ColorScheme.of(context).surface.withValues(alpha: 0.96),
                 borderRadius: BorderRadius.circular(30),
                 boxShadow:  [
                   BoxShadow(
                     blurRadius: 10,
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     offset: Offset(0, 6),
                   )
                 ]

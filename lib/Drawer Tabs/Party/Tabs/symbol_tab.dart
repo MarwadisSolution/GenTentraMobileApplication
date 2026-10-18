@@ -5,7 +5,6 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_mod
 
 import '../../../Reusable Functions/reusable_functions.dart';
 import '../../../Reusable Functions/rich_text_editor.dart';
-import '../reusable_functions.dart';
 
 class SymbolTab extends StatelessWidget {
   final SymbolModel symbol;

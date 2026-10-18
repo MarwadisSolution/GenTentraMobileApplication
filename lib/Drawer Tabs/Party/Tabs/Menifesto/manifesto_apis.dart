@@ -124,14 +124,11 @@ class ManifestoApis {
       final response = await _dio.get(
         "$api/api/v1/manifestos",
         queryParameters: {
-          if (partyId != null)
-            "partyId": partyId,
+          "partyId": ?partyId,
 
-          if (politicianId != null)
-            "politicianId": politicianId,
+          "politicianId": ?politicianId,
 
-          if (year != null)
-            "year": year,
+          "year": ?year,
 
           if (kind != null &&
               kind.trim().isNotEmpty)
@@ -192,14 +189,11 @@ class ManifestoApis {
       final response = await _dio.get(
         "$api/api/v1/manifestos",
         queryParameters: {
-          if (partyId != null)
-            "partyId": partyId,
+          "partyId": ?partyId,
 
-          if (politicianId != null)
-            "politicianId": politicianId,
+          "politicianId": ?politicianId,
 
-          if (year != null)
-            "year": year,
+          "year": ?year,
 
           if (kind != null &&
               kind.trim().isNotEmpty)

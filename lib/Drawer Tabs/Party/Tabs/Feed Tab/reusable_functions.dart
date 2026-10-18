@@ -195,7 +195,7 @@ class VideoPlayerHelper {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             backgroundColor: Colors.red,
-            content: const Text(
+            content: Text(
               "Unable to play video. Please try again.",
               style: TextStyle(color: Colors.white),
             ),
@@ -284,7 +284,7 @@ class _TaggedPeopleDialogContentState
         child: ListView.separated(
           shrinkWrap: true,
           itemCount: taggedPeople.length,
-          separatorBuilder: (_, __) => const Divider(),
+          separatorBuilder: (_, _) => const Divider(),
           itemBuilder: (context, index) {
             final person = taggedPeople[index];
 
@@ -588,7 +588,7 @@ class FeedMediaWidget extends StatelessWidget {
 
               if (overlayCount != null)
                 Container(
-                  color: Colors.black.withOpacity(0.55),
+                  color: Colors.black.withValues(alpha: 0.55),
                   alignment: Alignment.center,
                   child: Text(
                     "+$overlayCount",
@@ -862,7 +862,7 @@ class VideoPreviewState extends State<VideoPreview> {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.60),
+                  color: Colors.black.withValues(alpha: 0.60),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -1080,7 +1080,7 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.55),
+                  color: Colors.black.withValues(alpha: 0.55),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -1347,7 +1347,7 @@ class _AddScheduleState extends State<AddSchedule> {
                     color: ColorScheme
                         .of(context)
                         .onSurface
-                        .withOpacity(0.6),
+                        .withValues(alpha: 0.6),
                   ),
                 ),
 

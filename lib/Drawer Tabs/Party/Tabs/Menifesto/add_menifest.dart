@@ -450,7 +450,7 @@ class _AddManifestState extends State<AddManifest> {
                                           color: ColorScheme
                                               .of(context)
                                               .onSurface
-                                              .withOpacity(0.3),
+                                              .withValues(alpha: 0.3),
                                           width: 1,
                                         ),
                                       ),

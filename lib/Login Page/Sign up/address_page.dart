@@ -135,7 +135,7 @@ class _AddressPageState extends State<AddressPage> {
                             fontSize: MediaQuery.textScalerOf(context).scale(15),
                             fontWeight: FontWeight.w400,
                             letterSpacing: 0.31,
-                            color: ColorScheme.of(context).onSurface.withOpacity(0.6),
+                            color: ColorScheme.of(context).onSurface.withValues(alpha: 0.6),
 
                           ),
                         ),

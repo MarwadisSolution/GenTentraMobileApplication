@@ -48,7 +48,7 @@ class _MyAppState extends State<MyApp> {
         fontFamily: 'Inter',
         colorScheme: ColorScheme(
           brightness: Brightness.light,
-          primary: Color(0xFF666666).withOpacity(0.6),
+          primary: Color(0xFF666666).withValues(alpha: 0.6),
           onPrimary: Color(0xFFFF5875),
           secondary: Color(0xFF666666),
           onSecondary: Color(0xFF0C0C0C),

@@ -427,7 +427,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                                               hintStyle: TextStyle(
                                                 fontSize: h * 0.038,
                                                 fontWeight: FontWeight.w600,
-                                                color: const Color(0xFFC0C0C0).withOpacity(0.3),
+                                                color: const Color(0xFFC0C0C0).withValues(alpha: 0.3),
                                                 letterSpacing: 0.31,
                                               ),
 
@@ -464,7 +464,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                                                         color: ColorScheme
                                                             .of(context)
                                                             .onSurface
-                                                            .withOpacity(0.3),
+                                                            .withValues(alpha: 0.3),
                                                       ),
                                                     ),
                                                     const TextSpan(
@@ -488,7 +488,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                                                   color: ColorScheme
                                                       .of(context)
                                                       .onSurface
-                                                      .withOpacity(0.3),
+                                                      .withValues(alpha: 0.3),
                                                   width: 1,
                                                 ),
                                               ),
@@ -499,7 +499,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                                                   color: ColorScheme
                                                       .of(context)
                                                       .onSurface
-                                                      .withOpacity(0.3),
+                                                      .withValues(alpha: 0.3),
                                                   width: 1,
                                                 ),
                                               ),
@@ -537,7 +537,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                                               hintStyle: TextStyle(
                                                 fontSize: h * 0.038,
                                                 fontWeight: FontWeight.w600,
-                                                color: const Color(0xFFC0C0C0).withOpacity(0.3),
+                                                color: const Color(0xFFC0C0C0).withValues(alpha: 0.3),
                                                 letterSpacing: 0.31,
                                               ),
 
@@ -555,7 +555,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                                                         color: ColorScheme
                                                             .of(context)
                                                             .onSurface
-                                                            .withOpacity(0.3),
+                                                            .withValues(alpha: 0.3),
                                                       ),
                                                     ),
                                                     const TextSpan(
@@ -580,7 +580,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                                                   color: ColorScheme
                                                       .of(context)
                                                       .onSurface
-                                                      .withOpacity(0.3),
+                                                      .withValues(alpha: 0.3),
                                                   width: 1,
                                                 ),
                                               ),
@@ -591,7 +591,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                                                   color: ColorScheme
                                                       .of(context)
                                                       .onSurface
-                                                      .withOpacity(0.3),
+                                                      .withValues(alpha: 0.3),
                                                   width: 1,
                                                 ),
                                               ),
@@ -614,9 +614,9 @@ class _AddingQuoteState extends State<AddingQuote> {
                                                     context: context,
                                                     barrierDismissible: true,
                                                     barrierLabel: 'Delete',
-                                                    barrierColor: Colors.black.withOpacity(0.25),
+                                                    barrierColor: Colors.black.withValues(alpha: 0.25),
                                                     transitionDuration: const Duration(milliseconds: 250),
-                                                    pageBuilder: (dialogContext,_,__){
+                                                    pageBuilder: (dialogContext,_,_){
                                                       return popUpMessageForDeleteOrCancel(
                                                         context,
                                                         PartyPageData
@@ -701,7 +701,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                                               color: selectedImage == null &&
                                                   (initialImage == null || removeInitialImage)
                                                   ? Colors.black
-                                                  : Colors.black.withOpacity(0.3),
+                                                  : Colors.black.withValues(alpha: 0.3),
                                               shape: BoxShape.circle,
                                             ),
                                             child: Material(
@@ -748,7 +748,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                                                 size: w * 0.17,
                                                 color: ColorScheme.of(context)
                                                     .onSurface
-                                                    .withOpacity(0.2),
+                                                    .withValues(alpha: 0.2),
                                               ),
 
                                             ),
@@ -775,7 +775,7 @@ class _AddingQuoteState extends State<AddingQuote> {
                                                 color: selectedImage != null ||
                                                     (initialImage != null && !removeInitialImage)
                                                     ? Colors.black
-                                                    : Colors.black.withOpacity(0.3),
+                                                    : Colors.black.withValues(alpha: 0.3),
                                                 shape: BoxShape.circle,
                                               ),
                                               child: Center(
