@@ -11,19 +11,10 @@ import '../Tabs/Feed Tab/feed_tab.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../../../Reusable Functions/rich_text_editor.dart';
 import '../Tabs/journey_tab.dart';
+import '../party_page_apis.dart';
 import 'politician_page_data.dart';
-import 'politician_profile_bloc.dart';
 import 'politician_profile_event.dart';
 import 'politician_profile_state.dart';
-
-class PoliticianInfoIcons {
-  static final String gender = PoliticianPageData.genderIcon;
-  static final String dob = PoliticianPageData.dobIcon;
-  static final String birthPlace = PoliticianPageData.birthPlaceIcon;
-  static final String politicalParty = PoliticianPageData.politicalPartyIcon;
-  static final String constituency = PoliticianPageData.constituencyIcon;
-  static final String address = PoliticianPageData.addressIcon;
-}
 
 class PoliticianProfileScreen extends StatelessWidget {
   final int politicianId;
@@ -93,7 +84,12 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
   bool _isFollowing = false;
   bool _isFavorite = false;
   int _followCount = 0;
+  int _viewCount = 0;
   bool _hasInitializedFollowerCount = false;
+  bool _isFollowLoading = false;
+
+  // Reference from Party page: uses PartyPageApis for stats and follow/unfollow
+  final PartyPageApis _partyApis = PartyPageApis();
 
   @override
   void initState() {
@@ -111,6 +107,45 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
         _selectedTabIndex.value = _tabController.index;
       }
     });
+
+    // Fetch live views, followers count, and follow status from API (Reference from Party page reusable_functions.dart)
+    _loadSocialStats();
+  }
+
+  /// Reference: party_page_apis.dart (lines 131-195) and reusable_functions.dart (lines 455-535)
+  /// Loads views, follower count, and check if current user is following this politician
+  Future<void> _loadSocialStats() async {
+    try {
+      final results = await Future.wait([
+        _partyApis.getViewCount("POLITICIAN", widget.politicianId),
+        _partyApis.getFollowCount("POLITICIAN", widget.politicianId),
+        _partyApis.iFollowParty(),
+      ]);
+
+      if (!mounted) return;
+
+      final views = results[0] as int;
+      final followers = results[1] as int;
+      final followingList = results[2] as List<dynamic>;
+
+      // Check if current user follows this politician (Reference: reusable_functions.dart line 471)
+      final bool isFollowing = followingList.any(
+        (e) =>
+            e is Map &&
+            e["followeeType"] == "POLITICIAN" &&
+            (e["followeeId"] == widget.politicianId ||
+                e["followeeId"]?.toString() == widget.politicianId.toString()),
+      );
+
+      setState(() {
+        _viewCount = views;
+        _followCount = followers;
+        _isFollowing = isFollowing;
+        _hasInitializedFollowerCount = true;
+      });
+    } catch (e) {
+      debugPrint("Error loading politician social stats: $e");
+    }
   }
 
   @override
@@ -150,14 +185,22 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
     return BlocConsumer<PoliticianProfileBloc, PoliticianProfileState>(
       listener: (context, state) {
         if (state.status == PoliticianProfileStatus.success &&
-            state.politician != null &&
-            !_hasInitializedFollowerCount) {
-          setState(() {
-            _followCount = state.politician!.followerCount ?? 0;
-            _isFollowing = state.politician!.isFollowing ?? false;
-            _isFavorite = state.politician!.isFavorite ?? false;
-            _hasInitializedFollowerCount = true;
-          });
+            state.politician != null) {
+          // Fallback to profile model stats if live social stats are not yet populated
+          if (!_hasInitializedFollowerCount) {
+            setState(() {
+              if (_followCount == 0 && state.politician!.followerCount != null) {
+                _followCount = state.politician!.followerCount!;
+              }
+              if (_viewCount == 0 && state.politician!.viewCount != null) {
+                _viewCount = state.politician!.viewCount!;
+              }
+              if (state.politician!.isFollowing != null) {
+                _isFollowing = state.politician!.isFollowing!;
+              }
+              _isFavorite = state.politician!.isFavorite ?? false;
+            });
+          }
         }
       },
       builder: (context, state) {
@@ -758,50 +801,6 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
                               height: 1.2,
                             ),
                           ),
-                          SizedBox(height: h * 0.004),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                PoliticianPageData.designationPrefix,
-                                style: TextStyle(
-                                  fontSize: textScaler.scale(w * 0.035),
-                                  fontWeight: FontWeight.w400,
-                                  letterSpacing: 0.25,
-                                  color: const Color(0xFF666666),
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  politician.designation.isNotEmpty
-                                      ? politician.designation
-                                      : (politician.position ?? '-'),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: textScaler.scale(w * 0.035),
-                                    fontWeight: FontWeight.w400,
-                                    letterSpacing: 0.25,
-                                    color: const Color(0xFF666666),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (politician.party?.name != null &&
-                              politician.party!.name!.isNotEmpty) ...[
-                            SizedBox(height: h * 0.002),
-                            Text(
-                              politician.party!.name!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: textScaler.scale(w * 0.031),
-                                fontWeight: FontWeight.w500,
-                                color: const Color(0xFFFE3A31),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
@@ -819,18 +818,19 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
                           PoliticianPageData.view,
                           style: TextStyle(
                             fontWeight: FontWeight.w400,
-                            fontSize: textScaler.scale(w * 0.028),
+                            fontSize: w * 0.025,
                             letterSpacing: 0.22,
                             color: const Color(0xFF666666),
                           ),
                         ),
+                        SizedBox(height: h * 0.003),
                         Text(
-                          _formatCount(politician.viewCount ?? 0),
+                          _formatCount(_viewCount > 0 ? _viewCount : (politician.viewCount ?? 0)),
                           style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: textScaler.scale(w * 0.058),
-                            letterSpacing: 0.3,
-                            color: const Color(0xFF333333),
+                            fontWeight: FontWeight.w700,
+                            fontSize: w * 0.042,
+                            letterSpacing: 0.25,
+                            color: const Color(0xFF222222),
                           ),
                         ),
                       ],
@@ -843,36 +843,76 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
                           PoliticianPageData.followers,
                           style: TextStyle(
                             fontWeight: FontWeight.w400,
-                            fontSize: textScaler.scale(w * 0.028),
+                            fontSize: w * 0.025,
                             letterSpacing: 0.22,
                             color: const Color(0xFF666666),
                           ),
                         ),
+                        SizedBox(height: h * 0.003),
                         Text(
                           _formatCount(_followCount),
                           style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: textScaler.scale(w * 0.058),
-                            letterSpacing: 0.3,
-                            color: const Color(0xFF333333),
+                            fontWeight: FontWeight.w700,
+                            fontSize: w * 0.042,
+                            letterSpacing: 0.25,
+                            color: const Color(0xFF222222),
                           ),
                         ),
                       ],
                     ),
                     const Spacer(),
 
-                    // Follow button
+                    // Follow button (Reference: reusable_functions.dart lines 714-745 and party_page_apis.dart lines 160-190)
                     InkWell(
-                      onTap: () {
-                        setState(() {
-                          _isFollowing = !_isFollowing;
-                          if (_isFollowing) {
-                            _followCount++;
-                          } else if (_followCount > 0) {
-                            _followCount--;
-                          }
-                        });
-                      },
+                      onTap: _isFollowLoading
+                          ? null
+                          : () async {
+                              setState(() {
+                                _isFollowLoading = true;
+                              });
+
+                              try {
+                                if (!_isFollowing) {
+                                  // Call follow API with type "POLITICIAN" (Reference: party_page_apis.dart line 160)
+                                  final success = await _partyApis.followParty(
+                                    "POLITICIAN",
+                                    widget.politicianId,
+                                  );
+
+                                  if (success) {
+                                    if (!mounted) return;
+                                    setState(() {
+                                      _isFollowing = true;
+                                      _followCount++;
+                                    });
+                                  }
+                                } else {
+                                  // Call unfollow API with type "POLITICIAN" (Reference: party_page_apis.dart line 179)
+                                  final success = await _partyApis.deleteFollowing(
+                                    "POLITICIAN",
+                                    widget.politicianId,
+                                  );
+
+                                  if (success) {
+                                    if (!mounted) return;
+                                    setState(() {
+                                      _isFollowing = false;
+                                      if (_followCount > 0) {
+                                        _followCount--;
+                                      }
+                                    });
+                                  }
+                                }
+                              } catch (e) {
+                                debugPrint("Error updating politician follow: $e");
+                              } finally {
+                                if (mounted) {
+                                  setState(() {
+                                    _isFollowLoading = false;
+                                  });
+                                }
+                              }
+                            },
                       child: Container(
                         height: w * 0.1,
                         padding: EdgeInsets.symmetric(horizontal: w * 0.05),
@@ -886,16 +926,27 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
                           ),
                         ),
                         child: Center(
-                          child: Text(
-                            _isFollowing ? PoliticianPageData.following : PoliticianPageData.follow,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: textScaler.scale(w * 0.032),
-                              letterSpacing: 0.37,
-                              color: Colors.white,
-                            ),
-                          ),
+                          child: _isFollowLoading
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  _isFollowing
+                                      ? PoliticianPageData.following
+                                      : PoliticianPageData.follow,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: textScaler.scale(w * 0.032),
+                                    letterSpacing: 0.37,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ),
                     ),

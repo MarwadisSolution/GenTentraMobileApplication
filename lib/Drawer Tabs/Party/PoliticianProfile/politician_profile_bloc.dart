@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'politician_model.dart';
 import 'politician_profile_event.dart';
 import 'politician_profile_repository.dart';
 import 'politician_profile_state.dart';

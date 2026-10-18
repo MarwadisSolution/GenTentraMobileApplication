@@ -415,19 +415,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           response.data["data"]["partyId"].toString(),
         );
       }
-      print("profile1");
-      print(prefs.getString("AdminOfParty"));
-      print("Roles");
-      print(prefs.getString("role"));
+
       await prefs.setBool("isLogged", true);
 
       await prefs.setInt("loginTime", DateTime.now().millisecondsSinceEpoch);
-      print("===== SIGNUP SAVED =====");
-      print("Saved accessToken = ${prefs.getString("accessToken")}");
-      print("Saved refreshToken = ${prefs.getString("refreshToken")}");
-      print("Saved userUuid = ${prefs.getString("userUuid")}");
-      print("Roles: = ${prefs.getString("role")}");
-      print("Saved isLogged = ${prefs.getBool("isLogged")}");
+
       emit(
         state.copyWith(
           isLoading: false,

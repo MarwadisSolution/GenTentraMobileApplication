@@ -225,7 +225,7 @@ EventTabState copyWith({
     bgImageUrl: identical(bgImageUrl, _unset)
         ? this.bgImageUrl
         : bgImageUrl as File?,
-   bgImage: bgImage??this.bgImage,
+   bgImage: bgImage??bgImage,
     taggedPeople:
     taggedPeople ?? this.taggedPeople,
 

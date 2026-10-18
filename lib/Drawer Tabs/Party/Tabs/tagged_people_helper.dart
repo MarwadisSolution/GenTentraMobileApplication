@@ -5,7 +5,6 @@ import 'package:flutter_svg/svg.dart';
 
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/apis.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_model.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/reusable_functions.dart';
 
 import '../../../Reusable Functions/reusable_functions.dart';
 import '../party_page_data.dart';

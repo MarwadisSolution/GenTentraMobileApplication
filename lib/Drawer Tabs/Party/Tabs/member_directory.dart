@@ -84,7 +84,7 @@ class _MemberDirectoryState extends State<MemberDirectory> {
 
       body: Container(
         decoration: BoxDecoration(
-      color: Colors.black.withOpacity(0.08),
+      color: Colors.black.withValues(alpha: 0.08),
           //gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
          ),
         child: CustomScrollView(

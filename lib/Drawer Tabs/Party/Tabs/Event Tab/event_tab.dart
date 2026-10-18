@@ -508,11 +508,11 @@ class _EventTabState extends State<EventTab> {
                                             barrierDismissible: true,
                                             barrierLabel: 'Delete',
                                             barrierColor: Colors.black
-                                                .withOpacity(0.25),
+                                                .withValues(alpha: 0.25),
                                             transitionDuration: const Duration(
                                               milliseconds: 250,
                                             ),
-                                            pageBuilder: (dialogContext, _, __) {
+                                            pageBuilder: (dialogContext, _, _) {
                                               return popUpMessageForDeleteOrCancel(
                                                 dialogContext,
                                                 PartyPageData.calenderIcon,
@@ -596,11 +596,11 @@ class _EventTabState extends State<EventTab> {
                                           barrierDismissible: true,
                                           barrierLabel: 'Delete',
                                           barrierColor: Colors.black
-                                              .withOpacity(0.25),
+                                              .withValues(alpha: 0.25),
                                           transitionDuration: const Duration(
                                             milliseconds: 250,
                                           ),
-                                          pageBuilder: (dialogContext, _, __) {
+                                          pageBuilder: (dialogContext, _, _) {
                                             return popUpMessageForDeleteOrCancel(
                                               dialogContext,
                                               PartyPageData.calenderIcon,

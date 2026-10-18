@@ -260,7 +260,7 @@ class ReusableMediaWidget<T> extends StatelessWidget {
             if (overlayCount != null)
               IgnorePointer(
                 child: Container(
-                  color: Colors.black.withOpacity(0.55),
+                  color: Colors.black.withValues(alpha: 0.55),
                   alignment: Alignment.center,
                   child: Text(
                     "+$overlayCount",
@@ -281,7 +281,7 @@ class ReusableMediaWidget<T> extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.55),
+                      color: Colors.black.withValues(alpha: 0.55),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -536,7 +536,7 @@ final w=MediaQuery.of(context).size.width;
                 type == EventRangePickerType.date
                     ? PartyPageData.dateIcon
                     : PartyPageData.clockIcon,
-                color:   type == EventRangePickerType.date?Colors.black.withOpacity(0.44):null,
+                color:   type == EventRangePickerType.date?Colors.black.withValues(alpha: 0.44):null,
                 fit: BoxFit.contain,
               ),
             ),
@@ -552,7 +552,7 @@ final w=MediaQuery.of(context).size.width;
                   fontWeight: FontWeight.w300,
                   letterSpacing: 0.5,
                   color: _isFromEmpty()
-                      ? Colors.black.withOpacity(0.5)
+                      ? Colors.black.withValues(alpha: 0.5)
                       : Colors.black,
                 ),
               ),
@@ -578,7 +578,7 @@ final w=MediaQuery.of(context).size.width;
                   fontWeight: FontWeight.w300,
                   letterSpacing: 0.5,
                   color: _isToEmpty()
-                      ? Colors.black.withOpacity(0.5)
+                      ? Colors.black.withValues(alpha: 0.5)
                       : Colors.black,
                 ),
               ),
@@ -1263,7 +1263,7 @@ class ReusableImagePicker extends StatelessWidget {
         width:  MediaQuery.of(context).size.width*0.35,
         height:  MediaQuery.of(context).size.height*0.05,
         decoration: BoxDecoration(
-          color: const Color(0xFF000000).withOpacity(0.08),
+          color: const Color(0xFF000000).withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(  MediaQuery.of(context).size.width * 0.05),
         ),
         child:  Row(
@@ -1516,7 +1516,7 @@ class ReusableEventCard extends StatelessWidget {
 
     return Card(
 
-      shadowColor: Colors.black.withOpacity(0.2),
+      shadowColor: Colors.black.withValues(alpha: 0.2),
 
       key: ValueKey(eventData.id),
 
@@ -1528,7 +1528,7 @@ class ReusableEventCard extends StatelessWidget {
 
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(w*0.055),
-        side: BorderSide(color: Colors.black.withOpacity(0.1))
+        side: BorderSide(color: Colors.black.withValues(alpha: 0.1))
       ),
 
       child: Padding(
@@ -1598,7 +1598,7 @@ class ReusableEventCard extends StatelessWidget {
                 children: [
                   SvgPicture.asset(
                     PartyPageData.calenderIcon,
-                    color: ColorScheme.of(context).secondary.withOpacity(0.4),
+                    color: ColorScheme.of(context).secondary.withValues(alpha: 0.4),
                     width: w * 0.045,
                   ),
 
@@ -1622,7 +1622,7 @@ class ReusableEventCard extends StatelessWidget {
 
                   SvgPicture.asset(
                     PartyPageData.clock,
-                    color: ColorScheme.of(context).secondary.withOpacity(0.4),
+                    color: ColorScheme.of(context).secondary.withValues(alpha: 0.4),
                     width: w * 0.045,
                   ),
 
@@ -1658,7 +1658,7 @@ class ReusableEventCard extends StatelessWidget {
                   children: [
                     SvgPicture.asset(
                       PartyPageData.addressIcon,
-                      color: ColorScheme.of(context).secondary.withOpacity(0.4),
+                      color: ColorScheme.of(context).secondary.withValues(alpha: 0.4),
                       width: w * 0.04,
                     ),
 
@@ -1788,7 +1788,7 @@ overlayColor: WidgetStateProperty.all(Colors.transparent),
               : GradientColors.primaryGradient,
 
           color: isJoined
-              ? Colors.red.withOpacity(0.3)
+              ? Colors.red.withValues(alpha: 0.3)
               : null,
 
           borderRadius: BorderRadius.only(
@@ -1880,7 +1880,7 @@ overlayColor: WidgetStateProperty.all(Colors.transparent),
       barrierLabel: 'Close',
 
       barrierColor:
-      Colors.black.withOpacity(0.4),
+      Colors.black.withValues(alpha: 0.4),
 
       pageBuilder: (
           context,

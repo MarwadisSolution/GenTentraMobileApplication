@@ -637,7 +637,7 @@ letterSpacing: 0.31,
         child: ClipOval(
           child: SizedBox.expand(
             child: hasImage?
-            buildImageWidget(imageUrl!,fit: BoxFit.fitWidth)
+            buildImageWidget(imageUrl,fit: BoxFit.fitWidth)
                 :Icon(Icons.person),
           ),
 

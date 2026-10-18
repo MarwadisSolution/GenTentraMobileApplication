@@ -7,7 +7,6 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Ta
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_model.dart' hide Tagged;
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/event_modal.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/reusable_functions.dart';
 
 import '../../../../Reusable Functions/reusable_functions.dart';
 

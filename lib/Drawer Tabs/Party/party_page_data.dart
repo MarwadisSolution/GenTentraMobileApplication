@@ -116,14 +116,23 @@ class PartyPageData {
   static final follow = "Follow";
   static final designationPrefix = "Designation - ";
 
-  // Politician Profile SVGs / Icons
-  static final genderIcon = "Assets/LeadershipPage/Info/Gender.svg";
-  static final dobIcon = "Assets/LeadershipPage/Info/DoB.svg";
-  static final birthPlaceIcon = "Assets/LeadershipPage/Info/BirthPlace.svg";
-  static final politicalPartyIcon =
-      "Assets/LeadershipPage/Info/PoliticalParty.svg";
-  static final constituencyIcon = "Assets/LeadershipPage/Info/Constituency.svg";
-  static final politicianAddressIcon = "Assets/LeadershipPage/Info/Address.svg";
-  static final politicianEducationIcon =
-      "Assets/LeadershipPage/Info/Education.svg";
+// Politician Profile SVGs / Icons
+static final genderIcon = "Assets/LeadershipPage/Info/Gender.svg";
+static final dobIcon = "Assets/LeadershipPage/Info/DoB.svg";
+static final birthPlaceIcon = "Assets/LeadershipPage/Info/BirthPlace.svg";
+static final politicalPartyIcon = "Assets/LeadershipPage/Info/PoliticalParty.svg";
+static final constituencyIcon = "Assets/LeadershipPage/Info/Constituency.svg";
+static final politicianAddressIcon = "Assets/LeadershipPage/Info/Address.svg";
+static final politicianEducationIcon = "Assets/LeadershipPage/Info/Education.svg";
 }
+
+// Used / imported for Politician Profile
+class PoliticianInfoIcons {
+  static final String gender = PartyPageData.genderIcon;
+  static final String dob = PartyPageData.dobIcon;
+  static final String birthPlace = PartyPageData.birthPlaceIcon;
+  static final String politicalParty = PartyPageData.politicalPartyIcon;
+  static final String constituency = PartyPageData.constituencyIcon;
+  static final String address = PartyPageData.politicianAddressIcon;
+}
+

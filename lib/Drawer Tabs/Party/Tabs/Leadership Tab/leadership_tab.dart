@@ -121,33 +121,6 @@ class _LeadershipTabState extends State<LeadershipTab> {
                         ),
                       ),
                     ),
-
-                    SizedBox(height: h * 0.008),
-
-                    Text(
-                      leader.name,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: w * 0.05,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                        letterSpacing: 0.22,
-                      ),
-                    ),
-                    Text(
-                      leader.designation,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: w * 0.04,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xFF666666),
-                        letterSpacing: 0.22,
-                      ),
-                    ),
                   ],
                 ),
               );

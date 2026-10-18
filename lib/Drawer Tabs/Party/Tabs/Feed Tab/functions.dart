@@ -99,7 +99,7 @@ class ShowingTaggedPersons extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
-                  color: const Color(0xFF000000).withOpacity(0.08),
+                  color: const Color(0xFF000000).withValues(alpha: 0.08),
                 ),
                 child: Text(
                   person.name ?? "-",
@@ -129,7 +129,7 @@ class ShowingTaggedPersons extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5),
-                    color: const Color(0xFF000000).withOpacity(0.08),
+                    color: const Color(0xFF000000).withValues(alpha: 0.08),
                   ),
                   child: Text(
                     "+$remainingCount",

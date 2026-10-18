@@ -45,11 +45,11 @@ bool mounted,
 
     child: Card(
       color: ColorScheme.of(context).surface,
-      shadowColor: Colors.black.withOpacity(0.2),
+      shadowColor: Colors.black.withValues(alpha: 0.2),
       elevation: 10,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(w * 0.03),
-        side: BorderSide(color: Colors.black.withOpacity(0.1)),
+        side: BorderSide(color: Colors.black.withValues(alpha: 0.1)),
       ),
       margin: EdgeInsets.only(
         bottom: h * 0.01,
@@ -133,9 +133,9 @@ bool mounted,
                       context: context,
                       barrierDismissible: true,
                       barrierLabel: 'Delete',
-                      barrierColor: Colors.black.withOpacity(0.25),
+                      barrierColor: Colors.black.withValues(alpha: 0.25),
                       transitionDuration: const Duration(milliseconds: 250),
-                      pageBuilder: (dialogContext, _, __){
+                      pageBuilder: (dialogContext, _, _){
                         return popUpMessageForDeleteOrCancel(
                           dialogContext,
                           PartyPageData.deleteIcon,

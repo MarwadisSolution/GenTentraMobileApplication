@@ -504,7 +504,7 @@ class _AddingFeedState extends State<AddingFeed> {
                                               height: h * 0.05,
                                               width: w * 0.35,
                                               decoration: BoxDecoration(
-                                                color: Colors.white.withOpacity(0.85),
+                                                color: Colors.white.withValues(alpha: 0.85),
                                                 borderRadius: BorderRadius.circular(30),
                                               ),
                                               child: const Center(
@@ -634,7 +634,7 @@ class _AddingFeedState extends State<AddingFeed> {
                                                     barrierLabel: 'Delete',
                                                     barrierColor: Colors
                                                         .black
-                                                        .withOpacity(0.25),
+                                                        .withValues(alpha: 0.25),
                                                     transitionDuration:
                                                     const Duration(
                                                       milliseconds: 250,
@@ -642,7 +642,7 @@ class _AddingFeedState extends State<AddingFeed> {
                                                     pageBuilder:
                                                         (dialogContext,
                                                         _,
-                                                        __,) {
+                                                        _,) {
                                                       return popUpMessageForDeleteOrCancel(
                                                         context,
                                                         PartyPageData

@@ -355,7 +355,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                           indicatorColor: Colors.red,
                                           dividerColor: ColorScheme.of(
                                             context,
-                                          ).onSurface.withOpacity(0.2),
+                                          ).onSurface.withValues(alpha: 0.2),
                                           tabs: [
                                             Tab(text: PartyPageData.info),
                                             Tab(text: PartyPageData.symbol),
@@ -518,8 +518,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                   context: context,
                                   barrierDismissible: true,
                                   barrierLabel: 'Close',
-                                  barrierColor: Colors.black.withOpacity(0.4),
-                                  pageBuilder: (_, __, ___) {
+                                  barrierColor: Colors.black.withValues(alpha: 0.4),
+                                  pageBuilder: (_, _, _) {
                                     return Stack(
                                       children: [
                                         Positioned(
@@ -677,7 +677,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                   transitionDuration: const Duration(
                                     milliseconds: 650,
                                   ),
-                                  transitionBuilder: (_, animation, __, child) {
+                                  transitionBuilder: (_, animation, _, child) {
                                     return SlideTransition(
                                       position:
                                       Tween<Offset>(
@@ -754,9 +754,8 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
 
   _SliverTabBarDelegate(
       this.tabBar, {
-        this.backgroundColor = Colors.white,
         this.dividerHeight = 8.0,
-      });
+      }) : backgroundColor = Colors.white;
 
   @override
   Widget build(
@@ -773,7 +772,7 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
             width: double.infinity,
             height: dividerHeight,
             child: ColoredBox(
-              color: const Color(0xFF000000).withOpacity(0.08),
+              color: const Color(0xFF000000).withValues(alpha: 0.08),
             ),
           ),
           tabBar,

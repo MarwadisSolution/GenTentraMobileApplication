@@ -220,7 +220,7 @@ class _PartyPageState extends State<PartyPage> {
     if (_isLoadingParty)...[
     Positioned.fill(
       child: Container(
-        color: Colors.black.withOpacity(0.2),
+        color: Colors.black.withValues(alpha: 0.2),
         child: Center(
           child: CircularProgressIndicator(
             color: Colors.black,

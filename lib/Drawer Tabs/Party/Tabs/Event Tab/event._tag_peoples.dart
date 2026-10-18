@@ -102,7 +102,7 @@ print(taggedPeople);
                   vertical: 10,
                 ),
                 itemCount: taggedPeople.length,
-                separatorBuilder: (_, __) {
+                separatorBuilder: (_, _) {
                   return const Divider(
                     color: Color.fromRGBO(215, 215, 220, 1),
                     height: 1,
@@ -181,7 +181,7 @@ class _TaggedPersonTile extends StatelessWidget {
         radius: 22,
         backgroundImage:
         imageUrl != null && imageUrl.isNotEmpty
-            ? NetworkImage("$api${imageUrl}")
+            ? NetworkImage("$api$imageUrl")
             : null,
         child: imageUrl == null || imageUrl.isEmpty
             ? Icon(Icons.person,color: Colors.black,):null,

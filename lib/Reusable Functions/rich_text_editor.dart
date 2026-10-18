@@ -202,10 +202,9 @@ class RichTextValue {
 class RichTextEditingController
     extends TextEditingController {
   RichTextEditingController({
-    String? text,
+    super.text,
     List<TextStyleRange>? styles,
-  })  : styles = styles ?? [],
-        super(text: text);
+  })  : styles = styles ?? [];
 
   final List<TextStyleRange> styles;
 

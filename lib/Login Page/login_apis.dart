@@ -37,7 +37,7 @@ class LoginApi{
 
     try{
       final response = await _dio.post(
-      "${api}/api/v1/auth/phone/verify",
+      "$api/api/v1/auth/phone/verify",
 
       data: jsonEncode({
         "phone": number,

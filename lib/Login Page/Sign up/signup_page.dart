@@ -155,7 +155,7 @@ class _SignupPageState extends State<SignupPage> {
                               letterSpacing: 0.31,
                               color: ColorScheme.of(
                                 context,
-                              ).onSurface.withOpacity(0.6),
+                              ).onSurface.withValues(alpha: 0.6),
                             ),
                           ),
                         ),
@@ -207,7 +207,7 @@ class _SignupPageState extends State<SignupPage> {
                                     fontSize: 14,
                                     color: ColorScheme.of(
                                       context,
-                                    ).onSurface.withOpacity(0.3),
+                                    ).onSurface.withValues(alpha: 0.3),
                                   ),
                                 ),
                                 SizedBox(width: MediaQuery.of(context).size.width*0.03),
@@ -234,7 +234,7 @@ class _SignupPageState extends State<SignupPage> {
                                           ? null
                                           : ColorScheme.of(
                                               context,
-                                            ).onSurface.withOpacity(0.26),
+                                            ).onSurface.withValues(alpha: 0.26),
                                       gradient: selectedGender == 0
                                           ? GradientColors.primaryGradient
                                           : null,
@@ -284,7 +284,7 @@ class _SignupPageState extends State<SignupPage> {
                                           ? null
                                           : ColorScheme.of(
                                               context,
-                                            ).onSurface.withOpacity(0.26),
+                                            ).onSurface.withValues(alpha: 0.26),
                                       gradient: selectedGender == 1
                                           ? GradientColors.primaryGradient
                                           : null,
@@ -332,7 +332,7 @@ class _SignupPageState extends State<SignupPage> {
                                           ? null
                                           : ColorScheme.of(
                                               context,
-                                            ).onSurface.withOpacity(0.26),
+                                            ).onSurface.withValues(alpha: 0.26),
                                       gradient: selectedGender == 2
                                           ? GradientColors.primaryGradient
                                           : null,
@@ -439,14 +439,14 @@ class _SignupPageState extends State<SignupPage> {
                             labelStyle: TextStyle(
                               color: ColorScheme.of(
                                 context,
-                              ).onSurface.withOpacity(0.3),
+                              ).onSurface.withValues(alpha: 0.3),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide(
                                 color: ColorScheme.of(
                                   context,
-                                ).onSurface.withOpacity(0.3),
+                                ).onSurface.withValues(alpha: 0.3),
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
@@ -454,7 +454,7 @@ class _SignupPageState extends State<SignupPage> {
                               borderSide: BorderSide(
                                 color: ColorScheme.of(
                                   context,
-                                ).onSurface.withOpacity(0.3),
+                                ).onSurface.withValues(alpha: 0.3),
                               ),
                             ),
                           ),
@@ -483,7 +483,7 @@ class _SignupPageState extends State<SignupPage> {
                                         : null,
                                     color: numberController.text.length==phoneMaxLength
                                         ? null
-                                        : Colors.black.withOpacity(0.3),
+                                        : Colors.black.withValues(alpha: 0.3),
                                     borderRadius: BorderRadius.circular(30),
                                   ),
                                   child: Row(
@@ -529,7 +529,7 @@ class _SignupPageState extends State<SignupPage> {
                       style: TextStyle(
                         color: ColorScheme.of(
                           context,
-                        ).onSurface.withOpacity(0.6),
+                        ).onSurface.withValues(alpha: 0.6),
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                       ),
