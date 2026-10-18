@@ -15,14 +15,16 @@ class LoadFeedEvent extends FeedEvent {
   final int page;
   final int size;
   final String fromWhichPage;
+  final int politicianId;
   const LoadFeedEvent({
     required this.partyId,
     this.page=0,
     this.size=20,
-     required this.fromWhichPage
+     required this.fromWhichPage,
+    required this.politicianId,
 });
   @override
-  List<Object?>get props=>[partyId,page, size,fromWhichPage];
+  List<Object?>get props=>[partyId,page, size,fromWhichPage,politicianId];
 }
 
 class YearWiseFeedEvent extends FeedEvent {
@@ -37,14 +39,16 @@ class AddNewFeedEvent extends FeedEvent {
   final FeedModel feed;
   final List<File>mediaFiles;
   final   String fromWhichPage;
+  final int politicianId;
   const AddNewFeedEvent({
     required this.partyId,
     required this.feed,
     required this.mediaFiles,
     required this.fromWhichPage,
+    required this.politicianId
 });
   @override
-  List<Object?>get props=>[partyId,feed, mediaFiles,fromWhichPage];
+  List<Object?>get props=>[partyId,feed, mediaFiles,fromWhichPage,politicianId];
 }
 
 class EditFeedEvent extends FeedEvent {
@@ -68,9 +72,10 @@ class DeleteFeedEvent extends FeedEvent {
   final int id;
   final int partyId;
   final String fromWhichPage;
-  const DeleteFeedEvent( this.id, this.partyId, {required this.fromWhichPage});
+  final int politicianId;
+  const DeleteFeedEvent( this.id, this.partyId, {required this.fromWhichPage,required this.politicianId});
   @override
-  List<Object?>get props=>[id,partyId,fromWhichPage];
+  List<Object?>get props=>[id,partyId,fromWhichPage,politicianId];
 }
 
 class UpdateFeedEvent extends FeedEvent {

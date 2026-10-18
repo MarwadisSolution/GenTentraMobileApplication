@@ -85,7 +85,9 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
   final ValueNotifier<int> _selectedTabIndex = ValueNotifier<int>(0);
   final ValueNotifier<double> _sheetProgress = ValueNotifier<double>(0.0);
 
-  bool showPoliticianDetails = true;
+  final ValueNotifier<bool> _showPoliticianDetails =
+  ValueNotifier<bool>(true);
+
   bool _isUserScrolling = false;
 
   bool _isFollowing = false;
@@ -96,9 +98,15 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+    );
+
     _tabController.addListener(() {
       if (!mounted) return;
+
       if (!_tabController.indexIsChanging) {
         _selectedTabIndex.value = _tabController.index;
       }
@@ -107,9 +115,11 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
 
   @override
   void dispose() {
+    _showPoliticianDetails.dispose();
     _sheetProgress.dispose();
     _selectedTabIndex.dispose();
     _tabController.dispose();
+
     super.dispose();
   }
 
@@ -198,38 +208,39 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
                     maxChildSize: 0.9,
                     builder: (context, scrollController) {
                       return NotificationListener<ScrollNotification>(
+
                         onNotification: (notification) {
-                          if (!mounted) return false;
-                          if (notification.depth != 0) return false;
+                          if (!mounted || notification.depth != 0) {
+                            return false;
+                          }
+
                           if (notification is ScrollStartNotification) {
                             _isUserScrolling = notification.dragDetails != null;
                           }
+
                           if (notification is ScrollEndNotification) {
                             _isUserScrolling = false;
                           }
-                          // Only respond to actual user scroll direction.
+
                           if (notification is UserScrollNotification &&
                               _isUserScrolling) {
-                            if (notification.direction ==
-                                ScrollDirection.reverse) {
-                              // User scrolls up: hide politician details
-                              if (showPoliticianDetails) {
-                                setState(() {
-                                  showPoliticianDetails = false;
-                                });
+                            if (notification.direction == ScrollDirection.reverse) {
+                              // User scrolls up: hide politician details.
+                              if (_showPoliticianDetails.value) {
+                                _showPoliticianDetails.value = false;
                               }
                             } else if (notification.direction ==
                                 ScrollDirection.forward) {
-                              // User scrolls down: show politician details
-                              if (!showPoliticianDetails) {
-                                setState(() {
-                                  showPoliticianDetails = true;
-                                });
+                              // User scrolls down: show politician details.
+                              if (!_showPoliticianDetails.value) {
+                                _showPoliticianDetails.value = true;
                               }
                             }
                           }
+
                           return false;
                         },
+
                         child: Container(
                           clipBehavior: Clip.antiAlias,
                           decoration: const BoxDecoration(
@@ -474,25 +485,33 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
       controller: scrollController,
       slivers: [
         // Header Section (Politician details, animated when user scrolls)
+
         SliverToBoxAdapter(
-          child: AnimatedSize(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOutCubic,
-            alignment: Alignment.topCenter,
-            child: ClipRect(
-              child: Align(
+          child: ValueListenableBuilder<bool>(
+            valueListenable: _showPoliticianDetails,
+            builder: (context, showDetails, child) {
+              return AnimatedSize(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOutCubic,
                 alignment: Alignment.topCenter,
-                heightFactor: showPoliticianDetails ? 1.0 : 0.0,
-                child: _buildPoliticianDetailsSection(
-                  context,
-                  politician,
-                  screenWidth,
-                  screenHeight,
+                child: ClipRect(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    heightFactor: showDetails ? 1.0 : 0.0,
+                    child: child,
+                  ),
                 ),
-              ),
+              );
+            },
+            child: _buildPoliticianDetailsSection(
+              context,
+              politician,
+              screenWidth,
+              screenHeight,
             ),
           ),
         ),
+
 
         // Pinned TabBar
         SliverPersistentHeader(
@@ -606,25 +625,18 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
   }) {
     switch (index) {
       case 0:
-        return _buildInfoTab(
-          context,
-          politician,
-          screenWidth,
-          screenHeight,
+        return KeyedSubtree(
+          key: ValueKey('politician_info_${politician.id}'),
+          child: _buildInfoTab(
+            context,
+            politician,
+            screenWidth,
+            screenHeight,
+          ),
         );
 
       case 1:
-        return politician.journeys.isEmpty
-            ? _buildPlaceholderTab(
-          context,
-          icon: Icons.timeline_rounded,
-          title: "No Journey Available",
-          subtitle:
-          "Journey timeline for this politician will appear here.",
-          h: screenHeight,
-          w: screenWidth,
-        )
-            : JourneyTab(
+        return  JourneyTab(
           key: ValueKey(
             'politician_journey_${politician.id}_${politician.journeys.length}',
           ),
@@ -634,10 +646,11 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
       case 2:
         return FeedTab(
           key: const ValueKey('feed_tab'),
-          partyId: widget.politicianId,
+          partyId: 0,///---------------as party Id is not needed here
           scrollController: scrollController,
           isVisible: _tabController.index == 2,
           fromWhichPage: "Politician",
+          politicianId: widget.politicianId,
         );
 
       case 3:
@@ -739,7 +752,7 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
                                 ? politician.displayName
                                 : politician.name,
                             style: TextStyle(
-                              fontSize: textScaler.scale(w * 0.043),
+                              fontSize: textScaler.scale(w * 0.053),
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.25,
                               height: 1.2,

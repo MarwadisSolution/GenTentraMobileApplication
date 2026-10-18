@@ -61,12 +61,14 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         partyId: event.partyId,
         page: event.page,
         size: event.size,
-        fromWhichPage: "Party"
+        fromWhichPage: "Party",
+        politicianId: 0,///-----------Not used so only kept 0
       ):await api.getFeeds(
           partyId: event.partyId,
           page: event.page,
           size: event.size,
-          fromWhichPage: "Politician"
+          fromWhichPage: "Politician",
+        politicianId: event.politicianId,
       );
       // If less than 20 came back, there is no next page.
       final bool hasMore = newFeeds.length == event.size;
@@ -160,12 +162,14 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           partyId: event.partyId,
           page: 0,
           size: 20,
-          fromWhichPage: "Party"
+          fromWhichPage: "Party",
+          politicianId: 0,///-----------Not used so only kept 0
         ):await api.getFeeds(
             partyId: event.partyId,
             page: 0,
             size: 20,
-            fromWhichPage: "Politician"
+            fromWhichPage: "Politician",
+          politicianId: event.politicianId,
         );
 
         emit(
@@ -246,12 +250,14 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         partyId: event.partyId,
         page: 0,
         size: 20,
-        fromWhichPage: "Party"
+        fromWhichPage: "Party",
+          politicianId: 0,///------------Not used in party so kept 0
       ):await api.getFeeds(
         partyId: event.partyId,
         page: 0,
         size: 20,
-        fromWhichPage: "Politician"
+        fromWhichPage: "Politician",
+        politicianId: event.politicianId,
       );
       emit(
         state.copyWith(

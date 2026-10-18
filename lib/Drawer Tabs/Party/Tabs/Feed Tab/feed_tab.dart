@@ -24,7 +24,10 @@ class FeedTab extends StatefulWidget {
   final ScrollController scrollController;
   final bool isVisible;
   final String fromWhichPage;
-  const FeedTab({super.key, required this.partyId,required this.scrollController,required this.isVisible,required this.fromWhichPage});
+  final int politicianId;
+  const FeedTab({super.key, required this.partyId,required this.scrollController,required this.isVisible,required this.fromWhichPage,
+  required this.politicianId,
+  });
 
   @override
   State<FeedTab> createState() => _FeedTabState();
@@ -54,7 +57,8 @@ class _FeedTabState extends State<FeedTab> {
           partyId: widget.partyId,
           page: 0,
           size: 20,
-            fromWhichPage: widget.fromWhichPage
+            fromWhichPage: widget.fromWhichPage,
+          politicianId: widget.politicianId,
         ),
       );
     }
@@ -86,7 +90,8 @@ class _FeedTabState extends State<FeedTab> {
           partyId: widget.partyId,
           page: feedState.currentPage + 1,
           size: 20,
-          fromWhichPage: widget.fromWhichPage
+          fromWhichPage: widget.fromWhichPage,
+          politicianId: widget.politicianId,
         ),
       );
     }
@@ -387,6 +392,7 @@ class _FeedTabState extends State<FeedTab> {
                                     partyId: widget.partyId,
                                     editFeed: feed,
                                     fromWhichPage: widget.fromWhichPage,
+                                    politicianId: widget.politicianId,
                                   ),
                                 ),
                               ),
@@ -400,6 +406,7 @@ class _FeedTabState extends State<FeedTab> {
                                     partyId: widget.partyId,
                                     editQuote: feed,
                                     fromWhichPage: widget.fromWhichPage,
+                                    politicianId: widget.politicianId,
                                   ),
                                 ),
                               ),
@@ -449,6 +456,7 @@ class _FeedTabState extends State<FeedTab> {
                                   feed.id!,
                                   widget.partyId,
                                   fromWhichPage: widget.fromWhichPage,
+                                  politicianId: widget.politicianId,
                                 ),
                               );
                             }

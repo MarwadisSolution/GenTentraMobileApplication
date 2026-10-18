@@ -92,32 +92,17 @@ class EventApis{
           ),
         );
       }
-
-      print("========== ABOUT TO SEND POST ==========");
-      print("URL: $api/api/v1/events");
-      print("Media files: ${mediaFiles?.length ?? 0}");
-      print("BG flag: ${event.bgImage}");
-      print("BG file: ${bgImageFile?.path}");
-      print("========================================");
       print(formData);
       final response = await _dio.post(
         "$api/api/v1/events",
         data: formData,
       );
 
-      print("POST status: ${response.statusCode}");
-      print("POST response: ${response.data}");
 
       return EventModel.fromJson(
         response.data["data"],
       );
     } on DioException catch (e) {
-      print("========== DIO ERRORs ==========");
-      print("STATUS CODE: ${e.response?.statusCode}");
-      print("RESPONSE DATA: ${e.response?.data}");
-      print("REQUEST URL: ${e.requestOptions.uri}");
-      print("REQUEST METHOD: ${e.requestOptions.method}");
-      print("-----------hhhh------$e ---------------------------");
       final message =
           e.response?.data?["message"] ??
               e.message ??
@@ -148,8 +133,6 @@ class EventApis{
       );
 
       final data = response.data["data"];
-      print("Datas-------------------------");
-      print(data);
       final List<EventModel> events =
       (data["items"] as List)
           .map(
@@ -321,53 +304,19 @@ class EventApis{
     List<Tagged>? removeTags,
     bool removeBackgroundImage = false,
   }) async {
-    print("========== updateTheEvent() HIT ==========");
 
     try {
       final FormData formData = FormData();
 
-      // ----------------------------------------------------------
-      // EVENT JSON
-      // ----------------------------------------------------------
-
       final Map<String, dynamic> eventJson = event.toJson();
-
-      // ----------------------------------------------------------
-      // REMOVED MEDIA
-      // ----------------------------------------------------------
-
       eventJson["removeMediaIds"] = deletedMediaIds ?? [];
-
-      // ----------------------------------------------------------
-      // REMOVED TAGS
-      // ----------------------------------------------------------
 
       eventJson["removeTags"] =
           removeTags?.map((tag) => tag.toJson()).toList() ?? [];
 
-      // ----------------------------------------------------------
-      // REMOVED BACKGROUND IMAGE
-      // ----------------------------------------------------------
 
       eventJson["removeBackgroundImage"] = removeBackgroundImage;
 
-      // ----------------------------------------------------------
-      // DEBUG
-      // ----------------------------------------------------------
-
-      print("========== UPDATE EVENT DATA ==========");
-      print("Event ID: $eventId");
-      print("removeMediaIds: ${eventJson["removeMediaIds"]}");
-      print("removeTags: ${eventJson["removeTags"]}");
-      print(
-        "removeBackgroundImage: "
-            "${eventJson["removeBackgroundImage"]}",
-      );
-      print("======================================");
-
-      // ----------------------------------------------------------
-      // DATA FIELD
-      // ----------------------------------------------------------
 
       formData.fields.add(
         MapEntry(
@@ -375,10 +324,6 @@ class EventApis{
           jsonEncode(eventJson),
         ),
       );
-
-      // ----------------------------------------------------------
-      // NEW MEDIA
-      // ----------------------------------------------------------
 
       if (mediaFiles != null && mediaFiles.isNotEmpty) {
         for (final File file in mediaFiles) {
@@ -394,10 +339,6 @@ class EventApis{
         }
       }
 
-      // ----------------------------------------------------------
-      // NEW BACKGROUND IMAGE
-      // ----------------------------------------------------------
-
       if (bgImageUrl != null) {
         formData.files.add(
           MapEntry(
@@ -410,14 +351,6 @@ class EventApis{
         );
       }
 
-      print("New media count: ${mediaFiles?.length ?? 0}");
-      print("Deleted media IDs: ${deletedMediaIds ?? []}");
-      print("New background: ${bgImageUrl?.path}");
-      print("Remove background: $removeBackgroundImage");
-
-      // ----------------------------------------------------------
-      // PATCH REQUEST
-      // ----------------------------------------------------------
 
       final response = await _dio.patch(
         "$api/api/v1/events/$eventId",
@@ -439,12 +372,6 @@ class EventApis{
             "Failed to update event",
       );
     } on DioException catch (e) {
-      print("========== UPDATE EVENT DIO ERROR ==========");
-      print("STATUS CODE: ${e.response?.statusCode}");
-      print("RESPONSE DATA: ${e.response?.data}");
-      print("REQUEST URL: ${e.requestOptions.uri}");
-      print("REQUEST DATA: ${e.requestOptions.data}");
-
       final message =
           e.response?.data?["message"] ??
               e.message ??
@@ -452,8 +379,7 @@ class EventApis{
 
       throw Exception(message);
     } catch (e) {
-      print("========== UPDATE EVENT ERROR ==========");
-      print(e);
+
 
       throw Exception(
         e.toString().replaceFirst("Exception: ", ""),

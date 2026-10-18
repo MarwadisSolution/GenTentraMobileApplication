@@ -133,6 +133,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
           scrollController: scrollController,
           isVisible: _tabController.index == 4,
           fromWhichPage: "Party",
+          politicianId: 0,//------------------I have kept 0 as in party not needed
         );
       case 5:
         return EventTab(
@@ -563,6 +564,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                                     .partyData["id"],
                                                                 editFeed: null,
                                                                 fromWhichPage: "Party",
+                                                                politicianId: 0,//--------I have kept 0 as in party not needed
                                                               ),
                                                             ),
                                                       ),
@@ -589,6 +591,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                                     .partyData["id"],
                                                                 editQuote: null,
                                                                 fromWhichPage: "Party",
+                                                                politicianId: 0,//--------I have kept 0 as in party not needed
                                                               ),
                                                             ),
                                                       ),

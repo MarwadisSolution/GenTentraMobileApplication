@@ -21,11 +21,13 @@ class AddingQuote extends StatefulWidget {
   final int partyId;
   final FeedModel? editQuote;
 final String fromWhichPage;
+  final int politicianId;
   const AddingQuote({
     super.key,
     required this.partyId,
     required this.editQuote,
     required this.fromWhichPage,
+    required this.politicianId,
   });
 
   bool get isEditMode => editQuote != null;
@@ -207,7 +209,8 @@ class _AddingQuoteState extends State<AddingQuote> {
             feed: feed,
             mediaFiles: mediaFiles,
             partyId: widget.partyId,
-              fromWhichPage: widget.fromWhichPage
+              fromWhichPage: widget.fromWhichPage,
+            politicianId: widget.politicianId,
           ),
         );
       }

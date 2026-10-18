@@ -24,7 +24,8 @@ class AddingFeed extends StatefulWidget {
   final int partyId;
   final FeedModel? editFeed;
 final String fromWhichPage;
-  const AddingFeed({super.key, required this.partyId, required this.editFeed,required this.fromWhichPage});
+ final int politicianId;
+  const AddingFeed({super.key, required this.partyId, required this.editFeed,required this.fromWhichPage,required this.politicianId});
 
   bool get isEditMode => editFeed != null;
 
@@ -347,7 +348,8 @@ class _AddingFeedState extends State<AddingFeed> {
             feed: feed,
             mediaFiles: mediaFiles,
             partyId: widget.partyId,
-              fromWhichPage: widget.fromWhichPage
+              fromWhichPage: widget.fromWhichPage,
+            politicianId: widget.politicianId,
           ),
         );
       }
