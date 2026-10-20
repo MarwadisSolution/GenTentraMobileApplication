@@ -1822,13 +1822,7 @@ class ReusableEventCard extends StatelessWidget {
         width: w * 0.20,
 
         decoration: BoxDecoration(
-          gradient: isJoined
-              ? null
-              : GradientColors.primaryGradient,
-
-          color: isJoined
-              ? Colors.red.withValues(alpha: 0.3)
-              : null,
+          gradient: GradientColors.primaryGradient,
 
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(w * 0.08),
@@ -1845,9 +1839,7 @@ class ReusableEventCard extends StatelessWidget {
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
 
-              color: isJoined
-                  ? const Color(0xFFFE3A31)
-                  : ColorScheme.of(context).surface,
+              color: ColorScheme.of(context).surface,
             ),
           )
 
@@ -1863,9 +1855,7 @@ class ReusableEventCard extends StatelessWidget {
                 textAlign: TextAlign.center,
 
                 style: TextStyle(
-                  color: isJoined
-                      ? const Color(0xFFFE3A31)
-                      : ColorScheme.of(context).surface,
+                  color: ColorScheme.of(context).surface,
 
                   fontWeight: FontWeight.w700,
                   fontSize: w * 0.035,
