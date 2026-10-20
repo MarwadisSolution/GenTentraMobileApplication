@@ -53,12 +53,14 @@ class DeleteEvent extends EventsEvent{
 }
 //13. Get Event
 class GetEventEvent extends EventsEvent {
-  final int partyId;
+  final int? partyId;
+  final int? politicianId;
   final int page;
   final int size;
 
   GetEventEvent({
-    required this.partyId,
+    this.partyId,
+    this.politicianId,
     this.page = 0,
     this.size = 20,
   });

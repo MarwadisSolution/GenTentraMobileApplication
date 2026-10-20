@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../../Reusable Functions/reusable_functions.dart';
 import '../party_page_modal.dart';
 

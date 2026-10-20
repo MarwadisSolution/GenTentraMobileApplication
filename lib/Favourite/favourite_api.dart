@@ -6,29 +6,67 @@ import 'favourite_page_modal.dart';
 class FavouriteApi {
   final Dio _dio = apiClient;
 
-  Future<void> postFavourite(int partyId, String type) async {
+  Future<bool> postFavourite(int partyId, String type) async {
     try {
-      await _dio.post(
+      final response = await _dio.post(
         "$api/api/v1/social/favourites",
         data: {
           "targetType": type,
           "targetId": partyId,
         },
       );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      }
+      return false;
     } catch (e) {
-      print(e);
+      print("postFavourite error: $e");
+      if (type == "POLITICIAN") {
+        try {
+          final res = await _dio.post(
+            "$api/api/v1/social/favourites",
+            data: {
+              "targetType": "MINISTER",
+              "targetId": partyId,
+            },
+          );
+          return res.statusCode == 200 || res.statusCode == 201;
+        } catch (e2) {
+          print("postFavourite MINISTER fallback error: $e2");
+          return false;
+        }
+      }
+      return false;
     }
   }
+
   //--------------------------Delete----
-  Future<void> deleteFavourite(int partyId,String type) async {
+  Future<bool> deleteFavourite(int partyId, String type) async {
     try {
-      await _dio.delete(
+      final response = await _dio.delete(
         "$api/api/v1/social/favourites/$type/$partyId",
       );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      }
+      return false;
     } catch (e) {
-      print(e);
+      print("deleteFavourite error: $e");
+      if (type == "POLITICIAN") {
+        try {
+          final res = await _dio.delete(
+            "$api/api/v1/social/favourites/MINISTER/$partyId",
+          );
+          return res.statusCode == 200 || res.statusCode == 201;
+        } catch (e2) {
+          print("deleteFavourite MINISTER fallback error: $e2");
+          return false;
+        }
+      }
+      return false;
     }
   }
+
   //------------------------------------Ids---
   Future<List<int>> getFavouritePartyIds(String type) async {
     try {
@@ -40,13 +78,13 @@ class FavouriteApi {
         final List data = response.data["data"];
 
         return data
-            .map<int>((e) => e["targetId"] as int)
+            .map<int>((e) => (e["targetId"] as num).toInt())
             .toList();
       }
 
       return [];
     } catch (e) {
-      print(e);
+      print("getFavouritePartyIds error: $e");
       return [];
     }
   }

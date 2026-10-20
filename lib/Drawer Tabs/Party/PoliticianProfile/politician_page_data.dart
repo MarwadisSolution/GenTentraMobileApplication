@@ -40,6 +40,7 @@ class PoliticianPageData {
   static final info = "INFO";
   static final journey = "JOURNEY";
   static final feed = "FEED";
+  static final event = "EVENTS";
   static final development = "DEVELOPMENT";
 
   // Info Tab Field Labels

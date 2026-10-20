@@ -71,6 +71,7 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
     try {
       final response = await api.getTheEvents(
         partyId: event.partyId,
+        politicianId: event.politicianId,
         page: event.page,
         size: event.size,
       );

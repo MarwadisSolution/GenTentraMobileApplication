@@ -18,12 +18,16 @@ import 'event_tab_event.dart';
 
 class EventTab extends StatefulWidget {
   final int partyId;
+  final int politicianId;
   final ScrollController scrollController;
+  final String fromWhichPage;
 
   const EventTab({
     super.key,
-    required this.partyId,
+    this.partyId = 0,
+    this.politicianId = 0,
     required this.scrollController,
+    this.fromWhichPage = "Party",
   });
 
   @override
@@ -75,17 +79,28 @@ class _EventTabState extends State<EventTab> {
   }
 
   bool _hasEventEnded(EventModel event) {
-    if (event.eventTo == null || event.timeTo == null) {
-      return false;
+    DateTime? endDateTime;
+    if (event.eventTo != null) {
+      final t = event.timeTo ?? const TimeOfDay(hour: 23, minute: 59);
+      endDateTime = DateTime(
+        event.eventTo!.year,
+        event.eventTo!.month,
+        event.eventTo!.day,
+        t.hour,
+        t.minute,
+      );
+    } else if (event.eventFrom != null) {
+      final t = event.timeTo ?? event.timeFrom ?? const TimeOfDay(hour: 23, minute: 59);
+      endDateTime = DateTime(
+        event.eventFrom!.year,
+        event.eventFrom!.month,
+        event.eventFrom!.day,
+        t.hour,
+        t.minute,
+      );
     }
 
-    final endDateTime = DateTime(
-      event.eventTo!.year,
-      event.eventTo!.month,
-      event.eventTo!.day,
-      event.timeTo!.hour,
-      event.timeTo!.minute,
-    );
+    if (endDateTime == null) return false;
 
     return DateTime.now().isAfter(endDateTime) ||
         DateTime.now().isAtSameMomentAs(endDateTime);
@@ -109,6 +124,14 @@ class _EventTabState extends State<EventTab> {
   }
 
   Future<void> checkAdmin() async {
+    if (widget.fromWhichPage == "Politician" || widget.partyId <= 0) {
+      if (!mounted) return;
+      setState(() {
+        isAdmin = false;
+      });
+      return;
+    }
+
     final admin = await AdminChecking.isAdmin(widget.partyId);
 
     if (!mounted) return;
@@ -139,6 +162,7 @@ class _EventTabState extends State<EventTab> {
       eventBloc.add(
         GetEventEvent(
           partyId: widget.partyId,
+          politicianId: widget.politicianId,
           page: eventState.currentPage + 1,
           size: eventState.pageSize,
         ),
@@ -183,6 +207,7 @@ class _EventTabState extends State<EventTab> {
       eventBloc.add(
         GetEventEvent(
           partyId: widget.partyId,
+          politicianId: widget.politicianId,
           page: 0,
           size: 20,
         ),
@@ -495,6 +520,7 @@ class _EventTabState extends State<EventTab> {
                                             context.read<EventsBloc>().add(
                                               GetEventEvent(
                                                 partyId: widget.partyId,
+                                                politicianId: widget.politicianId,
                                                 page: 0,
                                                 size: 20,
                                               ),
@@ -583,6 +609,7 @@ class _EventTabState extends State<EventTab> {
                                       context.read<EventsBloc>().add(
                                         GetEventEvent(
                                           partyId: widget.partyId,
+                                          politicianId: widget.politicianId,
                                           page: 0,
                                           size: 20,
                                         ),

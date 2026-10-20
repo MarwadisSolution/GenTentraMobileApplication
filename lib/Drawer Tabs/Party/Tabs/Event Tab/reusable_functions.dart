@@ -47,7 +47,6 @@ Widget buildEventTabs(
   ];
 
   final w = MediaQuery.of(context).size.width;
-  final h = MediaQuery.of(context).size.height;
 
   return SizedBox(
     width: double.infinity,
@@ -812,8 +811,6 @@ final w=MediaQuery.of(context).size.width;
   // ============================================================
 
   Future<void> _selectTimeRange(BuildContext context) async {
-    final now = DateTime.now();
-
     // ----------------------------------------------------------
     // 1. SELECT FROM TIME
     // ----------------------------------------------------------
@@ -1428,13 +1425,13 @@ class EventAttendeesPreview extends StatelessWidget {
         ),
 
         if (remainingCount > 0) ...[
-          const SizedBox(width: 6),
+          SizedBox(width: (size * 0.15).clamp(3.0, 6.0)),
 
           Text(
             "+${formatAttendeeCount(remainingCount)}",
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: (size * 0.42).clamp(10.0, 14.0),
             ),
           ),
         ],
@@ -1710,7 +1707,7 @@ class ReusableEventCard extends StatelessWidget {
                     child: EventAttendeesPreview(
                       attendees: eventData.attendeesPreview,
                       attendeeCount: eventData.attendeeCount ?? 0,
-                      size: 40,
+                      size: (w * 0.075).clamp(26.0, 32.0),
                     ),
                   ),
 
@@ -1722,28 +1719,37 @@ class ReusableEventCard extends StatelessWidget {
                         _showAdminMenu(context);
                       },
 
-                      child:  SizedBox(
-                        width: w*0.2,
-                        height: h*0.04,
-
-                        child: Center(
-                            child:SvgPicture.asset(PartyPageData.threeDots,width: w*0.05,)
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: w * 0.02,
+                          vertical: h * 0.005,
+                        ),
+                        child: SvgPicture.asset(
+                          PartyPageData.threeDots,
+                          width: w * 0.045,
                         ),
                       ),
-                    )
+                    ),
+                    SizedBox(width: w * 0.015),
                   ],
 
                   // SHARE
                   InkWell(
                     onTap: onShare,
 
-                    child: SvgPicture.asset(
-                      PartyPageData.share,
-                      width: w*0.05,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: w * 0.01,
+                        vertical: h * 0.005,
+                      ),
+                      child: SvgPicture.asset(
+                        PartyPageData.share,
+                        width: w * 0.045,
+                      ),
                     ),
                   ),
 
-                  SizedBox(width: w * 0.06),
+                  SizedBox(width: w * 0.035),
 
                   // JOIN
                   if (eventData.displayJoinButton == true)
@@ -1764,6 +1770,38 @@ class ReusableEventCard extends StatelessWidget {
   }
 
   // ============================================================
+  // CHECK EVENT ENDED
+  // ============================================================
+
+  bool _hasEventEnded(EventModel event) {
+    DateTime? endDateTime;
+    if (event.eventTo != null) {
+      final t = event.timeTo ?? const TimeOfDay(hour: 23, minute: 59);
+      endDateTime = DateTime(
+        event.eventTo!.year,
+        event.eventTo!.month,
+        event.eventTo!.day,
+        t.hour,
+        t.minute,
+      );
+    } else if (event.eventFrom != null) {
+      final t = event.timeTo ?? event.timeFrom ?? const TimeOfDay(hour: 23, minute: 59);
+      endDateTime = DateTime(
+        event.eventFrom!.year,
+        event.eventFrom!.month,
+        event.eventFrom!.day,
+        t.hour,
+        t.minute,
+      );
+    }
+
+    if (endDateTime == null) return false;
+
+    return DateTime.now().isAfter(endDateTime) ||
+        DateTime.now().isAtSameMomentAs(endDateTime);
+  }
+
+  // ============================================================
   // JOIN BUTTON
   // ============================================================
 
@@ -1772,12 +1810,13 @@ class ReusableEventCard extends StatelessWidget {
       double w,
       double h,
       ) {
+    final bool hasEnded = _hasEventEnded(eventData);
     final isJoined =
         eventData.isRequestorAttending == true;
 
     return InkWell(
-      onTap: isJoining ? null : onJoin,
-overlayColor: WidgetStateProperty.all(Colors.transparent),
+      onTap: (isJoining || hasEnded) ? null : onJoin,
+      overlayColor: WidgetStateProperty.all(Colors.transparent),
       child: Container(
         height: h * 0.05,
         width: w * 0.20,
@@ -1794,7 +1833,6 @@ overlayColor: WidgetStateProperty.all(Colors.transparent),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(w * 0.08),
             bottomLeft: Radius.circular(w * 0.08),
-           // bottomRight: Radius.circular(w*0.025),
           ),
         ),
 
@@ -1813,17 +1851,26 @@ overlayColor: WidgetStateProperty.all(Colors.transparent),
             ),
           )
 
-              : Text(
-            isJoined ? "JOINED" : "JOIN",
+              : FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: w * 0.015),
+              child: Text(
+                hasEnded
+                    ? "ENDED"
+                    : (isJoined ? "JOINED" : "JOIN"),
 
-            textAlign: TextAlign.center,
+                textAlign: TextAlign.center,
 
-            style: TextStyle(
-              color: isJoined
-                  ? const Color(0xFFFE3A31)
-                  : ColorScheme.of(context).surface,
+                style: TextStyle(
+                  color: isJoined
+                      ? const Color(0xFFFE3A31)
+                      : ColorScheme.of(context).surface,
 
-              fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w700,
+                  fontSize: w * 0.035,
+                ),
+              ),
             ),
           ),
         ),

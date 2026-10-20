@@ -116,19 +116,26 @@ class EventApis{
 
   ///--------------------------------
   Future<EventPaginationResponse> getTheEvents({
-    required int partyId,
+    int? partyId,
+    int? politicianId,
     required int page,
     required int size,
   }) async {
     try {
+      final Map<String, dynamic> queryParameters = {
+        "page": page,
+        "size": size,
+      };
+
+      if (politicianId != null && politicianId > 0) {
+        queryParameters["politicianId"] = politicianId;
+      } else if (partyId != null && partyId > 0) {
+        queryParameters["partyId"] = partyId;
+      }
+
       final response = await _dio.get(
         "$api/api/v1/events",
-
-        queryParameters: {
-          "partyId": partyId,
-          "page": page,
-          "size": size,
-        },
+        queryParameters: queryParameters,
       );
 
       final data = response.data["data"];

@@ -6,6 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../Favourite/favourite_api.dart';
+import '../Tabs/Event Tab/apis.dart';
+import '../Tabs/Event Tab/event_tab.dart';
+import '../Tabs/Event Tab/event_tab_bloc.dart';
 import '../Tabs/Feed Tab/adding_feed.dart';
 import '../Tabs/Feed Tab/adding_quote.dart';
 import '../Tabs/Feed Tab/apis.dart';
@@ -47,6 +51,9 @@ class PoliticianProfileScreen extends StatelessWidget {
         ),
         BlocProvider<FeedBloc>(
           create: (_) => FeedBloc(FeedApis()),
+        ),
+        BlocProvider<EventsBloc>(
+          create: (_) => EventsBloc(EventApis()),
         ),
       ],
       child: _PoliticianProfileView(
@@ -94,15 +101,16 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
   bool isPolitician=false;
   // Reference from Party page: uses PartyPageApis for stats and follow/unfollow
   final PartyPageApis _partyApis = PartyPageApis();
+  final FavouriteApi _favouriteApi = FavouriteApi();
 Future<void>checkPolitician()async{
   final  prefs=await SharedPreferences.getInstance();
-  isPolitician= await prefs.getString("role")=="ROLE_POLITICIAN"?true:false;
+  isPolitician= prefs.getString("role")=="ROLE_POLITICIAN";
 }
   @override
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 4,
+      length: 5,
       vsync: this,
     );
 
@@ -127,6 +135,7 @@ Future<void>checkPolitician()async{
         _partyApis.getViewCount("POLITICIAN", widget.politicianId),
         _partyApis.getFollowCount("MINISTER", widget.politicianId),
         _partyApis.iFollowParty(),
+        _favouriteApi.getFavouritePartyIds("POLITICIAN"),
       ]);
 
       if (!mounted) return;
@@ -134,6 +143,7 @@ Future<void>checkPolitician()async{
       final views = results[0] as int;
       final followers = results[1] as int;
       final followingList = results[2] as List<dynamic>;
+      final favIds = results[3] as List<int>;
 
       // Check if current user follows this politician (Reference: reusable_functions.dart line 471)
       final bool isFollowing = followingList.any(
@@ -144,10 +154,15 @@ Future<void>checkPolitician()async{
                 e["followeeId"]?.toString() == widget.politicianId.toString()),
       );
 
+      final bool isFav = favIds.contains(widget.politicianId);
+
       setState(() {
         _viewCount = views;
         _followCount = followers;
         _isFollowing = isFollowing;
+        if (isFav) {
+          _isFavorite = true;
+        }
         _hasInitializedFollowerCount = true;
       });
     } catch (e) {
@@ -799,6 +814,7 @@ Future<void>checkPolitician()async{
                 Tab(text: PoliticianPageData.info),
                 Tab(text: PoliticianPageData.journey),
                 Tab(text: PoliticianPageData.feed),
+                Tab(text: PoliticianPageData.event),
                 Tab(text: PoliticianPageData.development),
               ],
             ),
@@ -850,11 +866,23 @@ Future<void>checkPolitician()async{
                     ),
                   ),
 
-                  // DEVELOPMENT
+                  // EVENTS
                   Offstage(
                     offstage: selectedIndex != 3,
                     child: _buildPoliticianTabContent(
                       index: 3,
+                      politician: politician,
+                      scrollController: scrollController,
+                      screenWidth: screenWidth,
+                      screenHeight: screenHeight,
+                    ),
+                  ),
+
+                  // DEVELOPMENT
+                  Offstage(
+                    offstage: selectedIndex != 4,
+                    child: _buildPoliticianTabContent(
+                      index: 4,
                       politician: politician,
                       scrollController: scrollController,
                       screenWidth: screenWidth,
@@ -910,6 +938,15 @@ Future<void>checkPolitician()async{
         );
 
       case 3:
+        return EventTab(
+          key: const ValueKey('politician_event_tab'),
+          partyId: 0,
+          politicianId: widget.politicianId,
+          scrollController: scrollController,
+          fromWhichPage: "Politician",
+        );
+
+      case 4:
         return _buildPlaceholderTab(
           context,
           icon: Icons.work_outline_rounded,
@@ -1140,12 +1177,9 @@ Future<void>checkPolitician()async{
                       child: Container(
                         height: w * 0.1,
                         padding: EdgeInsets.symmetric(horizontal: w * 0.05),
-                        decoration: BoxDecoration(
-                          color: _isFollowing ? null : const Color(0xFF666666),
-                          gradient: _isFollowing
-                              ? GradientColors.primaryGradient
-                              : null,
-                          borderRadius: const BorderRadius.all(
+                        decoration: const BoxDecoration(
+                          gradient: GradientColors.primaryGradient,
+                          borderRadius: BorderRadius.all(
                             Radius.circular(30),
                           ),
                         ),
@@ -1176,12 +1210,38 @@ Future<void>checkPolitician()async{
                     ),
                     SizedBox(width: w * 0.05),
 
-                    // Favorite button
+                    // Favorite button (Reference: Party page reusable_functions.dart lines 800-825)
                     InkWell(
-                      onTap: () {
+                      onTap: () async {
+                        final bool newFavorite = !_isFavorite;
                         setState(() {
-                          _isFavorite = !_isFavorite;
+                          _isFavorite = newFavorite;
                         });
+
+                        try {
+                          final bool success = newFavorite
+                              ? await _favouriteApi.postFavourite(
+                                  widget.politicianId,
+                                  "POLITICIAN",
+                                )
+                              : await _favouriteApi.deleteFavourite(
+                                  widget.politicianId,
+                                  "POLITICIAN",
+                                );
+
+                          if (!success && mounted) {
+                            setState(() {
+                              _isFavorite = !newFavorite;
+                            });
+                          }
+                        } catch (e) {
+                          debugPrint("Error updating politician favorite: $e");
+                          if (mounted) {
+                            setState(() {
+                              _isFavorite = !newFavorite;
+                            });
+                          }
+                        }
                       },
                       child: SvgPicture.asset(
                         PoliticianPageData.favoriteIcon,
