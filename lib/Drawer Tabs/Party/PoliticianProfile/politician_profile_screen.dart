@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../Favourite/favourite_api.dart';
+import '../Tabs/Event Tab/add_event.dart';
 import '../Tabs/Event Tab/apis.dart';
 import '../Tabs/Event Tab/event_tab.dart';
 import '../Tabs/Event Tab/event_tab_bloc.dart';
@@ -429,31 +430,31 @@ Future<void>checkPolitician()async{
                                                   },
                                                 ),
 
-                                                // ActionMenuItem(
-                                                //   imageIcon:
-                                                //   PartyPageData.eventIcon,
-                                                //   title: PartyPageData.event,
-                                                //   onTap: () {
-                                                //     Navigator.pop(context);
-                                                //
-                                                //     Navigator.push(
-                                                //       context,
-                                                //       MaterialPageRoute(
-                                                //         builder: (_) =>
-                                                //             BlocProvider.value(
-                                                //               value: context
-                                                //                   .read<
-                                                //                   EventsBloc>(),
-                                                //               child: AddEvent(
-                                                //                 partyId: widget
-                                                //                     .partyData["id"],
-                                                //
-                                                //               ),
-                                                //             ),
-                                                //       ),
-                                                //     );
-                                                //   },
-                                                // ),
+                                                ActionMenuItem(
+                                                  imageIcon:
+                                                  PartyPageData.eventIcon,
+                                                  title: PartyPageData.event,
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            BlocProvider.value(
+                                                              value: context
+                                                                  .read<
+                                                                  EventsBloc>(),
+                                                              child: AddEvent(
+                                                                partyId: widget
+                                                                    .politicianId,
+
+                                                              ),
+                                                            ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
 
                                                 // ActionMenuItem(
                                                 //   imageIcon:
