@@ -47,9 +47,18 @@ class EditEvent extends EventsEvent {
   });
 }
 //3. Delete Event
-class DeleteEvent extends EventsEvent{
+class DeleteEvent extends EventsEvent {
   final int eventId;
-  DeleteEvent(this.eventId);
+  final int partyId;
+  final int politicianId;
+  final String fromWhichPage;
+
+  DeleteEvent({
+    required this.eventId,
+    this.partyId = 0,
+    this.politicianId = 0,
+    this.fromWhichPage = "Party",
+  });
 }
 //13. Get Event
 class GetEventEvent extends EventsEvent {

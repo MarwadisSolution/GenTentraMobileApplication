@@ -528,17 +528,13 @@ class _EventTabState extends State<EventTab> {
                                           }
                                         },
                                         onDelete: () async {
-                                          final shouldDelete =
-                                          await showGeneralDialog<bool>(
+                                          final shouldDelete = await showGeneralDialog<bool>(
                                             context: context,
                                             barrierDismissible: true,
                                             barrierLabel: 'Delete',
-                                            barrierColor: Colors.black
-                                                .withValues(alpha: 0.25),
-                                            transitionDuration: const Duration(
-                                              milliseconds: 250,
-                                            ),
-                                            pageBuilder: (dialogContext, _, _) {
+                                            barrierColor: Colors.black.withOpacity(0.25),
+                                            transitionDuration: const Duration(milliseconds: 250),
+                                            pageBuilder: (dialogContext, _, __) {
                                               return popUpMessageForDeleteOrCancel(
                                                 dialogContext,
                                                 PartyPageData.calenderIcon,
@@ -547,6 +543,36 @@ class _EventTabState extends State<EventTab> {
                                                     () {},
                                               );
                                             },
+                                            transitionBuilder: (
+                                                context,
+                                                animation,
+                                                secondaryAnimation,
+                                                child,
+                                                ) {
+                                              return SlideTransition(
+                                                position: Tween<Offset>(
+                                                  begin: const Offset(0, 1),
+                                                  end: Offset.zero,
+                                                ).animate(
+                                                  CurvedAnimation(
+                                                    parent: animation,
+                                                    curve: Curves.easeOutCubic,
+                                                  ),
+                                                ),
+                                                child: child,
+                                              );
+                                            },
+                                          );
+
+                                          if (shouldDelete != true || !mounted) return;
+
+                                          context.read<EventsBloc>().add(
+                                            DeleteEvent(
+                                              eventId: eventData.id!,
+                                              partyId: widget.partyId,
+                                              politicianId: widget.politicianId,
+                                              fromWhichPage: widget.fromWhichPage,
+                                            ),
                                           );
                                         },
                                       ),
@@ -623,7 +649,7 @@ class _EventTabState extends State<EventTab> {
                                           barrierDismissible: true,
                                           barrierLabel: 'Delete',
                                           barrierColor: Colors.black
-                                              .withValues(alpha: 0.25),
+                                              .withOpacity(0.25),
                                           transitionDuration: const Duration(
                                             milliseconds: 250,
                                           ),
@@ -633,10 +659,34 @@ class _EventTabState extends State<EventTab> {
                                               PartyPageData.calenderIcon,
                                               "Would you like to Delete Event?",
                                               "Once deleted, this event will be permanently removed.",
-                                              () {},
+                                              () {
+                                                
+                                              },
                                             );
                                           },
+                                            transitionBuilder: (context, animation, secondaryAnimation, child){
+                                              return SlideTransition(
+                                                position: Tween<Offset>(
+                                                  begin: const Offset(0,1),
+                                                  end: Offset.zero,
+                                                ).animate(
+                                                  CurvedAnimation(parent: animation,
+                                                    curve: Curves.easeOutCubic,
+                                                  ),
+                                                ),
+                                                child: child,
+                                              );
+                                            }
                                         );
+                                    if (shouldDelete == true && mounted) {context.read<EventsBloc>().add(
+                                      DeleteEvent(
+                                        eventId: eventData.id!,
+                                        partyId: widget.partyId,
+                                        politicianId: widget.politicianId,
+                                        fromWhichPage: widget.fromWhichPage,
+                                      ),
+                                    );
+                                    }
                                   },
                                 ),
                         );

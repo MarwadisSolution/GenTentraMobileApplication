@@ -253,7 +253,9 @@ class _FullEventDescState extends State<FullEventDesc> {
                               }
 
                               context.read<EventsBloc>().add(
-                                DeleteEvent(eventData.id!),
+                                DeleteEvent(
+                                  eventId: eventData.id!,
+                                ),
                               );
                             },
                           ),

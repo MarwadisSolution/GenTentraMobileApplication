@@ -279,7 +279,7 @@ class EventApis{
       );
 
       if (response.statusCode == 200 ||
-          response.statusCode == 204) {
+          response.statusCode == 201) {
         return response.data?["message"] ??
             "Event deleted successfully";
       }
@@ -295,7 +295,7 @@ class EventApis{
           e.response?.data?["message"] ??
               e.message ??
               "Failed to delete event";
-
+      print("Message for not getting deleted");
       throw Exception(message);
     } catch (e) {
       throw Exception("Failed to delete event: $e");
