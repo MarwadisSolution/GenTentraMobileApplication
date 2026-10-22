@@ -22,7 +22,9 @@ import 'full_event_desc.dart';
 class AddEvent extends StatefulWidget {
   final int partyId;
   final EventModel? eventToEdit;
-  const AddEvent({super.key, required this.partyId, this.eventToEdit,});
+  final String fromWhichPage;
+  final bool isPolitician;
+  const AddEvent({super.key, required this.partyId, this.eventToEdit, required this.fromWhichPage,required this.isPolitician});
 
   @override
   State<AddEvent> createState() => _AddEventState();
@@ -130,7 +132,7 @@ class _AddEventState extends State<AddEvent> {
       // Keep existing data in edit mode
       author: widget.eventToEdit?.author,
       authorUserId: widget.eventToEdit?.authorUserId,
-      authorPartyId: widget.eventToEdit?.authorPartyId,
+      authorPartyId: widget.fromWhichPage=="Party"?widget.eventToEdit?.authorPartyId:null,
       authorType: widget.eventToEdit?.authorType,
 
       statusOfPublishment:
@@ -157,6 +159,8 @@ class _AddEventState extends State<AddEvent> {
             eventData: event,
             partyId: widget.partyId,
             isAdmin: false,
+            fromWhichPage: widget.fromWhichPage,
+            isPolitician: widget.isPolitician,
           ),
         );
       },
@@ -324,7 +328,7 @@ class _AddEventState extends State<AddEvent> {
       medias: eventState.existingMedia,
       author: widget.eventToEdit?.author,
       authorUserId: widget.eventToEdit?.authorUserId,
-      authorPartyId: widget.eventToEdit?.authorPartyId,
+      authorPartyId: widget.fromWhichPage=="Party"?widget.eventToEdit?.authorPartyId:null,
       authorType: widget.eventToEdit?.authorType,
 
       statusOfPublishment:
@@ -365,6 +369,7 @@ class _AddEventState extends State<AddEvent> {
               : null,
           bgImage: eventState.hasBackgroundImage,
           partyId: widget.partyId,
+          fromWhichPage: widget.fromWhichPage,
         ),
       );
     }

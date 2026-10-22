@@ -36,7 +36,7 @@ class FeedTab extends StatefulWidget {
 class _FeedTabState extends State<FeedTab> {
   int? selectedIndex;
   bool? isAdmin;
-
+  bool isPolitician=false;
   void _refreshIfNeeded() {
     if (!widget.isVisible) return;
 
@@ -63,7 +63,11 @@ class _FeedTabState extends State<FeedTab> {
       );
     }
   }
-
+  ///-------------------Politician Checking-------------
+  Future<void>checkPolitician()async{
+    final  prefs=await SharedPreferences.getInstance();
+    isPolitician= prefs.getString("role")=="ROLE_POLITICIAN";
+  }
   Future<void> isAdminChecking() async {
     final prefs = await SharedPreferences.getInstance();
     final String? adminPartyId = prefs.getString("AdminOfParty");
@@ -109,7 +113,7 @@ class _FeedTabState extends State<FeedTab> {
     super.initState();
 
     isAdminChecking();
-
+    checkPolitician();
     if (widget.isVisible) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -372,7 +376,7 @@ class _FeedTabState extends State<FeedTab> {
                           ),
                         ],
                       ),
-                      trailing: isAdmin == true
+                      trailing: isAdmin == true ||( isPolitician==true && widget.fromWhichPage=="Politician")
                           ? PopupMenuButton<String>(
                         icon: Transform.translate(
                           offset: const Offset(20, 0),

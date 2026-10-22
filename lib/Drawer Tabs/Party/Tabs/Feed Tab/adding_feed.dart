@@ -319,13 +319,14 @@ class _AddingFeedState extends State<AddingFeed> {
           );
         }
       }
-
+print(widget.editFeed);
+      print(widget.politicianId);
       final feed = FeedModel(
-        id: widget.editFeed?.id,
+        id:widget.editFeed?.id,
         kind: "POST",
         //title: titleController.text.trim(),
         body: descriptionController.text.trim(),
-        authorPartyId: widget.partyId,
+        authorPartyId:widget.fromWhichPage=="Party"? widget.partyId:null,
         tagged: taggedPeople,
         scheduledAt: scheduledAt,
 

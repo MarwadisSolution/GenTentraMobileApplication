@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/event_modal.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/Refresh%20Token/refresh_token.dart';
 
@@ -33,6 +34,7 @@ class EventApis{
     required int partyId,
     List<File>? mediaFiles,
     File? bgImageFile,
+    required String fromWhichPage,
   }) async {
     print("========== postTheEvent() HIT ==========");
 
@@ -41,7 +43,11 @@ class EventApis{
 
       final Map<String, dynamic> eventJson = event.toJson();
 
-      eventJson["authorPartyId"] = partyId;
+      if (fromWhichPage == "Party") {
+        eventJson["authorPartyId"] = partyId;
+      } else {
+        eventJson.remove("authorPartyId");
+      }
 
 
       print("========== EVENT JSON ==========");
@@ -74,11 +80,6 @@ class EventApis{
         }
       }
 
-      // ----------------------------------------------------------
-      // BACKGROUND IMAGE
-      //
-      // Only send the file when bgImage == true
-      // ----------------------------------------------------------
 
       if (event.bgImage == true && bgImageFile != null) {
         formData.files.add(
@@ -101,17 +102,27 @@ class EventApis{
       return EventModel.fromJson(
         response.data["data"],
       );
+
     } on DioException catch (e) {
-      final message =
-          e.response?.data?["message"] ??
-              e.message ??
-              "Failed to create event";
+      debugPrint("========== CREATE EVENT API ERROR ==========");
+      debugPrint("Status code: ${e.response?.statusCode}");
+      debugPrint("Request URL: ${e.requestOptions.uri}");
+      debugPrint("Request method: ${e.requestOptions.method}");
+      debugPrint("Response body: ${e.response?.data}");
 
-      throw Exception(message);
-    } catch (e) {
+      final responseData = e.response?.data;
 
-      throw Exception("Failed to create event: $e");
+      final message = responseData is Map
+          ? responseData["error"] is Map
+          ? responseData["error"]["message"]?.toString()
+          : responseData["message"]?.toString()
+          : null;
+
+      throw Exception(
+        message ?? e.message ?? "Failed to create event",
+      );
     }
+
   }
 
   ///--------------------------------

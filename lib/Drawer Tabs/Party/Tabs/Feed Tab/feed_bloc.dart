@@ -153,67 +153,107 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       }
 
       ///------------Internet appears available
+
       try {
-        await api.postTheFeed(feed: event.feed, mediaFiles: event.mediaFiles);
+        // STEP 1: Publish the feed.
+        // Only errors from this API should trigger offline saving.
+        await api.postTheFeed(
+          feed: event.feed,
+          mediaFiles: event.mediaFiles,
+        );
 
         debugPrint("POST API SUCCESS");
+        debugPrint("Page: ${event.fromWhichPage}");
+        debugPrint("Party ID: ${event.partyId}");
+        debugPrint("Politician ID: ${event.politicianId}");
 
-        final feed =event.fromWhichPage=="Party"? await api.getFeeds(
-          partyId: event.partyId,
-          page: 0,
-          size: 20,
-          fromWhichPage: "Party",
-          politicianId: 0,///-----------Not used so only kept 0
-        ):await api.getFeeds(
+        // STEP 2: Try to refresh the feed list separately.
+        // If refreshing fails, publishing is still successful.
+        List<FeedModel>? refreshedFeeds;
+
+        try {
+          refreshedFeeds = event.fromWhichPage == "Party"
+              ? await api.getFeeds(
+            partyId: event.partyId,
+            page: 0,
+            size: 20,
+            fromWhichPage: "Party",
+            politicianId: 0,
+          )
+              : await api.getFeeds(
             partyId: event.partyId,
             page: 0,
             size: 20,
             fromWhichPage: "Politician",
-          politicianId: event.politicianId,
-        );
+            politicianId: event.politicianId,
+          );
 
-        emit(
-          state.copyWith(
-            isPosting: false,
-            isError: false,
-            isPostSuccess: true,
-            isOfflineQueued: false,
-            feeds: feed,
-            currentPage: 0,
-            hasMore: feed.length == 20,
-            isLoadingMore: false,
-            errorMessage: '',
-            lastFetchedAt: DateTime.now(),
-          ),
-        );
+          debugPrint("FEED LIST REFRESH SUCCESS");
+        } catch (refreshError, refreshStackTrace) {
+          debugPrint("FEED PUBLISHED, BUT REFRESH FAILED: $refreshError");
+          debugPrint("$refreshStackTrace");
+        }
+
+        // STEP 3: Emit success regardless of whether refreshing worked.
+        // Update the feed list only if refreshing returned successfully.
+        if (refreshedFeeds != null) {
+          emit(
+            state.copyWith(
+              isPosting: false,
+              isError: false,
+              isPostSuccess: true,
+              isOfflineQueued: false,
+              feeds: refreshedFeeds,
+              currentPage: 0,
+              hasMore: refreshedFeeds.length == 20,
+              isLoadingMore: false,
+              errorMessage: '',
+              lastFetchedAt: DateTime.now(),
+            ),
+          );
+        } else {
+          // Keep the existing feed list when refreshing fails.
+          emit(
+            state.copyWith(
+              isPosting: false,
+              isError: false,
+              isPostSuccess: true,
+              isOfflineQueued: false,
+              isLoadingMore: false,
+              errorMessage: '',
+            ),
+          );
+        }
 
         debugPrint("PUBLISH SUCCESS");
-      }
-      catch (e) {
+      } catch (e) {
+        // STEP 4: Only a publishing error reaches this catch.
         if (isNetworkError(e)) {
-          debugPrint(
-            "API NETWORK ERROR -> SAVING FEED TO SQLITE",
-          );
+          debugPrint("API NETWORK ERROR -> SAVING FEED TO SQLITE");
+
           await offlineRepository.savePost(
-              feed: event.feed, mediaFiles: event.mediaFiles
-          );
-          emit(
-              state.copyWith(
-                isPosting: false,
-                isError: false,
-                isPostSuccess: true,
-                isOfflineQueued: true,
-                errorMessage: '',
-              )
+            feed: event.feed,
+            mediaFiles: event.mediaFiles,
           );
 
-          debugPrint(
-            "FEED SAVED OFFLINE AFTER API NETWORK FAILURE",
+          emit(
+            state.copyWith(
+              isPosting: false,
+              isError: false,
+              isPostSuccess: true,
+              isOfflineQueued: true,
+              errorMessage: '',
+            ),
           );
+
+          debugPrint("FEED SAVED OFFLINE AFTER API NETWORK FAILURE");
           return;
         }
+
+        // A genuine publishing error goes to the outer catch.
         rethrow;
       }
+
     }
     catch (e, stackTrace) {
       debugPrint("PUBLISH ERROR: $e");

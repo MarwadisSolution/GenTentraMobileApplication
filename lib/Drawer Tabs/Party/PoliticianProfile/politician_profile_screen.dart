@@ -7,6 +7,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../Favourite/favourite_api.dart';
+import '../../../../Reusable Functions/reusable_functions.dart';
+import '../../../../Reusable Functions/rich_text_editor.dart';
 import '../Tabs/Event Tab/add_event.dart';
 import '../Tabs/Event Tab/apis.dart';
 import '../Tabs/Event Tab/event_tab.dart';
@@ -16,8 +18,6 @@ import '../Tabs/Feed Tab/adding_quote.dart';
 import '../Tabs/Feed Tab/apis.dart';
 import '../Tabs/Feed Tab/feed_bloc.dart';
 import '../Tabs/Feed Tab/feed_tab.dart';
-import '../../../../Reusable Functions/reusable_functions.dart';
-import '../../../../Reusable Functions/rich_text_editor.dart';
 import '../Tabs/journey_tab.dart';
 import '../party_page_apis.dart';
 import '../party_page_data.dart';
@@ -37,25 +37,17 @@ class PoliticianProfileScreen extends StatelessWidget {
     this.name,
   });
 
-
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
         BlocProvider<PoliticianProfileBloc>(
           create: (context) =>
-          PoliticianProfileBloc(
-            repository: PoliticianProfileRepository(),
-          )..add(
-            FetchPoliticianProfileEvent(politicianId),
-          ),
+              PoliticianProfileBloc(repository: PoliticianProfileRepository())
+                ..add(FetchPoliticianProfileEvent(politicianId)),
         ),
-        BlocProvider<FeedBloc>(
-          create: (_) => FeedBloc(FeedApis()),
-        ),
-        BlocProvider<EventsBloc>(
-          create: (_) => EventsBloc(EventApis()),
-        ),
+        BlocProvider<FeedBloc>(create: (_) => FeedBloc(FeedApis())),
+        BlocProvider<EventsBloc>(create: (_) => EventsBloc(EventApis())),
       ],
       child: _PoliticianProfileView(
         politicianId: politicianId,
@@ -64,7 +56,6 @@ class PoliticianProfileScreen extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _PoliticianProfileView extends StatefulWidget {
@@ -88,8 +79,7 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
   final ValueNotifier<int> _selectedTabIndex = ValueNotifier<int>(0);
   final ValueNotifier<double> _sheetProgress = ValueNotifier<double>(0.0);
 
-  final ValueNotifier<bool> _showPoliticianDetails =
-  ValueNotifier<bool>(true);
+  final ValueNotifier<bool> _showPoliticianDetails = ValueNotifier<bool>(true);
 
   bool _isUserScrolling = false;
 
@@ -99,21 +89,21 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
   int _viewCount = 0;
   bool _hasInitializedFollowerCount = false;
   bool _isFollowLoading = false;
-  bool isPolitician=false;
+  bool isPolitician = false;
+
   // Reference from Party page: uses PartyPageApis for stats and follow/unfollow
   final PartyPageApis _partyApis = PartyPageApis();
   final FavouriteApi _favouriteApi = FavouriteApi();
-Future<void>checkPolitician()async{
-  final  prefs=await SharedPreferences.getInstance();
-  isPolitician= prefs.getString("role")=="ROLE_POLITICIAN";
-}
+
+  Future<void> checkPolitician() async {
+    final prefs = await SharedPreferences.getInstance();
+    isPolitician = prefs.getString("role") == "ROLE_POLITICIAN";
+  }
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-      length: 5,
-      vsync: this,
-    );
+    _tabController = TabController(length: 5, vsync: this);
 
     _tabController.addListener(() {
       if (!mounted) return;
@@ -131,7 +121,6 @@ Future<void>checkPolitician()async{
   /// Loads views, follower count, and check if current user is following this politician
   Future<void> _loadSocialStats() async {
     try {
-
       final results = await Future.wait([
         _partyApis.getViewCount("POLITICIAN", widget.politicianId),
         _partyApis.getFollowCount("MINISTER", widget.politicianId),
@@ -191,7 +180,9 @@ Future<void>checkPolitician()async{
     }
     return count.toString();
   }
+
   final ValueNotifier<bool> isAddSelected = ValueNotifier(false);
+
   @override
   Widget build(BuildContext context) {
     final double screenHeight = MediaQuery.of(context).size.height;
@@ -212,7 +203,8 @@ Future<void>checkPolitician()async{
           // Fallback to profile model stats if live social stats are not yet populated
           if (!_hasInitializedFollowerCount) {
             setState(() {
-              if (_followCount == 0 && state.politician!.followerCount != null) {
+              if (_followCount == 0 &&
+                  state.politician!.followerCount != null) {
                 _followCount = state.politician!.followerCount!;
               }
               if (_viewCount == 0 && state.politician!.viewCount != null) {
@@ -274,7 +266,6 @@ Future<void>checkPolitician()async{
                     maxChildSize: 0.9,
                     builder: (context, scrollController) {
                       return NotificationListener<ScrollNotification>(
-
                         onNotification: (notification) {
                           if (!mounted || notification.depth != 0) {
                             return false;
@@ -290,7 +281,8 @@ Future<void>checkPolitician()async{
 
                           if (notification is UserScrollNotification &&
                               _isUserScrolling) {
-                            if (notification.direction == ScrollDirection.reverse) {
+                            if (notification.direction ==
+                                ScrollDirection.reverse) {
                               // User scrolls up: hide politician details.
                               if (_showPoliticianDetails.value) {
                                 _showPoliticianDetails.value = false;
@@ -327,211 +319,205 @@ Future<void>checkPolitician()async{
                     },
                   ),
                 ),
+
                 ///---------------Plus icon only for politician
                 ValueListenableBuilder<int>(
-                    valueListenable: _selectedTabIndex,
-                    builder: (context, selectedIndex, child) {
-                      if ((selectedIndex == 2 ||
-                          selectedIndex == 3) &&
-                          isPolitician == true) {
-                        return Positioned(
-                          bottom: MediaQuery
-                              .of(context)
-                              .size
-                              .height * 0.03,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: InkWell(
-                              onTap: () async {
-                                isAddSelected.value = true;
-                                await showGeneralDialog(
-                                  context: context,
-                                  barrierDismissible: true,
-                                  barrierLabel: 'Close',
-                                  barrierColor: Colors.black.withValues(alpha: 0.4),
-                                  pageBuilder: (_, _, _) {
-                                    return Stack(
-                                      children: [
-                                        Positioned(
-                                          bottom:
-                                          MediaQuery
-                                              .of(context)
-                                              .size
-                                              .height *
-                                              0.03 +
-                                              MediaQuery
-                                                  .of(context)
-                                                  .size
-                                                  .width *
-                                                  0.2 +
-                                              20,
-                                          left: 0,
-                                          right: 0,
-                                          child: Center(
-                                            child: VerticalActionMenu(
-                                              height: MediaQuery
-                                                  .of(context)
-                                                  .size
-                                                  .height * 0.35,
-                                              items: [
-                                                ActionMenuItem(
-                                                  imageIcon:
-                                                  PartyPageData.addFeedIcon,
-                                                  title: PartyPageData.feed,
-                                                  onTap: () {
-                                                    Navigator.pop(context);
+                  valueListenable: _selectedTabIndex,
+                  builder: (context, selectedIndex, child) {
+                    if ((selectedIndex == 2 || selectedIndex == 3) &&
+                        isPolitician == true) {
+                      return Positioned(
+                        bottom: MediaQuery.of(context).size.height * 0.03,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: InkWell(
+                            onTap: () async {
+                              isAddSelected.value = true;
+                              await showGeneralDialog(
+                                context: context,
+                                barrierDismissible: true,
+                                barrierLabel: 'Close',
+                                barrierColor: Colors.black.withValues(
+                                  alpha: 0.4,
+                                ),
+                                pageBuilder: (_, _, _) {
+                                  return Stack(
+                                    children: [
+                                      Positioned(
+                                        bottom:
+                                            MediaQuery.of(context).size.height *
+                                                0.03 +
+                                            MediaQuery.of(context).size.width *
+                                                0.2 +
+                                            20,
+                                        left: 0,
+                                        right: 0,
+                                        child: Center(
+                                          child: VerticalActionMenu(
+                                            height:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.height *
+                                                0.35,
+                                            items: [
+                                              ActionMenuItem(
+                                                imageIcon:
+                                                    PartyPageData.addFeedIcon,
+                                                title: PartyPageData.feed,
+                                                onTap: () {
+                                                  Navigator.pop(context);
 
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (_) =>
-                                                            BlocProvider.value(
-                                                              value: context
-                                                                  .read<
-                                                                  FeedBloc>(),
-                                                              child: AddingFeed(
-                                                                partyId: widget
-                                                                    .politicianId,
-                                                                editFeed: null,
-                                                                fromWhichPage: "Politician",
-                                                                politicianId: 0,//--------I have kept 0 as in party not needed
-                                                              ),
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (_) =>
+                                                          BlocProvider.value(
+                                                            value: context
+                                                                .read<
+                                                                  FeedBloc
+                                                                >(),
+                                                            child: AddingFeed(
+                                                              partyId: 0,
+                                                              //--------I have kept 0 as in party not needed
+                                                              editFeed: null,
+                                                              fromWhichPage:
+                                                                  "Politician",
+                                                              politicianId: widget
+                                                                  .politicianId,
                                                             ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                                ActionMenuItem(
-                                                  imageIcon:
-                                                  PartyPageData.addQuoteIcon,
-                                                  title: PartyPageData.quotes,
-                                                  onTap: () {
-                                                    Navigator.pop(context);
+                                                          ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                              ActionMenuItem(
+                                                imageIcon:
+                                                    PartyPageData.addQuoteIcon,
+                                                title: PartyPageData.quotes,
+                                                onTap: () {
+                                                  Navigator.pop(context);
 
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (_) =>
-                                                            BlocProvider.value(
-                                                              value: context
-                                                                  .read<
-                                                                  FeedBloc>(),
-                                                              child: AddingQuote(
-                                                                partyId: widget
-                                                                    .politicianId,
-                                                                editQuote: null,
-                                                                fromWhichPage: "Politician",
-                                                                politicianId: 0,//--------I have kept 0 as in party not needed
-                                                              ),
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (_) =>
+                                                          BlocProvider.value(
+                                                            value: context
+                                                                .read<
+                                                                  FeedBloc
+                                                                >(),
+                                                            child: AddingQuote(
+                                                              partyId: 0,
+                                                              //--------I have kept 0 as in party not needed,
+                                                              editQuote: null,
+                                                              fromWhichPage:
+                                                                  "Politician",
+                                                              politicianId: widget
+                                                                  .politicianId,
                                                             ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
+                                                          ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
 
-                                                ActionMenuItem(
-                                                  imageIcon:
-                                                  PartyPageData.eventIcon,
-                                                  title: PartyPageData.event,
-                                                  onTap: () {
-                                                    Navigator.pop(context);
+                                              ActionMenuItem(
+                                                imageIcon:
+                                                    PartyPageData.eventIcon,
+                                                title: PartyPageData.event,
+                                                onTap: () {
+                                                  Navigator.pop(context);
 
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (_) =>
-                                                            BlocProvider.value(
-                                                              value: context
-                                                                  .read<
-                                                                  EventsBloc>(),
-                                                              child: AddEvent(
-                                                                partyId: widget
-                                                                    .politicianId,
-
-                                                              ),
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (_) =>
+                                                          BlocProvider.value(
+                                                            value: context
+                                                                .read<
+                                                                  EventsBloc
+                                                                >(),
+                                                            child: AddEvent(
+                                                              partyId: widget
+                                                                  .politicianId,
+                                                              fromWhichPage:
+                                                                  "Politician", isPolitician: isPolitician,
                                                             ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
+                                                          ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
 
-                                                // ActionMenuItem(
-                                                //   imageIcon:
-                                                //   PartyPageData.newGroupIcon,
-                                                //   title: PartyPageData.newGroup,
-                                                //   onTap: () {
-                                                //     // New Group action
-                                                //   },
-                                                // ),
-                                              ],
-                                            ),
+                                              // ActionMenuItem(
+                                              //   imageIcon:
+                                              //   PartyPageData.newGroupIcon,
+                                              //   title: PartyPageData.newGroup,
+                                              //   onTap: () {
+                                              //     // New Group action
+                                              //   },
+                                              // ),
+                                            ],
                                           ),
                                         ),
-                                      ],
-                                    );
-                                  },
-                                  transitionDuration: const Duration(
-                                    milliseconds: 650,
-                                  ),
-                                  transitionBuilder: (_, animation, _, child) {
-                                    return SlideTransition(
-                                      position:
-                                      Tween<Offset>(
-                                        begin: const Offset(0, 1),
-                                        end: Offset.zero,
-                                      ).animate(
-                                        CurvedAnimation(
-                                          parent: animation,
-                                          curve: Curves.easeInOutCubic,
-                                        ),
                                       ),
-                                      child: child,
-                                    );
-                                  },
-                                );
-                                isAddSelected.value = false;
-                              },
-                              child: ValueListenableBuilder(
-                                valueListenable: isAddSelected,
-                                builder: (context, isSelected, child) {
-                                  return Container(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .width * 0.18,
-                                    decoration: BoxDecoration(
-                                      gradient: GradientColors.primaryGradient,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Center(
-                                      child: SvgPicture.asset(
-                                        isSelected
-                                            ? PartyPageData.crossIconLight
-                                            : PartyPageData.addIconLight,
-                                        height:
-                                        MediaQuery
-                                            .of(context)
-                                            .size
-                                            .width *
-                                            0.06,
-                                        width:
-                                        MediaQuery
-                                            .of(context)
-                                            .size
-                                            .width *
-                                            0.06,
-                                      ),
-                                    ),
+                                    ],
                                   );
                                 },
-                              ),
+                                transitionDuration: const Duration(
+                                  milliseconds: 650,
+                                ),
+                                transitionBuilder: (_, animation, _, child) {
+                                  return SlideTransition(
+                                    position:
+                                        Tween<Offset>(
+                                          begin: const Offset(0, 1),
+                                          end: Offset.zero,
+                                        ).animate(
+                                          CurvedAnimation(
+                                            parent: animation,
+                                            curve: Curves.easeInOutCubic,
+                                          ),
+                                        ),
+                                    child: child,
+                                  );
+                                },
+                              );
+                              isAddSelected.value = false;
+                            },
+                            child: ValueListenableBuilder(
+                              valueListenable: isAddSelected,
+                              builder: (context, isSelected, child) {
+                                return Container(
+                                  height:
+                                      MediaQuery.of(context).size.width * 0.18,
+                                  decoration: BoxDecoration(
+                                    gradient: GradientColors.primaryGradient,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: SvgPicture.asset(
+                                      isSelected
+                                          ? PartyPageData.crossIconLight
+                                          : PartyPageData.addIconLight,
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                          0.06,
+                                      width:
+                                          MediaQuery.of(context).size.width *
+                                          0.06,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
-                        );
-                      }
-                      return const SizedBox.shrink();
+                        ),
+                      );
                     }
+                    return const SizedBox.shrink();
+                  },
                 ),
               ],
             ),
@@ -718,7 +704,9 @@ Future<void>checkPolitician()async{
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: ColorScheme.of(context).onSurface,
-                        fontSize: MediaQuery.textScalerOf(context).scale(screenWidth * 0.036),
+                        fontSize: MediaQuery.textScalerOf(
+                          context,
+                        ).scale(screenWidth * 0.036),
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.02),
@@ -738,7 +726,9 @@ Future<void>checkPolitician()async{
                         "Retry",
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: MediaQuery.textScalerOf(context).scale(screenWidth * 0.036),
+                          fontSize: MediaQuery.textScalerOf(
+                            context,
+                          ).scale(screenWidth * 0.036),
                         ),
                       ),
                     ),
@@ -757,7 +747,6 @@ Future<void>checkPolitician()async{
       controller: scrollController,
       slivers: [
         // Header Section (Politician details, animated when user scrolls)
-
         SliverToBoxAdapter(
           child: ValueListenableBuilder<bool>(
             valueListenable: _showPoliticianDetails,
@@ -784,7 +773,6 @@ Future<void>checkPolitician()async{
           ),
         ),
 
-
         // Pinned TabBar
         SliverPersistentHeader(
           pinned: true,
@@ -796,12 +784,16 @@ Future<void>checkPolitician()async{
               padding: EdgeInsets.only(left: screenWidth * 0.02),
               isScrollable: true,
               labelStyle: TextStyle(
-                fontSize: MediaQuery.textScalerOf(context).scale(screenWidth * 0.036),
+                fontSize: MediaQuery.textScalerOf(
+                  context,
+                ).scale(screenWidth * 0.036),
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.25,
               ),
               unselectedLabelStyle: TextStyle(
-                fontSize: MediaQuery.textScalerOf(context).scale(screenWidth * 0.036),
+                fontSize: MediaQuery.textScalerOf(
+                  context,
+                ).scale(screenWidth * 0.036),
                 fontWeight: FontWeight.w400,
                 letterSpacing: 0.25,
               ),
@@ -824,7 +816,6 @@ Future<void>checkPolitician()async{
         ),
 
         // Dynamic Tab Body Content
-
         SliverToBoxAdapter(
           child: ValueListenableBuilder<int>(
             valueListenable: _selectedTabIndex,
@@ -895,11 +886,11 @@ Future<void>checkPolitician()async{
             },
           ),
         ),
-
       ],
     );
   }
-///----------------------Tabs
+
+  ///----------------------Tabs
 
   Widget _buildPoliticianTabContent({
     required int index,
@@ -912,16 +903,11 @@ Future<void>checkPolitician()async{
       case 0:
         return KeyedSubtree(
           key: ValueKey('politician_info_${politician.id}'),
-          child: _buildInfoTab(
-            context,
-            politician,
-            screenWidth,
-            screenHeight,
-          ),
+          child: _buildInfoTab(context, politician, screenWidth, screenHeight),
         );
 
       case 1:
-        return  JourneyTab(
+        return JourneyTab(
           key: ValueKey(
             'politician_journey_${politician.id}_${politician.journeys.length}',
           ),
@@ -931,7 +917,9 @@ Future<void>checkPolitician()async{
       case 2:
         return FeedTab(
           key: const ValueKey('feed_tab'),
-          partyId: 0,///---------------as party Id is not needed here
+          partyId: 0,
+
+          ///---------------as party Id is not needed here
           scrollController: scrollController,
           isVisible: _tabController.index == 2,
           fromWhichPage: "Politician",
@@ -952,8 +940,7 @@ Future<void>checkPolitician()async{
           context,
           icon: Icons.work_outline_rounded,
           title: "No Development Updates",
-          subtitle:
-          "Development milestones and projects will be shown here.",
+          subtitle: "Development milestones and projects will be shown here.",
           h: screenHeight,
           w: screenWidth,
         );
@@ -1087,7 +1074,11 @@ Future<void>checkPolitician()async{
                         ),
                         SizedBox(height: h * 0.003),
                         Text(
-                          _formatCount(_viewCount > 0 ? _viewCount : (politician.viewCount ?? 0)),
+                          _formatCount(
+                            _viewCount > 0
+                                ? _viewCount
+                                : (politician.viewCount ?? 0),
+                          ),
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: w * 0.042,
@@ -1150,10 +1141,11 @@ Future<void>checkPolitician()async{
                                   }
                                 } else {
                                   // Call unfollow API with type "POLITICIAN" (Reference: party_page_apis.dart line 179)
-                                  final success = await _partyApis.deleteFollowing(
-                                    "POLITICIAN",
-                                    widget.politicianId,
-                                  );
+                                  final success = await _partyApis
+                                      .deleteFollowing(
+                                        "POLITICIAN",
+                                        widget.politicianId,
+                                      );
 
                                   if (success) {
                                     if (!mounted) return;
@@ -1166,7 +1158,9 @@ Future<void>checkPolitician()async{
                                   }
                                 }
                               } catch (e) {
-                                debugPrint("Error updating politician follow: $e");
+                                debugPrint(
+                                  "Error updating politician follow: $e",
+                                );
                               } finally {
                                 if (mounted) {
                                   setState(() {
@@ -1180,9 +1174,7 @@ Future<void>checkPolitician()async{
                         padding: EdgeInsets.symmetric(horizontal: w * 0.05),
                         decoration: const BoxDecoration(
                           gradient: GradientColors.primaryGradient,
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(30),
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(30)),
                         ),
                         child: Center(
                           child: _isFollowLoading
