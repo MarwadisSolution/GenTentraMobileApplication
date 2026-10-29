@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+// [ADDED] Imported CountryPageData for CountryProfileScreen navigation
+import 'package:gen_tentra_mobile_application/CountryPage/Country_page_data.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/Drawer/bloc_code_in_one.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
@@ -128,6 +130,12 @@ class _DrawerPageState extends State<DrawerPage> {
                               onTapping: () {
                                 context.read<DrawerBloc>().add(
                                   SelectDrawerItemEvent(1),
+                                );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const CountryProfileScreen(countryId: 1),
+                                  ),
                                 );
                               },
                             ),

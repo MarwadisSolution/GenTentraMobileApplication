@@ -72,6 +72,7 @@ class PartyPageApis{
           memberDirectory = (fullParty['politicians'] as List? ?? []).map(
                 (e) => MemberDirectoryModel.fromJson(
               Map<String, dynamic>.from(e),
+              defaultState: partyDetails.state,
             ),
           ).toList();
         }

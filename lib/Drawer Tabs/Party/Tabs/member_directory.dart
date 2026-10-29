@@ -12,12 +12,14 @@ class MemberDirectory extends StatefulWidget {
   final List<LeaderGroupModel> leaders;
   final List<MemberDirectoryModel> members;
   final Map<String, List<MemberDirectoryModel>> membersByRegion;
+  final String? partyState;
   final String title;
   const MemberDirectory({
     super.key,
     required this.leaders,
     required this.members,
     required this.membersByRegion,
+    this.partyState,
     required this.title,
   });
 
@@ -55,12 +57,14 @@ class _MemberDirectoryState extends State<MemberDirectory> {
 
     return members.where((member) {
       return member.personName.toLowerCase().contains(search) ||
-          member.region.toLowerCase().contains(search);
+          member.region.toLowerCase().contains(search) ||
+          (member.state ?? '').toLowerCase().contains(search) ||
+          (widget.partyState ?? '').toLowerCase().contains(search);
     }).toList(growable: false);
   }
   List<MemberDirectoryModel> getDisplayedMembers(String region) {
     if (region == 'All') return widget.members;
-    return widget.membersByRegion[AutofillHints.addressCityAndState] ?? [];
+    return widget.membersByRegion[region] ?? [];
   }
 
   List<String> get regions {
@@ -76,6 +80,47 @@ class _MemberDirectoryState extends State<MemberDirectory> {
 
     return widget.leaders.first.leaders;
   }
+  String _buildMemberSubtitle(MemberDirectoryModel member) {
+    final designation = member.designation.trim();
+    final rawRegion = member.region.trim();
+    final region = (rawRegion == '-' || rawRegion.toLowerCase() == 'null') ? '' : rawRegion;
+    final rawState = ((member.state != null && member.state!.trim().isNotEmpty)
+            ? member.state!
+            : (widget.partyState ?? ''))
+        .trim();
+    final state = (rawState == '-' || rawState.toLowerCase() == 'null') ? '' : rawState;
+
+    final List<String> locationParts = [];
+    if (region.isNotEmpty && region.toLowerCase() != 'all') {
+      if (!designation.toLowerCase().contains(region.toLowerCase())) {
+        locationParts.add(region);
+      }
+    }
+    if (state.isNotEmpty) {
+      final lowerState = state.toLowerCase();
+      if (!designation.toLowerCase().contains(lowerState) &&
+          !locationParts.any((p) => p.toLowerCase().contains(lowerState))) {
+        locationParts.add(state);
+      }
+    }
+
+    final location = locationParts.join(', ');
+
+    if (designation.isNotEmpty && location.isNotEmpty) {
+      if (designation.endsWith('-')) {
+        return '$designation $location';
+      }
+      if (designation.contains('-')) {
+        return '$designation, $location';
+      }
+      return '$designation - $location';
+    } else if (designation.isNotEmpty) {
+      return designation;
+    } else {
+      return location;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
@@ -432,56 +477,95 @@ decoration: BoxDecoration(
                       delegate: SliverChildBuilderDelegate(
                             (context, index) {
                           final member = members[index];
+                          final subtitle = _buildMemberSubtitle(member);
 
                           return Padding(
                             padding: EdgeInsets.symmetric(
-                              horizontal: w * 0.01,
+                              horizontal: w * 0.025,
+                              vertical: h * 0.004,
                             ),
-                            child: Card(
-                              color: Colors.white,
-                              elevation: 0,
-                              child: InkWell(
-                                onTap:(){
-                                  PoliticianPageData.navigateTo(
-                                    context,
-                                    politicianId: member.politicianId,
-                                    photoUrl: member.imagePath,
-                                    name: member.personName,
-                                  );
-
-                                },
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    radius: w * 0.07,
-                                    backgroundColor: Colors.white,
-                                    child: ClipOval(
-                                      child: SizedBox.expand(
-                                        child: buildImageWidget(
-                                          member.imagePath,
-                                          width: double.infinity,
-                                          height: double.infinity,
-                                          fit: BoxFit.contain,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(w * 0.035),
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(w * 0.035),
+                                  onTap: () {
+                                    PoliticianPageData.navigateTo(
+                                      context,
+                                      politicianId: member.politicianId,
+                                      photoUrl: member.imagePath,
+                                      name: member.personName,
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: w * 0.035,
+                                      vertical: h * 0.012,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: w * 0.13,
+                                          height: w * 0.13,
+                                          decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Color(0xFFF2F2F2),
+                                          ),
+                                          child: ClipOval(
+                                            child: member.imagePath.trim().isEmpty
+                                                ? Icon(
+                                                    Icons.person,
+                                                    size: w * 0.075,
+                                                    color: Colors.grey.shade400,
+                                                  )
+                                                : buildImageWidget(
+                                                    member.imagePath,
+                                                    width: w * 0.13,
+                                                    height: w * 0.13,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                  ),
-                                  title: Text(
-                                    member.personName,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: w * 0.039,
-                                      letterSpacing: 0.31,
-                                      color: ColorScheme.of(context).onSurface,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    member.designation,
-                                    style: TextStyle(
-                                      color: ColorScheme.of(context)
-                                          .onSurface
-                                          .withOpacity(0.6),
-                                      fontSize: w * 0.039,
-                                      letterSpacing: 0.31,
+                                        SizedBox(width: w * 0.035),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                member.personName,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: w * 0.039,
+                                                  letterSpacing: 0.25,
+                                                  color: ColorScheme.of(context).onSurface,
+                                                ),
+                                              ),
+                                              if (subtitle.isNotEmpty) ...[
+                                                SizedBox(height: h * 0.003),
+                                                Text(
+                                                  subtitle,
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    color: ColorScheme.of(context)
+                                                        .onSurface
+                                                        .withValues(alpha: 0.6),
+                                                    fontSize: w * 0.034,
+                                                    letterSpacing: 0.25,
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),

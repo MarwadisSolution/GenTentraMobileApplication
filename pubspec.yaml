@@ -104,6 +104,7 @@ flutter:
     - Assets/PartyPage/
     - Assets/LeadershipPage/Info/
     - Assets/LeadershipPage/journey/
+    - Assets/CountryPage/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
