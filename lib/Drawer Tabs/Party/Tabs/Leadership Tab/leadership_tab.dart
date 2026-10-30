@@ -109,55 +109,64 @@ class _LeadershipTabState extends State<LeadershipTab> {
       children: [
         SizedBox(
           height: h * (480 / 736),
-          child: ListView.separated(
+          child: PageView.builder(
             scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: w * 0.017, vertical: 10),
+            pageSnapping: true,
+            controller: PageController(
+              viewportFraction: 0.85,
+            ),
             itemCount: leaders.length,
-            separatorBuilder: (_, __) => SizedBox(width: w * 0.025),
+            // separatorBuilder: (_, __) => SizedBox(width: w * 0.025),
             itemBuilder: (context, index) {
               final leader = leaders[index];
               final imagePath = leader.imagePath;
 
-              return SizedBox(
-                width: imageWidth,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Leader image.
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(w * 0.05),
-                        child: InkWell(
-                          onTap: () {
-                            PoliticianPageData.navigateTo(
-                              context,
-                              politicianId: leader.politicianId,
-                              photoUrl: leader.imagePath,
-                              name: leader.name,
-                            );
-                          },
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: imagePath == null || imagePath.isEmpty
-                                ? ColoredBox(
-                                    color: Colors.grey.shade200,
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.person,
-                                        size: w * 0.6,
-                                        color: Colors.grey,
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: w * 0.017,
+                  vertical: 10,
+                ),
+                child: SizedBox(
+                  width: imageWidth,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Leader image.
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(w * 0.05),
+                          child: InkWell(
+                            onTap: () {
+                              PoliticianPageData.navigateTo(
+                                context,
+                                politicianId: leader.politicianId,
+                                photoUrl: leader.imagePath,
+                                name: leader.name,
+                              );
+                            },
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: imagePath == null || imagePath.isEmpty
+                                  ? ColoredBox(
+                                      color: Colors.grey.shade200,
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.person,
+                                          size: w * 0.6,
+                                          color: Colors.grey,
+                                        ),
                                       ),
+                                    )
+                                  : buildImageWidget(
+                                      imagePath,
+                                      fit: BoxFit.cover,
                                     ),
-                                  )
-                                : buildImageWidget(
-                                    imagePath,
-                                    fit: BoxFit.cover,
-                                  ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
