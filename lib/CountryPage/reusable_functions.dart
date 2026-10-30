@@ -240,7 +240,6 @@ class CountryDetailsSection extends StatefulWidget {
 class _CountryDetailsSectionState extends State<CountryDetailsSection> {
   final FavouriteApi _favouriteApi = FavouriteApi();
   bool favorite = false;
-  bool isLoading = false;
 
   @override
   void initState() {
@@ -248,38 +247,46 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
     _loadFavouriteStatus();
   }
 
+  @override
+  void didUpdateWidget(covariant CountryDetailsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.country.id != widget.country.id) {
+      _loadFavouriteStatus();
+    }
+  }
+
   Future<void> _loadFavouriteStatus() async {
+    final int id = widget.country.id > 0 ? widget.country.id : 1;
     try {
       final favouriteIds =
           await _favouriteApi.getFavouritePartyIds("COUNTRY");
       if (mounted) {
         setState(() {
-          favorite = favouriteIds.contains(widget.country.id);
-        });
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _toggleFavourite() async {
-    if (isLoading) return;
-    setState(() => isLoading = true);
-    try {
-      if (favorite) {
-        await _favouriteApi.deleteFavourite(widget.country.id, "COUNTRY");
-      } else {
-        await _favouriteApi.postFavourite(widget.country.id, "COUNTRY");
-      }
-      if (mounted) {
-        setState(() {
-          favorite = !favorite;
+          favorite = favouriteIds.contains(id);
         });
       }
     } catch (e) {
-      debugPrint("Toggle favourite error: $e");
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
+      debugPrint("loadFavouriteStatus error: $e");
+    }
+  }
+
+  Future<void> _toggleFavourite() async {
+    final int id = widget.country.id > 0 ? widget.country.id : 1;
+
+    // Instant optimistic toggle matching Party & Leadership pages
+    final bool newFavorite = !favorite;
+    setState(() {
+      favorite = newFavorite;
+    });
+
+    try {
+      if (newFavorite) {
+        await _favouriteApi.postFavourite(id, "COUNTRY");
+      } else {
+        await _favouriteApi.deleteFavourite(id, "COUNTRY");
       }
+    } catch (e) {
+      debugPrint("Toggle favourite error: $e");
     }
   }
 
@@ -340,14 +347,16 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                   padding: const EdgeInsets.all(4.0),
                   child: SvgPicture.asset(
                     CountryPageData.favoriteIcon,
-                    height: 22,
+                    height: w * 0.06,
+                    // Reference from Leadership page (politician_profile_screen.dart lines 1250-1258):
+                    // ColorFilter with primary active red when favorited, grey #666666 when not.
                     colorFilter: favorite
                         ? const ColorFilter.mode(
-                            Color(0xFFFE3A31),
+                            Color(0xFFFF2164),
                             BlendMode.srcIn,
                           )
                         : const ColorFilter.mode(
-                            Color(0xFFFE3A31), // Pink/red heart as shown in UI mock
+                            Color(0xFF666666),
                             BlendMode.srcIn,
                           ),
                   ),
@@ -397,10 +406,10 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                   ),
                 ],
               ),
-              // Thin vertical divider line
+              // Thin vertical divider line (increased height matching design)
               Container(
-                height: 30,
-                width: 1,
+                height: h * 0.052,
+                width: 1.2,
                 color: const Color(0xFFE0E0E0),
                 margin: EdgeInsets.symmetric(horizontal: w * 0.07),
               ),

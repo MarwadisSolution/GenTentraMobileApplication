@@ -36,6 +36,21 @@ class FavouriteApi {
           return false;
         }
       }
+      if (type == "COUNTRY") {
+        try {
+          final res = await _dio.post(
+            "$api/api/v1/social/favourites",
+            data: {
+              "targetType": "CIVIC",
+              "targetId": partyId,
+            },
+          );
+          return res.statusCode == 200 || res.statusCode == 201;
+        } catch (e2) {
+          print("postFavourite CIVIC fallback error: $e2");
+          return false;
+        }
+      }
       return false;
     }
   }
@@ -60,6 +75,17 @@ class FavouriteApi {
           return res.statusCode == 200 || res.statusCode == 201;
         } catch (e2) {
           print("deleteFavourite MINISTER fallback error: $e2");
+          return false;
+        }
+      }
+      if (type == "COUNTRY") {
+        try {
+          final res = await _dio.delete(
+            "$api/api/v1/social/favourites/CIVIC/$partyId",
+          );
+          return res.statusCode == 200 || res.statusCode == 201;
+        } catch (e2) {
+          print("deleteFavourite CIVIC fallback error: $e2");
           return false;
         }
       }
