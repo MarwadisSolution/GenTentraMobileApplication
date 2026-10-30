@@ -1277,7 +1277,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF222222),
+            color: Color(0xFF333333),
           ),
         ),
       ],
