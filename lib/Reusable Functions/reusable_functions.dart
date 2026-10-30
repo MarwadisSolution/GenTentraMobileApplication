@@ -265,33 +265,45 @@ Widget buildImageWidget(
     return _imagePlaceholder(width: width, height: height);
   }
 
-  // Network image: relative API path or complete URL.
-  if (path.startsWith('/api/') || path.startsWith('http://') ||
-      path.startsWith('https://')) {
-    final imageUrl = path.startsWith('/api/') ? '$api$path' : path;
+  // Network image check: complete URL or any server-relative path.
+  final isNetwork = path.startsWith('http://') ||
+      path.startsWith('https://') ||
+      path.startsWith('/') ||
+      path.startsWith('api/') ||
+      path.startsWith('uploads/') ||
+      path.startsWith('media/') ||
+      path.startsWith('images/');
+
+  if (isNetwork) {
+    String imageUrl = path;
+    if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+      if (imageUrl.startsWith('/')) {
+        imageUrl = '$api$imageUrl';
+      } else {
+        imageUrl = '$api/$imageUrl';
+      }
+    }
 
     return CachedNetworkImage(
       imageUrl: imageUrl,
       width: width,
       height: height,
       fit: fit,
-
-      // Reduce memory used when decoding large original images.
-      memCacheWidth: 600,
-
-      // Display a lightweight placeholder during loading.
       placeholder: (context, url) => _imagePlaceholder(
         width: width,
         height: height,
       ),
-
-      // Handle failed network requests.
-      errorWidget: (context, url, error) => _imagePlaceholder(
+      errorWidget: (context, url, error) => Image.network(
+        imageUrl,
         width: width,
         height: height,
-        showError: true,
+        fit: fit,
+        errorBuilder: (_, _, _) => _imagePlaceholder(
+          width: width,
+          height: height,
+          showError: true,
+        ),
       ),
-
       fadeInDuration: Duration.zero,
       fadeOutDuration: Duration.zero,
     );

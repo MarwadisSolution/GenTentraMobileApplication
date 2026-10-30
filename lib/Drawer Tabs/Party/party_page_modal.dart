@@ -98,7 +98,7 @@ class PartyProfileModel {
           : '',
       founded: json['foundedOn'] ?? '',
       partyInitials: json['partyInitial']??'',
-      partySymbol: json['partySymbolUrl'] ?? '',
+      partySymbol: (json['partySymbolUrl'] ?? json['symbolUrl'] ?? json['partySymbol'] ?? json['symbol'] ?? json['imageUrl'] ?? json['photoUrl'] ?? '').toString(),
       partySymbolName: json['symbolName'] ?? '',
       founder: json['founder'] ?? '',
       state: json['state'] ?? '',
@@ -153,13 +153,24 @@ class SymbolModel {
   }
 
   factory SymbolModel.fromJson(Map<String, dynamic> json){
+    List<String> logos = [];
+    if (json['urls'] != null && json['urls'] is List) {
+      logos = (json['urls'] as List).map((e) => e.toString()).toList();
+    } else if (json['partyLogo'] != null && json['partyLogo'] is List) {
+      logos = (json['partyLogo'] as List).map((e) => e.toString()).toList();
+    } else if (json['images'] != null && json['images'] is List) {
+      logos = (json['images'] as List).map((e) => e.toString()).toList();
+    } else if (json['symbolUrl'] != null && json['symbolUrl'].toString().isNotEmpty) {
+      logos = [json['symbolUrl'].toString()];
+    } else if (json['imageUrl'] != null && json['imageUrl'].toString().isNotEmpty) {
+      logos = [json['imageUrl'].toString()];
+    }
+
     return SymbolModel(
       id: json['id'],
       ownerType: json['ownerType'] ?? '',
       ownerId: json['ownerId'] ?? 0,
-      partyLogo: json['urls'] != null
-          ? List<String>.from(json['urls'])
-          : [],
+      partyLogo: logos,
       logoDescription: json['label'] ?? '',
 
       downloadEnabled: json['downloadable'] ?? false,
@@ -219,7 +230,7 @@ class JourneyModel {
       title: json['title']?.toString() ?? '',
       year: json['year']?.toString() ?? '',
       description: (json['body'] ?? json['description'] ?? '').toString(),
-      imagePath: (json['mediaUrl'] ?? json['imagePath'] ?? json['imageUrl'] ?? '').toString(),
+      imagePath: (json['mediaUrl'] ?? json['imagePath'] ?? json['imageUrl'] ?? json['photoUrl'] ?? json['photo'] ?? json['image'] ?? '').toString(),
     );
   }
 
@@ -231,6 +242,7 @@ class LeaderModel{
   final int politicianId;
   final String? imagePath;
   final String name;
+  final String? surname;
   final String designation;
 
   const LeaderModel({
@@ -238,14 +250,17 @@ class LeaderModel{
     required this.politicianId,
     this.imagePath,
     required this.name,
+    this.surname,
     required this.designation,
   });
   factory LeaderModel.fromJson(Map<String, dynamic> json){
+    final rawImg = json["photoUrl"] ?? json["imageUrl"] ?? json["imagePath"] ?? json["mediaUrl"] ?? json["photo"] ?? json["image"];
     return LeaderModel(
-      id: json['json'],
-      politicianId: json["politicianId"] ?? 0,
-      imagePath: json["photoUrl"],
+      id: json['id'] ?? json['json'],
+      politicianId: (json["politicianId"] ?? json["id"] ?? 0 as num).toInt(),
+      imagePath: rawImg?.toString(),
       name: json["name"] ?? "",
+      surname: (json["surname"] ?? json["lastName"])?.toString(),
       designation: json["designation"] ?? "",
     );
   }
@@ -253,6 +268,7 @@ class LeaderModel{
     int? politicianId,
     Object? imagePath = _noChange,
     String? name,
+    String? surname,
     String? designation,
   }) {
     return LeaderModel(
@@ -261,6 +277,7 @@ class LeaderModel{
           ? this.imagePath
           : imagePath as String?,
       name: name ?? this.name,
+      surname: surname ?? this.surname,
       designation: designation ?? this.designation,
     );
   }
@@ -286,7 +303,7 @@ class LeaderGroupModel {
     return LeaderGroupModel(
       id: json['id'],
       title: json["title"] ?? "",
-      leaders: (json["members"] as List<dynamic>? ?? [])
+      leaders: (((json["members"] ?? json["leaders"])) as List<dynamic>? ?? [])
           .map(
             (e) => LeaderModel.fromJson(
           Map<String, dynamic>.from(e),
@@ -349,8 +366,10 @@ class MemberDirectoryModel {
   final String uniqueId;
   final String imagePath;
   final String personName;
+  final String? surname;
   final String designation;
   final String region;
+  final String? state;
   final int? partyId;
   final DateTime lastUpdated;
   final String status;
@@ -360,24 +379,41 @@ class MemberDirectoryModel {
     required this.uniqueId,
     required this.imagePath,
     required this.personName,
+    this.surname,
     required this.designation,
     required this.region,
+    this.state,
     this.partyId,
     required this.lastUpdated,
     required this.status,
   });
+  factory MemberDirectoryModel.fromJson(
+    Map<String, dynamic> json, {
+    String? defaultState,
+  }) {
+    final stateVal = (json["state"] ?? json["stateName"] ?? defaultState)?.toString();
+    final rawImg = json["photoUrl"] ?? json["imageUrl"] ?? json["imagePath"] ?? json["mediaUrl"] ?? json["photo"] ?? json["image"];
+    DateTime parsedDate;
+    try {
+      parsedDate = json["lastUpdated"] != null
+          ? (DateTime.tryParse(json["lastUpdated"].toString()) ?? DateTime.now())
+          : DateTime.now();
+    } catch (_) {
+      parsedDate = DateTime.now();
+    }
 
-  factory MemberDirectoryModel.fromJson(Map<String, dynamic>json){
     return MemberDirectoryModel(
-      politicianId: json["id"]?? 0,
-      uniqueId: json["uniqueId"] ?? "",
-      imagePath: json["photoUrl"] ?? "",
-      personName: json["name"] ?? "",
-      designation:  json["designation"] ?? "",
-      region:  json["region"] ?? "",
-      partyId: json["partyId"],
-      lastUpdated: DateTime.parse(json["lastUpdated"]),
-      status:  json["status"] ?? "",
+      politicianId: (json["id"] ?? json["politicianId"] ?? 0 as num).toInt(),
+      uniqueId: (json["uniqueId"] ?? "").toString(),
+      imagePath: (rawImg ?? "").toString(),
+      personName: (json["name"] ?? json["personName"] ?? "").toString(),
+      surname: (json["surname"] ?? json["lastName"])?.toString(),
+      designation: (json["designation"] ?? "").toString(),
+      region: (json["region"] ?? "").toString(),
+      state: stateVal,
+      partyId: json["partyId"] != null ? (json["partyId"] as num).toInt() : null,
+      lastUpdated: parsedDate,
+      status: (json["status"] ?? "").toString(),
     );
   }
 
@@ -386,8 +422,10 @@ class MemberDirectoryModel {
     String? uniqueId,
     String? imagePath,
     String? personName,
+    String? surname,
     String? designation,
     String? region,
+    String? state,
     int?partyId,
     DateTime? lastUpdated,
     String? status,
@@ -397,8 +435,10 @@ class MemberDirectoryModel {
       uniqueId: uniqueId ?? this.uniqueId,
       imagePath: imagePath ?? this.imagePath,
       personName: personName ?? this.personName,
+      surname: surname ?? this.surname,
       designation: designation ?? this.designation,
       region: region ?? this.region,
+      state: state ?? this.state,
       partyId: partyId??this.partyId,
       lastUpdated: lastUpdated ?? this.lastUpdated,
       status: status ?? this.status,

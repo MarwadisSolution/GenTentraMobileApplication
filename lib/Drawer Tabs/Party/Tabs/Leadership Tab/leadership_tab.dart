@@ -8,11 +8,13 @@ import '../../PoliticianProfile/politician_page_data.dart';
 import '../member_directory.dart';
 
 class LeadershipTab extends StatefulWidget {
+  final String? partyState;
   final List<LeaderGroupModel> leaders;
   final List<MemberDirectoryModel> members;
   final Map<String, List<MemberDirectoryModel>> membersByRegion;
   const LeadershipTab({
     super.key,
+    this.partyState,
     required this.leaders,
     required this.members,
     required this.membersByRegion,
@@ -23,6 +25,40 @@ class LeadershipTab extends StatefulWidget {
 }
 
 class _LeadershipTabState extends State<LeadershipTab> {
+  String _getLeaderSurname(LeaderModel leader) {
+    if (leader.surname != null && leader.surname!.trim().isNotEmpty) {
+      return leader.surname!.trim();
+    }
+    try {
+      final matchingMember = widget.members.firstWhere(
+        (m) => m.politicianId == leader.politicianId,
+      );
+      if (matchingMember.surname != null &&
+          matchingMember.surname!.trim().isNotEmpty) {
+        return matchingMember.surname!.trim();
+      }
+    } catch (_) {}
+
+    final parts = leader.name.trim().split(RegExp(r'\s+'));
+    if (parts.length > 1) {
+      return parts.sublist(1).join(' ');
+    }
+
+    return leader.designation;
+  }
+
+  String _getLeaderFirstName(LeaderModel leader) {
+    final surname = _getLeaderSurname(leader);
+    final name = leader.name.trim();
+    if (surname.isNotEmpty &&
+        surname != leader.designation &&
+        name.toLowerCase().endsWith(surname.toLowerCase()) &&
+        name.length > surname.length) {
+      return name.substring(0, name.length - surname.length).trim();
+    }
+    return name;
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -133,19 +169,16 @@ class _LeadershipTabState extends State<LeadershipTab> {
         GridView.builder(
           padding: EdgeInsets.symmetric(
             horizontal: w * 0.025,
-            vertical: w * 0.01,
+            vertical: w * 0.005,
           ),
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
 
           gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
             maxCrossAxisExtent: 127,
-            mainAxisExtent: (MediaQuery.sizeOf(context).width * 0.58).clamp(
-              175.0,
-              220.0,
-            ),
-            crossAxisSpacing: MediaQuery.sizeOf(context).width * 0.025,
-            mainAxisSpacing: MediaQuery.sizeOf(context).height * 0.016,
+            mainAxisExtent: (((w * 0.353).clamp(90.0, 127.0)) * 1.05) + 40.0,
+            crossAxisSpacing: w * 0.025,
+            mainAxisSpacing: w * 0.025,
           ),
 
           // Always show up to 14 members + 1 View More card.
@@ -161,6 +194,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => MemberDirectory(
+                          partyState: widget.partyState,
                           leaders: widget.leaders,
                           members: widget.members,
                           membersByRegion: widget.membersByRegion,
@@ -170,10 +204,10 @@ class _LeadershipTabState extends State<LeadershipTab> {
                     );
                   },
                   child: Container(
-                    width: (w * 0.353).clamp(80.0, 110.0),
-                    height: h * 0.18,
+                    width: (w * 0.353).clamp(90.0, 127.0),
+                    height: ((w * 0.353).clamp(90.0, 127.0)) * 1.05,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(w * 0.03),
+                      borderRadius: BorderRadius.circular(w * 0.04),
                       border: Border.all(color: const Color(0xFFFD8454)),
                     ),
                     child: Column(
@@ -243,24 +277,26 @@ class _LeadershipTabState extends State<LeadershipTab> {
                 ),
                 SizedBox(height: w * 0.007),
                 Text(
-                  leader.name,
+                  _getLeaderFirstName(leader),
 
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
+                    height: 1.15,
                     fontSize: w * 0.04,
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
                 ),
                 Text(
-                  leader.designation,
+                  _getLeaderSurname(leader),
 
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: w * 0.04,
-                    color: Color(0xFF666666),
+                    height: 1.15,
+                    fontSize: w * 0.04 - 1,
+                    color: Colors.black,
                   ),
                 ),
               ],
@@ -271,132 +307,43 @@ class _LeadershipTabState extends State<LeadershipTab> {
           height: h * 0.008,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: ColorScheme.of(context).onSurface.withOpacity(0.08),
+            color: ColorScheme.of(context).onSurface.withValues(alpha: 0.08),
           ),
         ),
-        SizedBox(height: h * 0.02),
-        ?widget.members.isNotEmpty
-            ? Material(
-                color: Theme.of(context).colorScheme.surface,
-                child: ListTile(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => MemberDirectory(
-                          leaders: widget.leaders,
-                          members: widget.members,
-                          membersByRegion: widget.membersByRegion,
-                          title: "INDIA PRESENCE",
-                        ),
-                      ),
-                    );
-                  },
-                  leading: buildMembersPreview(widget.members, context),
-                  title: Text(
-                    PartyPageData.indiaPresence,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w300,
-                      fontSize: w * 0.04,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  subtitle: Text(
-                    '${widget.members.length}',
-                    style: TextStyle(
-                      fontSize: w * 0.045,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  trailing: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.06, // Hit area
-                    height:
-                        MediaQuery.of(context).size.height * 0.048, // Hit area
-                    child: Center(
-                      child: SvgPicture.asset(
-                        "Assets/arrow.svg",
-                        color: const Color(0xFFFE3A31),
-                        width: 18,
-                        height: 18,
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            : null,
-        if (widget.members.isNotEmpty) ...[
-          Container(
-            height: h * 0.008,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: ColorScheme.of(context).onSurface.withOpacity(0.08),
-            ),
-          ),
-          SizedBox(height: h * 0.02),
-        ],
-        // Show all groups except group 1 and group 2.
-        ...widget.leaders.skip(2).map((group) {
-          if (group.leaders.isEmpty) {
-            return const SizedBox.shrink();
-          }
-
-          return Material(
+        if (widget.members.isNotEmpty)
+          Material(
             color: Theme.of(context).colorScheme.surface,
             child: ListTile(
+              titleAlignment: ListTileTitleAlignment.center,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: w * 0.04,
+                vertical: 2,
+              ),
               onTap: () {
-                final groupPoliticianIds = group.leaders
-                    .map((leader) => leader.politicianId)
-                    .toSet();
-
-                final groupMembers = widget.members
-                    .where(
-                      (member) =>
-                          groupPoliticianIds.contains(member.politicianId),
-                    )
-                    .toList();
-
-                final groupMembersByRegion =
-                    <String, List<MemberDirectoryModel>>{};
-
-                for (final member in groupMembers) {
-                  groupMembersByRegion
-                      .putIfAbsent(member.region, () => [])
-                      .add(member);
-                }
-
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => MemberDirectory(
-                      leaders: [group],
-                      members: groupMembers,
-                      membersByRegion: groupMembersByRegion,
-                      title: group.title,
+                          partyState: widget.partyState,
+                      leaders: widget.leaders,
+                      members: widget.members,
+                      membersByRegion: widget.membersByRegion,
+                      title: "INDIA PRESENCE",
                     ),
                   ),
                 );
               },
-
-              leading: buildMembersPreview(
-                widget.members
-                    .where(
-                      (member) => group.leaders.any(
-                        (leader) => leader.politicianId == member.politicianId,
-                      ),
-                    )
-                    .toList(),
-                context,
-              ),
+              leading: buildMembersPreview(widget.members, context),
               title: Text(
-                group.title, // Replace with your actual group-name field.
+                PartyPageData.indiaPresence,
                 style: TextStyle(
-                  fontWeight: FontWeight.w300,
-                  fontSize: w * 0.04,
+                  fontWeight: FontWeight.w400,
+                  fontSize: w * 0.038,
                   letterSpacing: 0.5,
                 ),
               ),
               subtitle: Text(
-                '${group.leaders.length}',
+                '',
                 style: TextStyle(
                   fontSize: w * 0.045,
                   fontWeight: FontWeight.w700,
@@ -407,7 +354,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                 height: h * 0.048,
                 child: Center(
                   child: SvgPicture.asset(
-                    'Assets/arrow.svg',
+                    "Assets/arrow.svg",
                     color: const Color(0xFFFE3A31),
                     width: 18,
                     height: 18,
@@ -415,6 +362,101 @@ class _LeadershipTabState extends State<LeadershipTab> {
                 ),
               ),
             ),
+          ),
+        // Show all groups except group 1 and group 2.
+        ...widget.leaders.skip(2).map((group) {
+          if (group.leaders.isEmpty) {
+            return const SizedBox.shrink();
+          }
+
+          final previewLeaders = group.leaders.isNotEmpty
+              ? group.leaders
+              : widget.members;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: ColorScheme.of(context)
+                    .onSurface
+                    .withValues(alpha: 0.08),
+              ),
+              Material(
+                color: Theme.of(context).colorScheme.surface,
+                child: ListTile(
+                  titleAlignment: ListTileTitleAlignment.center,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: w * 0.04,
+                    vertical: 2,
+                  ),
+                  onTap: () {
+                    final groupPoliticianIds = group.leaders
+                        .map((leader) => leader.politicianId)
+                        .toSet();
+
+                    final groupMembers = widget.members
+                        .where(
+                          (member) =>
+                              groupPoliticianIds.contains(member.politicianId),
+                        )
+                        .toList();
+
+                    final groupMembersByRegion =
+                        <String, List<MemberDirectoryModel>>{};
+
+                    for (final member in groupMembers) {
+                      groupMembersByRegion
+                          .putIfAbsent(member.region, () => [])
+                          .add(member);
+                    }
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => MemberDirectory(
+                          partyState: widget.partyState,
+                          leaders: [group],
+                          members: groupMembers,
+                          membersByRegion: groupMembersByRegion,
+                          title: group.title,
+                        ),
+                      ),
+                    );
+                  },
+
+                  leading: buildMembersPreview(previewLeaders, context),
+                  title: Text(
+                    group.title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      fontSize: w * 0.038,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '',
+                    style: TextStyle(
+                      fontSize: w * 0.045,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  trailing: SizedBox(
+                    width: w * 0.06,
+                    height: h * 0.048,
+                    child: Center(
+                      child: SvgPicture.asset(
+                        'Assets/arrow.svg',
+                        color: const Color(0xFFFE3A31),
+                        width: 18,
+                        height: 18,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         }),
       ],
@@ -423,31 +465,63 @@ class _LeadershipTabState extends State<LeadershipTab> {
 }
 
 Widget buildMembersPreview(
-  List<MemberDirectoryModel> members,
-  BuildContext context,
-) {
+  List<dynamic> members,
+  BuildContext context, {
+  double size = 42.0,
+}) {
   final previewMembers = members.take(3).toList();
+  if (previewMembers.isEmpty) {
+    return SizedBox(width: size, height: size);
+  }
+
+  final double overlap = size * 0.48;
+  final double totalWidth = (previewMembers.length - 1) * overlap + size;
 
   return SizedBox(
-    width: 90,
-    height: 46,
+    width: totalWidth,
+    height: size,
     child: Stack(
+      clipBehavior: Clip.none,
       children: List.generate(previewMembers.length, (index) {
+        final item = previewMembers[index];
+        String imagePath = '';
+        if (item is MemberDirectoryModel) {
+          imagePath = item.imagePath;
+        } else if (item is LeaderModel) {
+          imagePath = item.imagePath ?? '';
+        } else if (item is String) {
+          imagePath = item;
+        }
+
         return Positioned(
-          left: index * 22,
+          left: index * overlap,
+          top: 0,
           child: Container(
-            width: 50,
-            height: MediaQuery.of(context).size.height * 0.065,
-            decoration: BoxDecoration(
+            width: size,
+            height: size,
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 3),
+              color: Colors.white,
             ),
-            child: ClipOval(
-              child: buildImageWidget(
-                previewMembers[index].imagePath,
-                width: 44,
-                height: 44,
-                fit: BoxFit.cover,
+            padding: const EdgeInsets.all(2.0),
+            child: Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xFFEAEAEA),
+              ),
+              child: ClipOval(
+                child: imagePath.isNotEmpty
+                    ? buildImageWidget(
+                        imagePath,
+                        width: size - 4,
+                        height: size - 4,
+                        fit: BoxFit.cover,
+                      )
+                    : const Icon(
+                        Icons.person,
+                        color: Colors.grey,
+                        size: 24,
+                      ),
               ),
             ),
           ),

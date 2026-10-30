@@ -122,6 +122,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
         return JourneyTab(journeys: journey);
       case 3:
         return LeadershipTab(
+          partyState: party.state,
           leaders: leaders,
           members: members,
           membersByRegion: membersByRegion,
