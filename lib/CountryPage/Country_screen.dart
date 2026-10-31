@@ -3,6 +3,7 @@
 // matching the exact visual hierarchy of the provided reference screens.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../Reusable Functions/reusable_functions.dart';
@@ -57,11 +58,10 @@ class _CountryProfileView extends StatefulWidget {
 class _CountryProfileViewState extends State<_CountryProfileView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  late final ScrollController _scrollController;
-  late final PageController _bannerPageController;
   final ValueNotifier<int> _selectedTabIndex = ValueNotifier<int>(0);
-  final ValueNotifier<bool> _isCollapsed = ValueNotifier<bool>(false);
-  int _currentBannerIndex = 0;
+  final ValueNotifier<double> _sheetProgress = ValueNotifier<double>(0.0);
+  final ValueNotifier<bool> _showCountryDetails = ValueNotifier<bool>(true);
+  bool _isUserScrolling = false;
   bool _isInfoExpanded = false;
 
   @override
@@ -71,8 +71,6 @@ class _CountryProfileViewState extends State<_CountryProfileView>
       length: 3,
       vsync: this,
     );
-    _scrollController = ScrollController();
-    _bannerPageController = PageController();
 
     // Tab switch listener
     _tabController.addListener(() {
@@ -81,36 +79,14 @@ class _CountryProfileViewState extends State<_CountryProfileView>
         _selectedTabIndex.value = _tabController.index;
       }
     });
-
-    // Collapse listener: detect when banner has collapsed into pinned app bar
-    _scrollController.addListener(() {
-      if (!_scrollController.hasClients) return;
-      final screenHeight = MediaQuery.of(context).size.height;
-      final defaultSheetRatio = (screenHeight < 500)
-          ? 0.45
-          : (screenHeight < 800)
-              ? 0.28
-              : (screenHeight < 900)
-                  ? 0.247
-                  : (218.0 / screenHeight).clamp(0.1, 0.85);
-      final bannerHeight = screenHeight * (1.0 - defaultSheetRatio);
-      final collapsedHeight =
-          kToolbarHeight + MediaQuery.of(context).padding.top;
-      final threshold = bannerHeight - collapsedHeight - 30.0;
-      final isNowCollapsed = _scrollController.offset > threshold;
-      if (isNowCollapsed != _isCollapsed.value) {
-        _isCollapsed.value = isNowCollapsed;
-      }
-    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _scrollController.dispose();
-    _bannerPageController.dispose();
     _selectedTabIndex.dispose();
-    _isCollapsed.dispose();
+    _sheetProgress.dispose();
+    _showCountryDetails.dispose();
     super.dispose();
   }
 
@@ -219,242 +195,185 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                 ? 0.247
                 : (218.0 / screenHeight).clamp(0.1, 0.85);
 
-    final double bannerHeight = screenHeight * (1.0 - defaultSheetRatio);
-    final double topPadding = MediaQuery.of(context).padding.top;
-    final double collapsedHeight = kToolbarHeight + topPadding;
+    final String countryHeaderTitle = isIndia ? 'India - भारत' : country.name;
 
-    return CustomScrollView(
-      controller: _scrollController,
-      physics: const AlwaysScrollableScrollPhysics(
-        parent: BouncingScrollPhysics(),
-      ),
-      slivers: [
-        // ====================================================================
-        // [HERO BANNER SLIVER APP BAR]
-        // ====================================================================
-        SliverAppBar(
-          pinned: true,
-          stretch: true,
-          elevation: 0,
-          backgroundColor: Colors.white,
-          expandedHeight: bannerHeight,
-          collapsedHeight: collapsedHeight,
-          leading: Padding(
-            padding: const EdgeInsets.only(left: 14),
-            child: Center(
-              child: InkWell(
-                onTap: () => Navigator.pop(context),
-                borderRadius: BorderRadius.circular(20),
+    return Stack(
+      children: [
+        // Background banner with progressive blur & darkening matching Party Page
+        ValueListenableBuilder<double>(
+          valueListenable: _sheetProgress,
+          builder: (context, progress, child) {
+            return CountryBannerSection(
+              banners: banners,
+              countryName: countryHeaderTitle,
+              progress: progress,
+            );
+          },
+        ),
+
+        // Draggable Scrollable Sheet matching Party Page scrolling behavior
+        NotificationListener<DraggableScrollableNotification>(
+          onNotification: (notification) {
+            final progress = ((notification.extent - defaultSheetRatio) /
+                    (0.9 - defaultSheetRatio))
+                .clamp(0.0, 1.0);
+            if ((progress - _sheetProgress.value).abs() > 0.005) {
+              _sheetProgress.value = progress;
+            }
+            return false;
+          },
+          child: DraggableScrollableSheet(
+            initialChildSize: defaultSheetRatio,
+            minChildSize: defaultSheetRatio,
+            maxChildSize: 0.9,
+            builder: (context, scrollController) {
+              return NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  if (!mounted || notification.depth != 0) {
+                    return false;
+                  }
+
+                  if (notification is ScrollStartNotification) {
+                    _isUserScrolling = notification.dragDetails != null;
+                  }
+
+                  if (notification is ScrollEndNotification) {
+                    _isUserScrolling = false;
+                  }
+
+                  if (notification is UserScrollNotification &&
+                      _isUserScrolling) {
+                    if (notification.direction == ScrollDirection.reverse) {
+                      if (_showCountryDetails.value) {
+                        _showCountryDetails.value = false;
+                      }
+                    } else if (notification.direction ==
+                        ScrollDirection.forward) {
+                      if (!_showCountryDetails.value) {
+                        _showCountryDetails.value = true;
+                      }
+                    }
+                  }
+
+                  return false;
+                },
                 child: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.38),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Transform.rotate(
-                      angle: 3.141592653589793,
-                      child: SvgPicture.asset(
-                        CountryPageData.arrow,
-                        colorFilter: const ColorFilter.mode(
-                          Colors.white,
-                          BlendMode.srcIn,
-                        ),
-                        height: 14,
-                      ),
+                  clipBehavior: Clip.antiAlias,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(24),
                     ),
                   ),
-                ),
-              ),
-            ),
-          ),
-          title: ValueListenableBuilder<bool>(
-            valueListenable: _isCollapsed,
-            builder: (context, isCollapsed, _) {
-              return AnimatedOpacity(
-                opacity: isCollapsed ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 200),
-                child: Text(
-                  isIndia ? 'India - भारत' : country.name,
-                  style: const TextStyle(
-                    color: Color(0xFF1E1E1E),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                  child: CustomScrollView(
+                    controller: scrollController,
+                    slivers: [
+                      // Header Section (Country details) with animated collapse on scroll
+                      SliverToBoxAdapter(
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: _showCountryDetails,
+                          builder: (context, showDetails, child) {
+                            return AnimatedSize(
+                              duration: const Duration(milliseconds: 180),
+                              curve: Curves.easeOutCubic,
+                              alignment: Alignment.topCenter,
+                              child: ClipRect(
+                                child: Align(
+                                  alignment: Alignment.topCenter,
+                                  heightFactor: showDetails ? 1.0 : 0.0,
+                                  child: child,
+                                ),
+                              ),
+                            );
+                          },
+                          child: CountryDetailsSection(
+                            key: const ValueKey('country_details'),
+                            country: country,
+                          ),
+                        ),
+                      ),
+
+                      // Pinned TabBar
+                      SliverPersistentHeader(
+                        pinned: true,
+                        delegate: _SliverTabBarDelegate(
+                          TabBar(
+                            controller: _tabController,
+                            tabAlignment: TabAlignment.start,
+                            overlayColor:
+                                WidgetStateProperty.all(Colors.transparent),
+                            isScrollable: true,
+                            labelPadding:
+                                const EdgeInsets.symmetric(horizontal: 18),
+                            labelStyle: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
+                            unselectedLabelStyle: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.5,
+                            ),
+                            labelColor: const Color(0xFF1E1E1E),
+                            unselectedLabelColor: const Color(0xFF757575),
+                            indicatorColor: const Color(0xFFFE3A31),
+                            indicatorWeight: 2.5,
+                            indicatorSize: TabBarIndicatorSize.tab,
+                            dividerColor: const Color(0xFFEEEEEE),
+                            tabs: const [
+                              Tab(text: CountryPageData.infoTab),
+                              Tab(text: CountryPageData.flagEmblemTab),
+                              Tab(text: CountryPageData.geographicTab),
+                            ],
+                          ),
+                          dividerHeight: 0,
+                        ),
+                      ),
+
+                      // Tab Body Content
+                      SliverToBoxAdapter(
+                        child: Container(
+                          color: Colors.white,
+                          child: ValueListenableBuilder<int>(
+                            valueListenable: _selectedTabIndex,
+                            builder: (context, selectedIndex, child) {
+                              return Stack(
+                                children: [
+                                  // Tab 0: INFO
+                                  Offstage(
+                                    offstage: selectedIndex != 0,
+                                    child: _buildInfoTabContent(country),
+                                  ),
+                                  // Tab 1: FLAG / EMBLEM
+                                  Offstage(
+                                    offstage: selectedIndex != 1,
+                                    child: _buildPlacesAndSymbolsTab(country),
+                                  ),
+                                  // Tab 2: GEOGRAPHIC
+                                  Offstage(
+                                    offstage: selectedIndex != 2,
+                                    child: _buildGeographicTabContent(country),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+
+                      // Bottom Spacing
+                      SliverToBoxAdapter(
+                        child: Container(
+                          color: Colors.white,
+                          height: MediaQuery.of(context).size.height * 0.06,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );
             },
-          ),
-          flexibleSpace: FlexibleSpaceBar(
-            collapseMode: CollapseMode.parallax,
-            background: Stack(
-              fit: StackFit.expand,
-              children: [
-                PageView.builder(
-                  controller: _bannerPageController,
-                  itemCount: banners.length,
-                  onPageChanged: (index) {
-                    if (mounted) setState(() => _currentBannerIndex = index);
-                  },
-                  itemBuilder: (context, index) {
-                    final image = banners[index];
-                    final imageUrl =
-                        image.startsWith('/api/') ? '$api$image' : image;
-                    return buildImageWidget(imageUrl, fit: BoxFit.cover);
-                  },
-                ),
-
-                // Top Gradient for back button clarity
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 100,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.45),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Banner indicator dots matching Screenshot 1
-                if (banners.length > 1)
-                  Positioned(
-                    bottom: 30,
-                    right: 28,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(banners.length, (index) {
-                        final isSelected = _currentBannerIndex == index;
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          height: 7,
-                          width: 7,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isSelected
-                                ? const Color(0xFFFE3A31)
-                                : Colors.black.withOpacity(0.35),
-                            border: isSelected
-                                ? null
-                                : Border.all(
-                                    color: Colors.white.withOpacity(0.6),
-                                    width: 1,
-                                  ),
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-
-        // ====================================================================
-        // [OVERLAPPING COUNTRY IDENTITY CARD]
-        // ====================================================================
-        SliverToBoxAdapter(
-          child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x0F000000),
-                  blurRadius: 8,
-                  offset: Offset(0, -3),
-                ),
-              ],
-            ),
-            child: CountryDetailsSection(country: country),
-          ),
-        ),
-
-        // ====================================================================
-        // [PINNED TAB BAR] Matches Screenshot 1
-        // ====================================================================
-        SliverPersistentHeader(
-          pinned: true,
-          delegate: _SliverTabBarDelegate(
-            TabBar(
-              controller: _tabController,
-              tabAlignment: TabAlignment.start,
-              overlayColor: WidgetStateProperty.all(Colors.transparent),
-              isScrollable: true,
-              labelPadding: const EdgeInsets.symmetric(horizontal: 18),
-              labelStyle: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
-              ),
-              labelColor: const Color(0xFF1E1E1E),
-              unselectedLabelColor: const Color(0xFF757575),
-              indicatorColor: const Color(0xFFFE3A31),
-              indicatorWeight: 2.5,
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: const Color(0xFFEEEEEE),
-              tabs: const [
-                Tab(text: CountryPageData.infoTab),
-                Tab(text: CountryPageData.flagEmblemTab),
-                Tab(text: CountryPageData.geographicTab),
-              ],
-            ),
-            dividerHeight: 0,
-          ),
-        ),
-
-        // ====================================================================
-        // [TAB BODY CONTENT]
-        // ====================================================================
-        SliverToBoxAdapter(
-          child: Container(
-            color: Colors.white,
-            child: ValueListenableBuilder<int>(
-              valueListenable: _selectedTabIndex,
-              builder: (context, selectedIndex, child) {
-                return Stack(
-                  children: [
-                    // Tab 0: INFO
-                    Offstage(
-                      offstage: selectedIndex != 0,
-                      child: _buildInfoTabContent(country),
-                    ),
-                    // Tab 1: FLAG / EMBLEM
-                    Offstage(
-                      offstage: selectedIndex != 1,
-                      child: _buildPlacesAndSymbolsTab(country),
-                    ),
-                    // Tab 2: GEOGRAPHIC
-                    Offstage(
-                      offstage: selectedIndex != 2,
-                      child: _buildGeographicTabContent(country),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-
-        // Bottom Spacing
-        SliverToBoxAdapter(
-          child: Container(
-            color: Colors.white,
-            height: MediaQuery.of(context).size.height * 0.06,
           ),
         ),
       ],
@@ -651,8 +570,14 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             ),
           ];
 
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.05,
+        vertical: screenHeight * 0.016,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -683,7 +608,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
               ],
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: screenHeight * 0.008),
           GestureDetector(
             onTap: () {
               setState(() => _isInfoExpanded = !_isInfoExpanded);
@@ -698,7 +623,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
               ),
             ),
           ),
-          const SizedBox(height: 18),
+          SizedBox(height: screenHeight * 0.02),
 
           // ==================================================================
           // [6 KEY CIVIC DETAIL ROWS WITH ICONS] Matches Screenshot 1
@@ -707,8 +632,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
           _buildCivicDetailRow(
             icon: SvgPicture.asset(
               CountryPageData.capitalIcon,
-              width: 22,
-              height: 22,
+              width: screenWidth * 0.058,
+              height: screenWidth * 0.058,
             ),
             label: CountryPageData.capital,
             value: country.capital?.isNotEmpty == true
@@ -720,8 +645,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
           _buildCivicDetailRow(
             icon: SvgPicture.asset(
               CountryPageData.nationalAnthemIcon,
-              width: 22,
-              height: 22,
+              width: screenWidth * 0.058,
+              height: screenWidth * 0.058,
             ),
             label: CountryPageData.nationalAnthem,
             value: country.nationalAnthem?.isNotEmpty == true
@@ -733,8 +658,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
           _buildCivicDetailRow(
             icon: SvgPicture.asset(
               CountryPageData.populationIcon,
-              width: 22,
-              height: 22,
+              width: screenWidth * 0.058,
+              height: screenWidth * 0.058,
             ),
             label: CountryPageData.population,
             value: country.population?.isNotEmpty == true
@@ -745,24 +670,24 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                 _tabController.animateTo(2); // Switches to GEOGRAPHIC tab
               },
               child: Container(
-                width: 44,
-                height: 44,
+                width: screenWidth * 0.11,
+                height: screenWidth * 0.11,
                 decoration: BoxDecoration(
                   color: const Color(0xFFFE3A31),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFFFE3A31).withValues(alpha: 0.35),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
+                      blurRadius: screenWidth * 0.02,
+                      offset: Offset(0, screenHeight * 0.004),
                     ),
                   ],
                 ),
                 child: Center(
                   child: SvgPicture.asset(
                     CountryPageData.orangeButtonLogo,
-                    width: 21,
-                    height: 21,
+                    width: screenWidth * 0.052,
+                    height: screenWidth * 0.052,
                   ),
                 ),
               ),
@@ -773,8 +698,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
           _buildCivicDetailRow(
             icon: SvgPicture.asset(
               CountryPageData.presidentIcon,
-              width: 22,
-              height: 22,
+              width: screenWidth * 0.058,
+              height: screenWidth * 0.058,
             ),
             label: CountryPageData.president,
             value: country.president?.isNotEmpty == true
@@ -786,8 +711,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
           _buildCivicDetailRow(
             icon: SvgPicture.asset(
               CountryPageData.primeMinisterIcon,
-              width: 22,
-              height: 22,
+              width: screenWidth * 0.058,
+              height: screenWidth * 0.058,
             ),
             label: CountryPageData.primeMinister,
             value: country.primeMinister?.isNotEmpty == true
@@ -799,8 +724,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
           _buildCivicDetailRow(
             icon: SvgPicture.asset(
               CountryPageData.dateOfIndependenceIcon,
-              width: 20,
-              height: 20,
+              width: screenWidth * 0.055,
+              height: screenWidth * 0.055,
             ),
             label: CountryPageData.dateOfIndependence,
             value: country.independenceDay?.isNotEmpty == true &&
@@ -810,7 +735,11 @@ class _CountryProfileViewState extends State<_CountryProfileView>
           ),
 
           // Divider before leadership sections
-          const Divider(thickness: 1, color: Color(0xFFEEEEEE), height: 36),
+          Divider(
+            thickness: 1,
+            color: const Color(0xFFEEEEEE),
+            height: screenHeight * 0.04,
+          ),
 
           // ==================================================================
           // [PRESIDENTS OF INDIA] Matches Screenshot 2
@@ -823,7 +752,11 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             showPartyLogo: false, // President is non-partisan
           ),
 
-          const Divider(thickness: 1, color: Color(0xFFEEEEEE), height: 36),
+          Divider(
+            thickness: 1,
+            color: const Color(0xFFEEEEEE),
+            height: screenHeight * 0.04,
+          ),
 
           // ==================================================================
           // [PRIME MINISTER] Matches Screenshot 2 & 3
@@ -834,7 +767,11 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             showPartyLogo: true,
           ),
 
-          const Divider(thickness: 1, color: Color(0xFFEEEEEE), height: 36),
+          Divider(
+            thickness: 1,
+            color: const Color(0xFFEEEEEE),
+            height: screenHeight * 0.04,
+          ),
 
           // ==================================================================
           // [DEFENCE MINISTER] Matches Screenshot 3
@@ -845,7 +782,11 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             showPartyLogo: true,
           ),
 
-          const Divider(thickness: 1, color: Color(0xFFEEEEEE), height: 36),
+          Divider(
+            thickness: 1,
+            color: const Color(0xFFEEEEEE),
+            height: screenHeight * 0.04,
+          ),
 
           // ==================================================================
           // [HOME MINISTER] Matches Screenshot 3
@@ -856,7 +797,11 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             showPartyLogo: true,
           ),
 
-          const Divider(thickness: 1, color: Color(0xFFEEEEEE), height: 36),
+          Divider(
+            thickness: 1,
+            color: const Color(0xFFEEEEEE),
+            height: screenHeight * 0.04,
+          ),
 
           // ==================================================================
           // [OTHER CABINATE] Matches Screenshot 4
@@ -876,17 +821,20 @@ class _CountryProfileViewState extends State<_CountryProfileView>
     required String value,
     Widget? trailing,
   }) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(
-            width: 28,
-            height: 28,
+            width: screenWidth * 0.075,
+            height: screenWidth * 0.075,
             child: Center(child: icon),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: screenWidth * 0.035),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -900,7 +848,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                     color: Color(0xFF888888),
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: screenHeight * 0.003),
                 Text(
                   value,
                   style: const TextStyle(
@@ -920,6 +868,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
 
   // ==========================================================================
   // [BUILD METHOD: LEADERSHIP HORIZONTAL SECTION] Matches Screenshot 2 & 3
+  // Sized strictly using MediaQuery without hardcoded dimensions,
+  // matching Figma specs: 280w x 339h image, 280w x 396h card, 20px radius.
   // ==========================================================================
   Widget _buildLeaderHorizontalSection({
     required String title,
@@ -927,14 +877,24 @@ class _CountryProfileViewState extends State<_CountryProfileView>
     bool showPartyLogo = true,
   }) {
     final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
 
-    // Use MediaQuery for responsive dimensions while matching Figma spec (280w x 339h, radius 20)
-    final double cardWidth = screenWidth < 360
-        ? screenWidth * 0.75
-        : (screenWidth < 420 ? 280.0 : (screenWidth * 0.70).clamp(280.0, 320.0));
+    // Responsive scaling strictly based on MediaQuery:
+    // Reference screen width 375px with 280px card gives factor 280 / 375 ≈ 0.7467
+    final double cardWidth = screenWidth * (280.0 / 375.0);
+    // Exact proportional image height matching Figma 280w x 339h
     final double cardImageHeight = cardWidth * (339.0 / 280.0);
-    const double cardRadius = 20.0;
-    final double listHeight = cardImageHeight + 62.0;
+    // Exact proportional total card list height matching Figma 280w x 396h
+    final double listHeight = cardWidth * (396.0 / 280.0);
+    final double cardRadius = cardWidth * (20.0 / 280.0);
+    final double cardMarginRight = screenWidth * (16.0 / 375.0);
+    final double spacingBelowImage = cardWidth * (10.0 / 280.0);
+    final double partyLogoSize = cardWidth * (28.0 / 280.0);
+    final double badgeBottom = cardImageHeight * (12.0 / 339.0);
+    final double badgeRight = cardWidth * (12.0 / 280.0);
+    final double badgeHorizontalPadding = cardWidth * (12.0 / 280.0);
+    final double badgeVerticalPadding = cardImageHeight * (5.0 / 339.0);
+    final double badgeRadius = cardWidth * (14.0 / 280.0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -948,7 +908,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             color: Color(0xFF1E1E1E),
           ),
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: screenHeight * 0.016),
         SizedBox(
           height: listHeight,
           child: ListView.builder(
@@ -959,11 +919,11 @@ class _CountryProfileViewState extends State<_CountryProfileView>
               final leader = leaders[index];
               return Container(
                 width: cardWidth,
-                margin: const EdgeInsets.only(right: 16),
+                margin: EdgeInsets.only(right: cardMarginRight),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Card Image with rounded corners (radius 20) and translucent pill badge (280x339)
+                    // Card Image with rounded corners and translucent pill badge
                     Container(
                       height: cardImageHeight,
                       width: cardWidth,
@@ -983,22 +943,22 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                           ),
                           if (leader.badge.isNotEmpty)
                             Positioned(
-                              bottom: 12,
-                              right: 12,
+                              bottom: badgeBottom,
+                              right: badgeRight,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 5,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: badgeHorizontalPadding,
+                                  vertical: badgeVerticalPadding,
                                 ),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withValues(alpha: 0.65),
-                                  borderRadius: BorderRadius.circular(14),
+                                  borderRadius: BorderRadius.circular(badgeRadius),
                                 ),
                                 child: Text(
                                   leader.badge,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 11,
+                                    fontSize: cardWidth * (11.0 / 280.0),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -1007,7 +967,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: spacingBelowImage),
                     // Below image: Party Logo (if applicable) and Name + Tenure in GREEN
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -1017,8 +977,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                             leader.partyLogo!.isNotEmpty) ...[
                           ClipOval(
                             child: Container(
-                              width: 26,
-                              height: 26,
+                              width: partyLogoSize,
+                              height: partyLogoSize,
                               color: Colors.white,
                               child: buildImageWidget(
                                 leader.partyLogo!,
@@ -1026,7 +986,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: cardWidth * (8.0 / 280.0)),
                         ],
                         Expanded(
                           child: Column(
@@ -1042,13 +1002,13 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                                   color: Color(0xFF1E1E1E),
                                 ),
                               ),
-                              const SizedBox(height: 2),
+                              SizedBox(height: screenHeight * 0.003),
                               Text(
                                 leader.tenure,
                                 style: const TextStyle(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF4CAF50), // Green tenure as shown in screenshot!
+                                  color: Color(0xFF4CAF50), // Green tenure as shown in screenshot
                                 ),
                               ),
                             ],
@@ -1070,6 +1030,9 @@ class _CountryProfileViewState extends State<_CountryProfileView>
   // [BUILD METHOD: OTHER CABINATE] Matches Screenshot 4
   // ==========================================================================
   Widget _buildOtherCabinetsSection(List<CabinetMinister> cabinets) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1088,19 +1051,20 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             Icon(Icons.arrow_forward, size: 18, color: Color(0xFFFE3A31)),
           ],
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: screenHeight * 0.016),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 14,
+            crossAxisSpacing: screenWidth * 0.026,
+            mainAxisSpacing: screenHeight * 0.016,
             childAspectRatio: 0.68,
           ),
           itemCount: cabinets.length,
           itemBuilder: (context, index) {
             final minister = cabinets[index];
+            final double ministerRadius = screenWidth * 0.04;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1109,10 +1073,10 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: minister.backgroundColor,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(ministerRadius),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(ministerRadius),
                       child: buildImageWidget(
                         minister.imageUrl,
                         fit: BoxFit.cover,
@@ -1120,7 +1084,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: screenHeight * 0.007),
                 Text(
                   minister.firstName,
                   maxLines: 1,
