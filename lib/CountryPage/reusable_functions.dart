@@ -131,13 +131,13 @@ class _CountryBannerSectionState extends State<CountryBannerSection> {
             top: screenHeight * 0.04,
             left: screenWidth * 0.05,
             child: SizedBox(
-              width: 40,
-              height: 40,
+              width: screenWidth * 0.1,
+              height: screenWidth * 0.1,
               child: InkWell(
                 onTap: () {
                   Navigator.pop(context);
                 },
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(screenWidth * 0.05),
                 child: Center(
                   child: Transform.rotate(
                     angle: 3.141592653589793,
@@ -158,14 +158,14 @@ class _CountryBannerSectionState extends State<CountryBannerSection> {
           // Country Name in header bar (fades in as bottom sheet scrolls up)
           Positioned(
             top: screenHeight * 0.05,
-            left: screenWidth * 0.05 + 52,
+            left: screenWidth * 0.05 + screenWidth * 0.13,
             right: screenWidth * 0.05,
             child: Opacity(
               opacity: titleOpacity,
               child: Transform.translate(
                 offset: Offset(
                   0,
-                  18 * (1 - titleOpacity),
+                  screenHeight * 0.022 * (1 - titleOpacity),
                 ),
                 child: Text(
                   widget.countryName,
@@ -198,9 +198,9 @@ class _CountryBannerSectionState extends State<CountryBannerSection> {
 
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        height: 10,
-                        width: 10,
+                        margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.01),
+                        height: screenWidth * 0.024,
+                        width: screenWidth * 0.024,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: isSelected
@@ -209,7 +209,7 @@ class _CountryBannerSectionState extends State<CountryBannerSection> {
                           color: isSelected ? null : Colors.transparent,
                           border: Border.all(
                             color: Colors.red,
-                            width: 1,
+                            width: screenWidth * 0.0025,
                           ),
                         ),
                       );
@@ -320,7 +320,7 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
       ),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(w * 0.064)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,19 +332,19 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
               Expanded(
                 child: Text(
                   countryTitle,
-                  style: const TextStyle(
-                    fontSize: 18,
+                  style: TextStyle(
+                    fontSize: w * 0.048,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF1E1E1E),
+                    color: const Color(0xFF1E1E1E),
                     letterSpacing: 0.2,
                   ),
                 ),
               ),
               InkWell(
                 onTap: _toggleFavourite,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(w * 0.05),
                 child: Padding(
-                  padding: const EdgeInsets.all(4.0),
+                  padding: EdgeInsets.all(w * 0.01),
                   child: SvgPicture.asset(
                     CountryPageData.favoriteIcon,
                     height: w * 0.06,
@@ -369,10 +369,10 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
           // Subtitle: "Capital City - New Delhi"
           Text(
             "Capital City - $capitalText",
-            style: const TextStyle(
-              fontSize: 13,
+            style: TextStyle(
+              fontSize: w * 0.033,
               fontWeight: FontWeight.w400,
-              color: Color(0xFF757575),
+              color: const Color(0xFF757575),
               letterSpacing: 0.2,
             ),
           ),
@@ -386,22 +386,22 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     CountryPageData.states,
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
-                      fontSize: 11,
+                      fontSize: w * 0.028,
                       letterSpacing: 0.5,
-                      color: Color(0xFF757575),
+                      color: const Color(0xFF757575),
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: h * 0.003),
                   Text(
                     widget.country.statesCount ?? (isIndia ? "28" : "-"),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      fontSize: 22,
-                      color: Color(0xFF1E1E1E),
+                      fontSize: w * 0.058,
+                      color: const Color(0xFF1E1E1E),
                     ),
                   ),
                 ],
@@ -409,7 +409,7 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
               // Thin vertical divider line (increased height matching design)
               Container(
                 height: h * 0.052,
-                width: 1.2,
+                width: w * 0.003,
                 color: const Color(0xFFE0E0E0),
                 margin: EdgeInsets.symmetric(horizontal: w * 0.07),
               ),
@@ -417,26 +417,26 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     CountryPageData.unionTerritories,
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
-                      fontSize: 11,
+                      fontSize: w * 0.028,
                       letterSpacing: 0.5,
-                      color: Color(0xFF757575),
+                      color: const Color(0xFF757575),
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: h * 0.003),
                   Text(
                     widget.country.unionTerritories != null
                         ? widget.country.unionTerritories!
                             .toString()
                             .padLeft(2, '0')
                         : (isIndia ? "08" : "-"),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      fontSize: 22,
-                      color: Color(0xFF1E1E1E),
+                      fontSize: w * 0.058,
+                      color: const Color(0xFF1E1E1E),
                     ),
                   ),
                 ],
@@ -498,7 +498,7 @@ Widget buildCountryInfoRow(
           height: w * 0.095,
           decoration: BoxDecoration(
             color: const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(w * 0.02),
           ),
           child: Center(
             child: iconAsset != null && iconAsset.endsWith('.svg')
@@ -595,18 +595,18 @@ Widget buildPlaceCard(BuildContext context, PlaceView place) {
     margin: EdgeInsets.only(right: w * 0.035),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(w * 0.04),
       border: Border.all(color: Colors.black.withValues(alpha: 0.07)),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withValues(alpha: 0.04),
-          blurRadius: 8,
-          offset: const Offset(0, 3),
+          blurRadius: w * 0.02,
+          offset: Offset(0, h * 0.004),
         ),
       ],
     ),
     child: ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(w * 0.04),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -636,7 +636,7 @@ Widget buildPlaceCard(BuildContext context, PlaceView place) {
                     margin: EdgeInsets.only(bottom: h * 0.006),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFE3A31).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(w * 0.015),
                     ),
                     child: Text(
                       place.category!,
@@ -695,13 +695,13 @@ Widget buildSymbolCard(
   return Container(
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(w * 0.04),
       border: Border.all(color: Colors.black.withValues(alpha: 0.07)),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withValues(alpha: 0.03),
-          blurRadius: 6,
-          offset: const Offset(0, 2),
+          blurRadius: w * 0.015,
+          offset: Offset(0, h * 0.003),
         ),
       ],
     ),
@@ -713,10 +713,10 @@ Widget buildSymbolCard(
           child: Center(
             child: primaryUrl.isNotEmpty
                 ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(w * 0.02),
                     child: buildImageWidget(primaryUrl, fit: BoxFit.contain),
                   )
-                : const Icon(Icons.flag_outlined, size: 40, color: Colors.grey),
+                : const Icon(Icons.flag_outlined, size: w * 0.1, color: Colors.grey),
           ),
         ),
         SizedBox(height: h * 0.008),
@@ -744,7 +744,7 @@ Widget buildSymbolCard(
           SizedBox(height: h * 0.006),
           InkWell(
             onTap: () => onDownload(primaryUrl),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(w * 0.03),
             child: Container(
               padding: EdgeInsets.symmetric(
                 horizontal: w * 0.025,
@@ -752,17 +752,17 @@ Widget buildSymbolCard(
               ),
               decoration: BoxDecoration(
                 gradient: GradientColors.primaryGradient,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(w * 0.03),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.download, size: 12, color: Colors.white),
-                  SizedBox(width: 4),
+                  Icon(Icons.download, size: w * 0.03, color: Colors.white),
+                  SizedBox(width: w * 0.01),
                   Text(
                     'Download',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: w * 0.026,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),

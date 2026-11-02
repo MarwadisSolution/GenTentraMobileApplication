@@ -63,6 +63,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
   final ValueNotifier<bool> _showCountryDetails = ValueNotifier<bool>(true);
   bool _isUserScrolling = false;
   bool _isInfoExpanded = false;
+  bool _isFlagExpanded = false;
+  Offset? _draggableFabPosition;
 
   @override
   void initState() {
@@ -117,7 +119,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                   children: [
                     const Icon(
                       Icons.error_outline,
-                      size: 54,
+                      size: screenWidth * 0.14,
                       color: Color(0xFFFE3A31),
                     ),
                     SizedBox(height: screenHeight * 0.02),
@@ -125,7 +127,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                       state.errorMessage ?? 'Failed to load country profile',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: screenWidth * 0.042,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF222222),
                       ),
@@ -141,14 +143,14 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                         backgroundColor: const Color(0xFFFE3A31),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(screenWidth * 0.05),
                         ),
                         padding: EdgeInsets.symmetric(
                           horizontal: MediaQuery.of(context).size.width * 0.06,
                           vertical: screenHeight * 0.015,
                         ),
                       ),
-                      icon: const Icon(Icons.refresh, size: 18),
+                      icon: const Icon(Icons.refresh, size: screenWidth * 0.046),
                       label: const Text('Try Again'),
                     ),
                   ],
@@ -196,6 +198,13 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                 : (218.0 / screenHeight).clamp(0.1, 0.85);
 
     final String countryHeaderTitle = isIndia ? 'India - भारत' : country.name;
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double fabSize = screenWidth * 0.12;
+
+    _draggableFabPosition ??= Offset(
+      screenWidth - fabSize - screenWidth * 0.05,
+      screenHeight * 0.62,
+    );
 
     return Stack(
       children: [
@@ -262,7 +271,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(24),
+                      top: Radius.circular(screenWidth * 0.06),
                     ),
                   ),
                   child: CustomScrollView(
@@ -303,22 +312,23 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                             overlayColor:
                                 WidgetStateProperty.all(Colors.transparent),
                             isScrollable: true,
-                            labelPadding:
-                                const EdgeInsets.symmetric(horizontal: 18),
-                            labelStyle: const TextStyle(
-                              fontSize: 13,
+                            labelPadding: EdgeInsets.symmetric(
+                              horizontal: MediaQuery.of(context).size.width * 0.045,
+                            ),
+                            labelStyle: TextStyle(
+                              fontSize: MediaQuery.of(context).size.width * 0.033,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.5,
                             ),
-                            unselectedLabelStyle: const TextStyle(
-                              fontSize: 13,
+                            unselectedLabelStyle: TextStyle(
+                              fontSize: MediaQuery.of(context).size.width * 0.033,
                               fontWeight: FontWeight.w500,
                               letterSpacing: 0.5,
                             ),
                             labelColor: const Color(0xFF1E1E1E),
                             unselectedLabelColor: const Color(0xFF757575),
                             indicatorColor: const Color(0xFFFE3A31),
-                            indicatorWeight: 2.5,
+                            indicatorWeight: MediaQuery.of(context).size.width * 0.007,
                             indicatorSize: TabBarIndicatorSize.tab,
                             dividerColor: const Color(0xFFEEEEEE),
                             tabs: const [
@@ -374,6 +384,63 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                 ),
               );
             },
+          ),
+        ),
+
+        // ====================================================================
+        // [GLOBAL DRAGGABLE ORANGE FAB]
+        // Accessible across all tabs (Info, Flag/Emblem, Geographic)
+        // Can be freely dragged anywhere on the screen by the user
+        // ====================================================================
+        Positioned(
+          left: _draggableFabPosition!.dx,
+          top: _draggableFabPosition!.dy,
+          child: GestureDetector(
+            onPanUpdate: (details) {
+              setState(() {
+                final double minX = screenWidth * 0.02;
+                final double maxX = screenWidth - fabSize - screenWidth * 0.02;
+                final double minY = MediaQuery.of(context).padding.top + screenHeight * 0.02;
+                final double maxY = screenHeight - fabSize - MediaQuery.of(context).padding.bottom - screenHeight * 0.02;
+
+                _draggableFabPosition = Offset(
+                  (_draggableFabPosition!.dx + details.delta.dx).clamp(minX, maxX),
+                  (_draggableFabPosition!.dy + details.delta.dy).clamp(minY, maxY),
+                );
+              });
+            },
+            onTap: () {
+              if (_tabController.index != 2) {
+                _tabController.animateTo(2); // Switches to GEOGRAPHIC tab
+              }
+            },
+            child: Container(
+              width: fabSize,
+              height: fabSize,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFE3A31),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFE3A31).withValues(alpha: 0.4),
+                    blurRadius: screenWidth * 0.025,
+                    spreadRadius: 1.0,
+                    offset: Offset(0, screenHeight * 0.004),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: SvgPicture.asset(
+                  CountryPageData.orangeButtonLogo,
+                  width: fabSize * 0.46,
+                  height: fabSize * 0.46,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.white,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ],
@@ -589,10 +656,10 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             overflow:
                 _isInfoExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
             text: TextSpan(
-              style: const TextStyle(
-                fontSize: 13.5,
+              style: TextStyle(
+                fontSize: screenWidth * 0.034,
                 fontWeight: FontWeight.w400,
-                color: Color(0xFF333333),
+                color: const Color(0xFF333333),
                 height: 1.5,
               ),
               children: [
@@ -615,10 +682,10 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             },
             child: Text(
               _isInfoExpanded ? 'READ LESS' : 'READ MORE',
-              style: const TextStyle(
-                fontSize: 12,
+              style: TextStyle(
+                fontSize: screenWidth * 0.031,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFFFE3A31),
+                color: const Color(0xFFFE3A31),
                 letterSpacing: 0.3,
               ),
             ),
@@ -654,7 +721,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                 : (isIndia ? 'JANA GANA MANA' : '-'),
           ),
 
-          // 3. POPULATION with Map Floating Action Button on right
+          // 3. POPULATION
           _buildCivicDetailRow(
             icon: SvgPicture.asset(
               CountryPageData.populationIcon,
@@ -665,33 +732,6 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             value: country.population?.isNotEmpty == true
                 ? country.population!
                 : (isIndia ? '145.09 crores (2024)' : '-'),
-            trailing: GestureDetector(
-              onTap: () {
-                _tabController.animateTo(2); // Switches to GEOGRAPHIC tab
-              },
-              child: Container(
-                width: screenWidth * 0.11,
-                height: screenWidth * 0.11,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFE3A31),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFE3A31).withValues(alpha: 0.35),
-                      blurRadius: screenWidth * 0.02,
-                      offset: Offset(0, screenHeight * 0.004),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: SvgPicture.asset(
-                    CountryPageData.orangeButtonLogo,
-                    width: screenWidth * 0.052,
-                    height: screenWidth * 0.052,
-                  ),
-                ),
-              ),
-            ),
           ),
 
           // 4. PRESIDENT
@@ -841,20 +881,20 @@ class _CountryProfileViewState extends State<_CountryProfileView>
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 10.5,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.026,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
-                    color: Color(0xFF888888),
+                    color: const Color(0xFF888888),
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.003),
                 Text(
                   value,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.035,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E1E1E),
+                    color: const Color(0xFF1E1E1E),
                   ),
                 ),
               ],
@@ -901,11 +941,11 @@ class _CountryProfileViewState extends State<_CountryProfileView>
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 13.5,
+          style: TextStyle(
+            fontSize: screenWidth * 0.034,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.6,
-            color: Color(0xFF1E1E1E),
+            color: const Color(0xFF1E1E1E),
           ),
         ),
         SizedBox(height: screenHeight * 0.016),
@@ -996,19 +1036,19 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                                 leader.name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 13.5,
+                                style: TextStyle(
+                                  fontSize: cardWidth * (13.5 / 280.0),
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1E1E1E),
+                                  color: const Color(0xFF1E1E1E),
                                 ),
                               ),
                               SizedBox(height: screenHeight * 0.003),
                               Text(
                                 leader.tenure,
-                                style: const TextStyle(
-                                  fontSize: 11.5,
+                                style: TextStyle(
+                                  fontSize: cardWidth * (11.5 / 280.0),
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF4CAF50), // Green tenure as shown in screenshot
+                                  color: const Color(0xFF4CAF50),
                                 ),
                               ),
                             ],
@@ -1038,17 +1078,17 @@ class _CountryProfileViewState extends State<_CountryProfileView>
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
+          children: [
             Text(
               'OTHER CABINATE',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: screenWidth * 0.033,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.6,
-                color: Color(0xFF1E1E1E),
+                color: const Color(0xFF1E1E1E),
               ),
             ),
-            Icon(Icons.arrow_forward, size: 18, color: Color(0xFFFE3A31)),
+            Icon(Icons.arrow_forward, size: screenWidth * 0.046, color: const Color(0xFFFE3A31)),
           ],
         ),
         SizedBox(height: screenHeight * 0.016),
@@ -1089,20 +1129,20 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                   minister.firstName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12.5,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.032,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E1E1E),
+                    color: const Color(0xFF1E1E1E),
                   ),
                 ),
                 Text(
                   minister.lastName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.028,
                     fontWeight: FontWeight.w400,
-                    color: Color(0xFF666666),
+                    color: const Color(0xFF666666),
                   ),
                 ),
               ],
@@ -1119,46 +1159,230 @@ class _CountryProfileViewState extends State<_CountryProfileView>
   Widget _buildPlacesAndSymbolsTab(CountryModel country) {
     final w = MediaQuery.of(context).size.width;
     final h = MediaQuery.of(context).size.height;
+    final bool isIndia = country.name.toLowerCase().contains('india') ||
+        country.name.isEmpty ||
+        country.registrationCode == 'IND';
 
-    final places = country.placesToVisit?.places ?? [];
-    final symbols = country.symbols.isNotEmpty
-        ? country.symbols
-        : [
-            const SymbolView(
-              id: 1,
-              kind: 'FLAG',
-              label: 'National Flag of India (Tiranga)',
-              urls: [
-                'https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/1200px-Flag_of_India.svg.png'
-              ],
-              downloadable: true,
-            ),
-            const SymbolView(
-              id: 2,
-              kind: 'EMBLEM',
-              label: 'State Emblem of India (Lion Capital)',
-              urls: [
-                'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Emblem_of_India.svg/800px-Emblem_of_India.svg.png'
-              ],
-              downloadable: true,
-            ),
-          ];
+    // 1. Dynamic Backend Lookup: Extract symbols provided by the backend API
+    SymbolView? flagSymbol;
+    SymbolView? emblemSymbol;
+    for (final s in country.symbols) {
+      final kind = (s.kind ?? '').toUpperCase();
+      final label = (s.label ?? '').toLowerCase();
+      if ((kind.contains('FLAG') || label.contains('flag') || label.contains('tiranga')) && flagSymbol == null) {
+        flagSymbol = s;
+      } else if ((kind.contains('EMBLEM') || label.contains('emblem') || label.contains('capital') || label.contains('lion')) && emblemSymbol == null) {
+        emblemSymbol = s;
+      }
+    }
+    // Fallback order if kind was not explicitly specified
+    if (flagSymbol == null && country.symbols.isNotEmpty) {
+      flagSymbol = country.symbols.first;
+    }
+    if (emblemSymbol == null && country.symbols.length > 1) {
+      emblemSymbol = country.symbols[1];
+    }
+
+    // 2. Dynamic Description from Backend (Symbols -> Culture -> Info -> Default)
+    final String? backendDesc = (flagSymbol?.description?.trim().isNotEmpty == true)
+        ? flagSymbol!.description
+        : ((emblemSymbol?.description?.trim().isNotEmpty == true)
+            ? emblemSymbol!.description
+            : (country.cultureAndTradition?.trim().isNotEmpty == true
+                ? country.cultureAndTradition
+                : (country.info?.trim().isNotEmpty == true ? country.info : null)));
+
+    final String flagDesc = backendDesc ??
+        'The national flag of India, popularly known as the Tiranga (Tricolour), is a horizontal rectangular flag featuring three colors — India saffron, white, and India green — with the navy-blue Ashoka Chakra in the centre.';
+
+    // 3. Dynamic Image URLs from Backend
+    final String flagUrl = flagSymbol?.urls.firstWhere(
+          (u) => u.trim().isNotEmpty,
+          orElse: () => '',
+        ) ?? '';
+    final String emblemUrl = emblemSymbol?.urls.firstWhere(
+          (u) => u.trim().isNotEmpty,
+          orElse: () => '',
+        ) ?? '';
+
+    // 4. Dynamic Labels from Backend
+    final String flagLabel = (flagSymbol?.label?.trim().isNotEmpty == true)
+        ? flagSymbol!.label!
+        : (isIndia ? 'Indian Flag' : (country.name.isNotEmpty ? '${country.name} Flag' : 'Flag'));
+
+    final String emblemLabel = (emblemSymbol?.label?.trim().isNotEmpty == true)
+        ? emblemSymbol!.label!
+        : (isIndia ? 'Indian Emblem' : (country.name.isNotEmpty ? '${country.name} Emblem' : 'Emblem'));
+
+    // 5. Proportional MediaQuery Dimensions matching exact Figma specs (180x180 & 180x193 on 375w reference)
+    final double flagWidth = w * (180.0 / 375.0);
+    final double flagHeight = flagWidth * (180.0 / 180.0); // 180 into 180
+
+    final double emblemWidth = w * (180.0 / 375.0);
+    final double emblemHeight = emblemWidth * (193.0 / 180.0); // 180 into 193
 
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: w * 0.05,
-        vertical: h * 0.02,
+        vertical: h * 0.018,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSymbolsSection(symbols),
-          if (places.isNotEmpty) ...[
-            SizedBox(height: h * 0.035),
-            _buildPlacesSection(country.placesToVisit!),
-          ],
+          // Description Paragraph with READ MORE / READ LESS toggle
+          RichText(
+            maxLines: _isFlagExpanded ? null : 4,
+            overflow:
+                _isFlagExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+            text: TextSpan(
+              style: TextStyle(
+                fontSize: w * 0.034,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFF333333),
+                height: 1.5,
+              ),
+              text: flagDesc,
+            ),
+          ),
+          SizedBox(height: h * 0.008),
+          GestureDetector(
+            onTap: () {
+              setState(() => _isFlagExpanded = !_isFlagExpanded);
+            },
+            child: Text(
+              _isFlagExpanded ? 'READ LESS' : 'READ MORE',
+              style: TextStyle(
+                fontSize: w * 0.031,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFFFE3A31),
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+          SizedBox(height: h * 0.025),
+
+          // 2. Centered Indian Flag (180 into 180 with MediaQuery)
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: flagWidth,
+                  height: flagHeight,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(flagWidth * (8.0 / 180.0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: flagWidth * (8.0 / 180.0),
+                        offset: Offset(0, h * 0.002),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  alignment: Alignment.center,
+                  child: _buildFlagImageWidget(flagUrl, flagWidth, flagHeight),
+                ),
+                SizedBox(height: h * 0.014),
+                Text(
+                  flagLabel,
+                  style: TextStyle(
+                    fontSize: w * 0.03,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF333333),
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: h * 0.035),
+
+          // 3. Centered State Emblem (180 into 193 with MediaQuery)
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: emblemWidth,
+                  height: emblemHeight,
+                  child: Center(
+                    child: _buildEmblemImageWidget(emblemUrl, emblemWidth, emblemHeight),
+                  ),
+                ),
+                SizedBox(height: h * 0.014),
+                Text(
+                  emblemLabel,
+                  style: TextStyle(
+                    fontSize: w * 0.03,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF333333),
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: h * 0.02),
         ],
       ),
+    );
+  }
+
+  Widget _buildFlagImageWidget(String rawUrl, double width, double height) {
+    final url = rawUrl.trim();
+    // 1. If backend provides a valid URL, load via universal buildImageWidget
+    if (url.isNotEmpty && !url.toLowerCase().contains('wikimedia.org')) {
+      final fullUrl = (url.startsWith('http://') || url.startsWith('https://'))
+          ? url
+          : (url.startsWith('/') ? '$api$url' : '$api/$url');
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(width * (8.0 / 180.0)),
+        child: buildImageWidget(
+          fullUrl,
+          width: width,
+          height: height,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
+    // 2. High-res vector fallback asset
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(width * (8.0 / 180.0)),
+      child: SvgPicture.asset(
+        CountryPageData.indianFlagSvg,
+        width: width,
+        height: height,
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+
+  Widget _buildEmblemImageWidget(String rawUrl, double width, double height) {
+    final url = rawUrl.trim();
+    // 1. If backend provides a valid URL, load via universal buildImageWidget
+    if (url.isNotEmpty && !url.toLowerCase().contains('wikimedia.org')) {
+      final fullUrl = (url.startsWith('http://') || url.startsWith('https://'))
+          ? url
+          : (url.startsWith('/') ? '$api$url' : '$api/$url');
+      return buildImageWidget(
+        fullUrl,
+        width: width,
+        height: height,
+        fit: BoxFit.contain,
+      );
+    }
+    // 2. High-res raster fallback asset
+    return Image.asset(
+      CountryPageData.indianEmblemPng,
+      width: width,
+      height: height,
+      fit: BoxFit.contain,
     );
   }
 
@@ -1166,179 +1390,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
   // [BUILD METHOD: GEOGRAPHIC TAB]
   // ==========================================================================
   Widget _buildGeographicTabContent(CountryModel country) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
-    final bool isIndia = country.name.toLowerCase().contains('india') ||
-        country.name.isEmpty ||
-        country.registrationCode == 'IND';
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: w * 0.05,
-        vertical: h * 0.02,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          buildSectionHeader(context, title: 'GEOGRAPHIC & ADMINISTRATIVE'),
-          SizedBox(height: h * 0.015),
-          Container(
-            padding: EdgeInsets.all(w * 0.04),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFAFAFA),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.black.withOpacity(0.05)),
-            ),
-            child: Column(
-              children: [
-                _buildGeographicRow('Country Name', isIndia ? 'India (भारत)' : country.name),
-                Divider(height: h * 0.03),
-                _buildGeographicRow('Capital City', country.capital ?? (isIndia ? 'New Delhi' : '-')),
-                Divider(height: h * 0.03),
-                _buildGeographicRow(
-                  'Registration Code',
-                  country.registrationCode ?? (isIndia ? 'IND' : '-'),
-                ),
-                Divider(height: h * 0.03),
-                _buildGeographicRow(
-                  'Numeric Code',
-                  country.numericCode?.toString() ?? (isIndia ? '356' : '-'),
-                ),
-                Divider(height: h * 0.03),
-                _buildGeographicRow(
-                  'States',
-                  country.statesCount ?? (isIndia ? '28' : '-'),
-                ),
-                Divider(height: h * 0.03),
-                _buildGeographicRow(
-                  'Union Territories',
-                  country.unionTerritories?.toString() ?? (isIndia ? '8' : '-'),
-                ),
-                Divider(height: h * 0.03),
-                _buildGeographicRow('Population', country.population ?? (isIndia ? '145.09 crores (2024)' : '-')),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGeographicRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF777777),
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF222222),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPlacesSection(PlacesToVisit placesToVisit) {
-    final h = MediaQuery.of(context).size.height;
-    final places = placesToVisit.places;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildSectionHeader(
-          context,
-          title: CountryPageData.placesToVisit,
-          trailing: places.length > 2
-              ? Text(
-                  '${places.length} places',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF888888),
-                  ),
-                )
-              : null,
-        ),
-        if (placesToVisit.description != null &&
-            placesToVisit.description!.isNotEmpty) ...[
-          SizedBox(height: h * 0.005),
-          Text(
-            placesToVisit.description!,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF666666),
-            ),
-          ),
-          SizedBox(height: h * 0.015),
-        ],
-        if (places.isNotEmpty)
-          SizedBox(
-            height: h * 0.26,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              clipBehavior: Clip.none,
-              itemCount: places.length,
-              itemBuilder: (context, index) {
-                return buildPlaceCard(context, places[index]);
-              },
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildSymbolsSection(List<SymbolView> symbols) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildSectionHeader(
-          context,
-          title: 'NATIONAL SYMBOLS & EMBLEMS',
-          trailing: Text(
-            '${symbols.length} symbols',
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF888888),
-            ),
-          ),
-        ),
-        SizedBox(height: h * 0.012),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: w * 0.035,
-            mainAxisSpacing: w * 0.035,
-            childAspectRatio: 0.95,
-          ),
-          itemCount: symbols.length,
-          itemBuilder: (context, index) {
-            return buildSymbolCard(
-              context,
-              symbols[index],
-              onDownload: (url) {
-                downloadImage(url, context);
-              },
-            );
-          },
-        ),
-      ],
-    );
+    return GeographicTabSection(country: country);
   }
 }
 
@@ -1376,5 +1428,295 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
     return oldDelegate.tabBar != tabBar ||
         oldDelegate.backgroundColor != backgroundColor ||
         oldDelegate.dividerHeight != dividerHeight;
+  }
+}
+
+
+// ============================================================================
+// [GEOGRAPHIC TAB SECTION]
+// Responsive Geographic & Administrative Profile Section matching reference image
+// Includes 3-Level Interactive Vector India Map (Country -> State -> District)
+// ============================================================================
+class GeographicTabSection extends StatefulWidget {
+  final CountryModel country;
+
+  const GeographicTabSection({
+    super.key,
+    required this.country,
+  });
+
+  @override
+  State<GeographicTabSection> createState() => _GeographicTabSectionState();
+}
+
+class _GeographicTabSectionState extends State<GeographicTabSection> {
+  bool _isExpanded = true;
+
+  static const String _defaultKarnatakaDescription =
+      "**Karnataka** has **31 districts**, organized into multiple divisions for administration. Geographically, the state is divided into three main regions-the coastal plains (Karavali), the hilly Western Ghats (Malnad), and the inland Deccan Plateau.\n\n"
+      "The coastal region lies along the Arabian Sea and receives heavy rainfall, while the Western Ghats are rich in forests and biodiversity. The eastern part forms the Deccan Plateau, which is relatively dry with rolling plains.\n\n"
+      "Major rivers such as the Krishna River and Cauvery River flow through the state, supporting agriculture and water supply. Karnataka's varied geography gives it a mix of climates, from humid coastal weather to semi-arid inland conditions.\n\n"
+      "Karnataka is grouped into four administrative divisions **Bengaluru**, **Mysuru**, **Belagavi**, and **Kalaburagi** which help in efficient governance.";
+
+  String _formatArea(String? area, bool isIndia) {
+    if (area != null && area.trim().isNotEmpty) {
+      final a = area.trim();
+      if (a.toLowerCase().contains('km') || a.toLowerCase().contains('sq')) {
+        return a;
+      }
+      return '$a km2';
+    }
+    return isIndia ? '191,791 km2' : '-';
+  }
+
+  Widget _buildFormattedParagraph(String text, double fontSize, {EdgeInsetsGeometry? padding}) {
+    final spans = <TextSpan>[];
+    final regex = RegExp(r'\*\*(.*?)\*\*');
+    int lastMatchEnd = 0;
+
+    for (final match in regex.allMatches(text)) {
+      if (match.start > lastMatchEnd) {
+        spans.add(TextSpan(
+          text: text.substring(lastMatchEnd, match.start),
+          style: TextStyle(
+            fontSize: fontSize,
+            fontWeight: FontWeight.w400,
+            color: const Color(0xFF333333),
+            height: 1.45,
+            letterSpacing: 0.1,
+          ),
+        ));
+      }
+      spans.add(TextSpan(
+        text: match.group(1),
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w700,
+          color: const Color(0xFF1E1E1E),
+          height: 1.45,
+          letterSpacing: 0.1,
+        ),
+      ));
+      lastMatchEnd = match.end;
+    }
+
+    if (lastMatchEnd < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastMatchEnd),
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w400,
+          color: const Color(0xFF333333),
+          height: 1.45,
+          letterSpacing: 0.1,
+        ),
+      ));
+    }
+
+    final richText = RichText(
+      text: TextSpan(children: spans),
+    );
+
+    if (padding != null) {
+      return Padding(
+        padding: padding,
+        child: richText,
+      );
+    }
+    return richText;
+  }
+
+  Widget _buildStatRow({
+    required BuildContext context,
+    required String iconAsset,
+    required String label,
+    required String value,
+    required double w,
+    required double h,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: w * 0.048,
+          height: w * 0.048,
+          child: Center(
+            child: SvgPicture.asset(
+              iconAsset,
+              width: w * 0.038,
+              height: w * 0.038,
+            ),
+          ),
+        ),
+        SizedBox(width: w * 0.035),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: w * 0.026,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF9E9E9E),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              SizedBox(height: h * 0.002),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: w * 0.035,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1E1E1E),
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    final bool isIndia = widget.country.name.toLowerCase().contains('india') ||
+        widget.country.name.isEmpty ||
+        widget.country.registrationCode == 'IND' ||
+        widget.country.registrationCode == 'KA';
+
+    // 1. Description: API first, then fallback
+    final String rawDescription = widget.country.geographicDescription?.trim().isNotEmpty == true
+        ? widget.country.geographicDescription!
+        : (widget.country.info?.trim().isNotEmpty == true
+            ? widget.country.info!
+            : _defaultKarnatakaDescription);
+
+    final List<String> allParagraphs = rawDescription
+        .split(RegExp(r'\n\s*\n'))
+        .where((p) => p.trim().isNotEmpty)
+        .toList();
+
+    final List<String> paragraphs = allParagraphs.isNotEmpty
+        ? allParagraphs
+        : rawDescription.split('\n').where((p) => p.trim().isNotEmpty).toList();
+
+    final List<String> visibleParagraphs = _isExpanded
+        ? paragraphs
+        : (paragraphs.length > 2 ? paragraphs.sublist(0, 2) : paragraphs);
+
+    final bool canToggle = paragraphs.length > 2 || rawDescription.length > 250;
+
+    // 2. Stats values from API with fallback matching the reference mockup
+    final String areaValue = _formatArea(widget.country.area, isIndia);
+    final String regCodeValue = widget.country.registrationCode?.isNotEmpty == true
+        ? widget.country.registrationCode!
+        : (isIndia ? 'KA' : '-');
+    final String populationValue = widget.country.population?.isNotEmpty == true
+        ? widget.country.population!
+        : (isIndia ? '61,095,297' : '-');
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: w * 0.05,
+        vertical: h * 0.018,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Full-width description paragraphs (no right-side gap)
+          for (int i = 0; i < visibleParagraphs.length; i++) ...[
+            _buildFormattedParagraph(
+              visibleParagraphs[i],
+              w * 0.034,
+            ),
+            if (i < visibleParagraphs.length - 1)
+              SizedBox(height: h * 0.016),
+          ],
+
+          // SHOW LESS / SHOW MORE Toggle
+          if (canToggle) ...[
+            SizedBox(height: h * 0.012),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
+                });
+              },
+              child: Text(
+                _isExpanded ? 'SHOW LESS' : 'SHOW MORE',
+                style: TextStyle(
+                  fontSize: w * 0.032,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFFFE3A31),
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
+
+          SizedBox(height: h * 0.025),
+
+          // Civic Stats (AREA, REGISTRATION CODE, POPULATION)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Stats 1: AREA
+              _buildStatRow(
+                context: context,
+                iconAsset: CountryPageData.geographicAreaIcon,
+                label: 'AREA',
+                value: areaValue,
+                w: w,
+                h: h,
+              ),
+
+              SizedBox(height: h * 0.016),
+
+              // Stats 2: REGISTRATION CODE
+              _buildStatRow(
+                context: context,
+                iconAsset: CountryPageData.geographicRegistrationCodeIcon,
+                label: 'REGISTRATION CODE',
+                value: regCodeValue,
+                w: w,
+                h: h,
+              ),
+
+              SizedBox(height: h * 0.016),
+
+              // Stats 3: POPULATION
+              _buildStatRow(
+                context: context,
+                iconAsset: CountryPageData.geographicPopulationIcon,
+                label: 'POPULATION',
+                value: populationValue,
+                w: w,
+                h: h,
+              ),
+            ],
+          ),
+
+          SizedBox(height: h * 0.035),
+
+          // ── INTERACTIVE INDIA MAP SECTION (Level 1, Level 2, Level 3) ──
+          IndiaMapWidget(
+              initialSelectedState: widget.country.registrationCode == 'KA' ? 'Karnataka' : null,
+              onStateSelected: (state) {
+                debugPrint('Selected State: ${state.name} (${state.code})');
+              },
+              onDistrictSelected: (district) {
+                debugPrint('Selected District: ${district.districtName} in ${district.stateName}');
+              },
+          ),
+
+          SizedBox(height: h * 0.02),
+        ],
+      ),
+    );
   }
 }
