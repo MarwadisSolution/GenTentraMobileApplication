@@ -476,17 +476,12 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
 
     // Already successfully viewed in this FeedBloc session.
     if (state.viewedPostIds.contains(postId)) {
-      debugPrint(
-        "VIEW ALREADY REPORTED IN SESSION: $postId",
-      );
       return;
     }
 
     // Request for this post is already in progress.
     if (state.reportingViewIds.contains(postId)) {
-      debugPrint(
-        "VIEW REQUEST ALREADY IN PROGRESS: $postId",
-      );
+
       return;
     }
 
@@ -505,9 +500,6 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     );
 
     try {
-      debugPrint(
-        "Reporting view for feed: $postId",
-      );
 
       final success = await api.reportFeedViews(
         [postId],
