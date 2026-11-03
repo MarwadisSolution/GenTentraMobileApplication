@@ -149,6 +149,7 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
         partyId: event.partyId,
         mediaFiles: event.mediaFiles,
         bgImageFile: event.bgImageUrl,
+        fromWhichPage: event.fromWhichPage,
       );
 
       print("========== POST EVENT API COMPLETED ==========");

@@ -184,7 +184,7 @@ class _AddingQuoteState extends State<AddingQuote> {
           "quote": quoteText,
           "author": authorName,
         },
-        authorPartyId: widget.partyId,
+        authorPartyId: widget.fromWhichPage=="Party"? widget.partyId:null,
         tagged: taggedPeople,
         scheduledAt: scheduledAt,
         media: removeInitialImage

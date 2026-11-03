@@ -1551,7 +1551,8 @@ class ReusableEventCard extends StatelessWidget {
 
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
-
+  final String fromWhichPage;
+  final bool isPolitician;
   const ReusableEventCard({
     super.key,
     required this.eventData,
@@ -1563,8 +1564,9 @@ class ReusableEventCard extends StatelessWidget {
     this.onJoin,
     this.onEdit,
     this.onDelete,
+    required this.fromWhichPage,
+    required this.isPolitician,
   });
-
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -1771,7 +1773,7 @@ class ReusableEventCard extends StatelessWidget {
                   ),
 
                   const Spacer(),
-                  if(isAdmin)...[
+                  if(isAdmin||( isPolitician==true && fromWhichPage=="Politician"))...[
                     InkWell(
                       overlayColor: WidgetStateProperty.all(Colors.transparent),
                       onTap: () {

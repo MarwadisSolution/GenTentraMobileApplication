@@ -23,7 +23,9 @@ class FullEventDesc extends StatefulWidget {
   final EventModel eventData;
   final int partyId;
   final bool isAdmin;
-  const FullEventDesc({super.key, required this.eventData, required this.partyId, required this.isAdmin});
+  final String fromWhichPage;
+  final bool isPolitician;
+  const FullEventDesc({super.key, required this.eventData, required this.partyId, required this.isAdmin,required this.fromWhichPage,required this.isPolitician});
 
   @override
   State<FullEventDesc> createState() => _FullEventDescState();
@@ -190,6 +192,8 @@ class _FullEventDescState extends State<FullEventDesc> {
                                       child: AddEvent(
                                         partyId: widget.partyId,
                                         eventToEdit: eventData,
+                                        fromWhichPage: widget.fromWhichPage,
+                                        isPolitician:widget.isPolitician,
                                       ),
                                     );
                                   },
@@ -257,7 +261,7 @@ class _FullEventDescState extends State<FullEventDesc> {
                                   eventId: eventData.id!,
                                 ),
                               );
-                            },
+                            }, fromWhichPage: widget.fromWhichPage, isPolitician:widget.isPolitician ,
                           ),
 SizedBox(height: h*0.02,),
 Container(

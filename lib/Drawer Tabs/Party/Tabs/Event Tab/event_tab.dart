@@ -8,6 +8,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20T
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/reusable_functions.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../reusable_functions.dart';
@@ -35,6 +36,7 @@ class EventTab extends StatefulWidget {
 }
 
 class _EventTabState extends State<EventTab> {
+  bool isPolitician=false;
   int? selectedIndex;
   bool isAdmin = false;
   List<EventModel> _getFilteredEvents(
@@ -42,34 +44,18 @@ class _EventTabState extends State<EventTab> {
     int selectedTab,
   ) {
     switch (selectedTab) {
-      // ----------------------------------------------------------
-      // ALL EVENTS
-      // ----------------------------------------------------------
+
       case 0:
         return events;
 
-      // ----------------------------------------------------------
-      // MY EVENTS
-      // ----------------------------------------------------------
       case 1:
-        // Current logged-in user ID is not available
-        // in EventTab yet.
-        //
-        // Do not use AdminOfParty here because that is
-        // the party-admin ID, not the logged-in user ID.
         return events;
 
-      // ----------------------------------------------------------
-      // PRIVATE EVENTS
-      // ----------------------------------------------------------
       case 2:
         return events
             .where((event) => event.kind.toUpperCase() == "PRIVATE")
             .toList();
 
-      // ----------------------------------------------------------
-      // PAST EVENTS
-      // ----------------------------------------------------------
       case 3:
         return events.where(_hasEventEnded).toList();
 
@@ -123,6 +109,12 @@ class _EventTabState extends State<EventTab> {
         DateTime.now().isAtSameMomentAs(startDateTime);
   }
 
+  ///----------------Politician checking-------------
+  Future<void>checkPolitician()async{
+    final  prefs=await SharedPreferences.getInstance();
+    isPolitician= prefs.getString("role")=="ROLE_POLITICIAN";
+  }
+  ///----------Admin checking-----------------
   Future<void> checkAdmin() async {
     if (widget.fromWhichPage == "Politician" || widget.partyId <= 0) {
       if (!mounted) return;
@@ -170,21 +162,6 @@ class _EventTabState extends State<EventTab> {
     }
   }
 
-  // ------------------------------------------------------------
-  // INIT STATE
-  // ------------------------------------------------------------
-  // @override
-  // void initState() {
-  //   super.initState();
-  //
-  //   widget.scrollController.addListener(_onScroll);
-  //
-  //   context.read<EventsBloc>().add(
-  //     GetEventEvent(partyId: widget.partyId, page: 0, size: 20),
-  //   );
-  //   checkAdmin();
-  // }
-
   @override
   void initState() {
     super.initState();
@@ -215,11 +192,9 @@ class _EventTabState extends State<EventTab> {
     }
 
     checkAdmin();
+    checkPolitician();
   }
 
-  // ------------------------------------------------------------
-  // DISPOSE
-  // ------------------------------------------------------------
   @override
   void dispose() {
     widget.scrollController.removeListener(_onScroll);
@@ -227,9 +202,6 @@ class _EventTabState extends State<EventTab> {
     super.dispose();
   }
 
-  // ------------------------------------------------------------
-  // BUILD
-  // ------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
@@ -268,7 +240,6 @@ class _EventTabState extends State<EventTab> {
           context.read<EventsBloc>().add(ClearJoinMessageEvent());
         }
 
-        // DELETE SUCCESS
         // DELETE SUCCESS
         if (state.isEventDeleted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -433,6 +404,8 @@ class _EventTabState extends State<EventTab> {
                                     eventData: eventData,
                                     partyId: widget.partyId,
                                     isAdmin: isAdmin,
+                                    fromWhichPage: widget.fromWhichPage,
+                                    isPolitician:isPolitician,
                                   ),
                                 );
                               },
@@ -510,6 +483,8 @@ class _EventTabState extends State<EventTab> {
                                                   child: AddEvent(
                                                     partyId: widget.partyId,
                                                     eventToEdit: eventData,
+                                                    fromWhichPage: widget.fromWhichPage,
+                                                    isPolitician:isPolitician,
                                                   ),
                                                 );
                                               },
@@ -574,7 +549,7 @@ class _EventTabState extends State<EventTab> {
                                               fromWhichPage: widget.fromWhichPage,
                                             ),
                                           );
-                                        },
+                                        }, fromWhichPage: widget.fromWhichPage, isPolitician: isPolitician,
                                       ),
                                     ),
 
@@ -625,6 +600,8 @@ class _EventTabState extends State<EventTab> {
                                                 child: AddEvent(
                                                   partyId: widget.partyId,
                                                   eventToEdit: eventData,
+                                                  fromWhichPage: widget.fromWhichPage,
+                                                  isPolitician:isPolitician,
                                                 ),
                                               );
                                             },
@@ -687,7 +664,7 @@ class _EventTabState extends State<EventTab> {
                                       ),
                                     );
                                     }
-                                  },
+                                  }, fromWhichPage: widget.fromWhichPage, isPolitician:isPolitician ,
                                 ),
                         );
                       },

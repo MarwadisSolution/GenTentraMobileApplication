@@ -16,6 +16,7 @@ import 'package:readmore/readmore.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+
 import 'apis.dart';
 import 'functions.dart';
 
@@ -25,8 +26,14 @@ class FeedTab extends StatefulWidget {
   final bool isVisible;
   final String fromWhichPage;
   final int politicianId;
-  const FeedTab({super.key, required this.partyId,required this.scrollController,required this.isVisible,required this.fromWhichPage,
-  required this.politicianId,
+
+  const FeedTab({
+    super.key,
+    required this.partyId,
+    required this.scrollController,
+    required this.isVisible,
+    required this.fromWhichPage,
+    required this.politicianId,
   });
 
   @override
@@ -34,8 +41,8 @@ class FeedTab extends StatefulWidget {
 }
 
 class _FeedTabState extends State<FeedTab> {
-  int? selectedIndex;
   bool? isAdmin;
+  bool isPolitician = false;
 
   void _refreshIfNeeded() {
     if (!widget.isVisible) return;
@@ -47,9 +54,8 @@ class _FeedTabState extends State<FeedTab> {
 
     final shouldFetch =
         feedState.feeds.isEmpty ||
-            feedState.lastFetchedAt == null ||
-            DateTime.now().difference(feedState.lastFetchedAt!) >
-                refreshAfter;
+        feedState.lastFetchedAt == null ||
+        DateTime.now().difference(feedState.lastFetchedAt!) > refreshAfter;
 
     if (shouldFetch && !feedState.isLoading) {
       feedBloc.add(
@@ -57,11 +63,17 @@ class _FeedTabState extends State<FeedTab> {
           partyId: widget.partyId,
           page: 0,
           size: 20,
-            fromWhichPage: widget.fromWhichPage,
+          fromWhichPage: widget.fromWhichPage,
           politicianId: widget.politicianId,
         ),
       );
     }
+  }
+
+  ///-------------------Politician Checking-------------
+  Future<void> checkPolitician() async {
+    final prefs = await SharedPreferences.getInstance();
+    isPolitician = prefs.getString("role") == "ROLE_POLITICIAN";
   }
 
   Future<void> isAdminChecking() async {
@@ -76,6 +88,7 @@ class _FeedTabState extends State<FeedTab> {
       isAdmin = admin;
     });
   }
+
   void _onScroll() {
     if (!widget.scrollController.hasClients) return;
 
@@ -96,6 +109,7 @@ class _FeedTabState extends State<FeedTab> {
       );
     }
   }
+
   @override
   void didUpdateWidget(covariant FeedTab oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -104,12 +118,13 @@ class _FeedTabState extends State<FeedTab> {
       _refreshIfNeeded();
     }
   }
+
   @override
   void initState() {
     super.initState();
 
     isAdminChecking();
-
+    checkPolitician();
     if (widget.isVisible) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -120,32 +135,22 @@ class _FeedTabState extends State<FeedTab> {
 
     widget.scrollController.addListener(_onScroll);
   }
+
   @override
   void dispose() {
     widget.scrollController.removeListener(_onScroll);
     super.dispose();
   }
+
   Future<void> shareFeed(dynamic feed) async {
     final String shareLink =
         'https://gentantrabackend-production.up.railway.app/feed/${feed.uuid}';
     await Share.share('Check out this post: \n$shareLink');
   }
 
-// ============================================================
-// FEED VIEW TRACKING
-// ============================================================
-
-  /// Timers for posts that are currently visible.
-  // ============================================================
-// FEED VIEW TRACKING
-// ============================================================
-
   final Map<int, Timer> _viewTimers = {};
 
-  void _onFeedVisibilityChanged(
-      int? postId,
-      double visibleFraction,
-      ) {
+  void _onFeedVisibilityChanged(int? postId, double visibleFraction) {
     if (postId == null) return;
 
     final feedState = context.read<FeedBloc>().state;
@@ -170,38 +175,27 @@ class _FeedTabState extends State<FeedTab> {
         return;
       }
 
-      debugPrint(
-        "FEED $postId >= 50% visible -> starting 2 second timer",
-      );
+      debugPrint("FEED $postId >= 50% visible -> starting 2 second timer");
 
-      _viewTimers[postId] = Timer(
-        const Duration(seconds: 2),
-            () {
-          _viewTimers.remove(postId);
+      _viewTimers[postId] = Timer(const Duration(seconds: 2), () {
+        _viewTimers.remove(postId);
 
-          if (!mounted) return;
+        if (!mounted) return;
 
-          final currentState = context.read<FeedBloc>().state;
+        final currentState = context.read<FeedBloc>().state;
 
-          if (currentState.viewedPostIds.contains(postId)) {
-            return;
-          }
+        if (currentState.viewedPostIds.contains(postId)) {
+          return;
+        }
 
-          if (currentState.reportingViewIds.contains(postId)) {
-            return;
-          }
+        if (currentState.reportingViewIds.contains(postId)) {
+          return;
+        }
 
-          debugPrint(
-            "FEED $postId remained >= 50% visible for 2 seconds",
-          );
+        debugPrint("FEED $postId remained >= 50% visible for 2 seconds");
 
-          context.read<FeedBloc>().add(
-            ReportFeedViewEvent(
-              postId: postId,
-            ),
-          );
-        },
-      );
+        context.read<FeedBloc>().add(ReportFeedViewEvent(postId: postId));
+      });
 
       return;
     }
@@ -219,9 +213,7 @@ class _FeedTabState extends State<FeedTab> {
     if (timer != null) {
       timer.cancel();
 
-      debugPrint(
-        "FEED $postId went below 50% -> timer cancelled",
-      );
+      debugPrint("FEED $postId went below 50% -> timer cancelled");
     }
   }
 
@@ -243,7 +235,7 @@ class _FeedTabState extends State<FeedTab> {
         }
       },
       builder: (context, state) {
-        if (state.isLoading  && state.feeds.isEmpty) {
+        if (state.isLoading && state.feeds.isEmpty) {
           return Padding(
             padding: EdgeInsets.only(top: h * 0.1),
             child: const Center(
@@ -259,9 +251,15 @@ class _FeedTabState extends State<FeedTab> {
         if (state.feeds.isEmpty) {
           return Padding(
             padding: EdgeInsets.all(h * 0.045),
-            child:  Center(child: Text("No Feeds found",
-              style: TextStyle(color: ColorScheme.of(context).onSurface,fontSize: w*0.045),
-            )),
+            child: Center(
+              child: Text(
+                "No Feeds found",
+                style: TextStyle(
+                  color: ColorScheme.of(context).onSurface,
+                  fontSize: w * 0.045,
+                ),
+              ),
+            ),
           );
         }
 
@@ -271,26 +269,22 @@ class _FeedTabState extends State<FeedTab> {
           padding: EdgeInsets.zero,
           itemCount: state.feeds.length + (state.isLoadingMore ? 1 : 0),
           itemBuilder: (context, index) {
-            if(index>=state.feeds.length){
-              return  Padding(padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(
-                child: CircularProgressIndicator(
-                  color: ColorScheme.of(context).onSurface,
+            if (index >= state.feeds.length) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: ColorScheme.of(context).onSurface,
+                  ),
                 ),
-              ),
               );
             }
             final feed = state.feeds[index];
-           // print("Feeds:--- ${feed.media![0].url}");
+            // print("Feeds:--- ${feed.media![0].url}");
             return VisibilityDetector(
-              key: Key(
-                'feed_visibility_${feed.id ?? index}',
-              ),
+              key: Key('feed_visibility_${feed.id ?? index}'),
               onVisibilityChanged: (info) {
-                _onFeedVisibilityChanged(
-                  feed.id,
-                  info.visibleFraction,
-                );
+                _onFeedVisibilityChanged(feed.id, info.visibleFraction);
               },
               child: Container(
                 key: ValueKey(feed.id ?? index),
@@ -299,7 +293,6 @@ class _FeedTabState extends State<FeedTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ListTile(
-
                       leading: CircleAvatar(
                         radius: w * 0.07,
                         backgroundColor: Colors.white,
@@ -324,18 +317,18 @@ class _FeedTabState extends State<FeedTab> {
                         ),
                       ),
                       subtitle: Row(
-                         crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                       Text(
-                         getTimeAgo(feed.timestamp),
-                         style: TextStyle(
-                           fontSize: (w * 0.025).clamp(12.0, 15.0),
-                           fontWeight: FontWeight.w400,
-                           letterSpacing: 0.21,
-                           color: const Color(0xFF666666),
-                         ),
-                       ),
-                          SizedBox(width: w*0.01,),
+                          Text(
+                            getTimeAgo(feed.timestamp),
+                            style: TextStyle(
+                              fontSize: (w * 0.025).clamp(12.0, 15.0),
+                              fontWeight: FontWeight.w400,
+                              letterSpacing: 0.21,
+                              color: const Color(0xFF666666),
+                            ),
+                          ),
+                          SizedBox(width: w * 0.01),
                           Text(
                             "•",
                             style: TextStyle(
@@ -343,14 +336,15 @@ class _FeedTabState extends State<FeedTab> {
                               color: ColorScheme.of(context).error,
                             ),
                           ),
-                          SizedBox(width: w*0.03,),
+                          SizedBox(width: w * 0.03),
                           Padding(
-                            padding:  EdgeInsets.only(top: h*0.0027),
-                            child: SvgPicture.asset(PartyPageData.headquarterIcon,
-                            height: (h * 0.017) ,
+                            padding: EdgeInsets.only(top: h * 0.0027),
+                            child: SvgPicture.asset(
+                              PartyPageData.headquarterIcon,
+                              height: (h * 0.017),
                             ),
                           ),
-                          SizedBox(width: w*0.01,),
+                          SizedBox(width: w * 0.01),
                           Text(
                             feed.author?.state ?? "-",
                             style: TextStyle(
@@ -360,7 +354,7 @@ class _FeedTabState extends State<FeedTab> {
                               color: const Color(0xFF666666),
                             ),
                           ),
-                          SizedBox(width: w*0.01,),
+                          SizedBox(width: w * 0.01),
                           Text(
                             feed.author?.country ?? "",
                             style: TextStyle(
@@ -372,165 +366,201 @@ class _FeedTabState extends State<FeedTab> {
                           ),
                         ],
                       ),
-                      trailing: isAdmin == true
+                      trailing:
+                          isAdmin == true ||
+                              (isPolitician == true &&
+                                  widget.fromWhichPage == "Politician")
                           ? PopupMenuButton<String>(
-                        icon: Transform.translate(
-                          offset: const Offset(20, 0),
-                          child: SvgPicture.asset(
-                            PartyPageData.threeDots,
-                            height: h * 0.004,
-                          ),
-                        ),
-                        onSelected: (value) async {
-                          if (value == 'edit') {
-                            final result = feed.kind=="POST"? await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                             builder: (_) => BlocProvider.value(
-                                  value: context.read<FeedBloc>(),
-                                  child: AddingFeed(
-                                    partyId: widget.partyId,
-                                    editFeed: feed,
-                                    fromWhichPage: widget.fromWhichPage,
-                                    politicianId: widget.politicianId,
-                                  ),
+                              icon: Transform.translate(
+                                offset: const Offset(20, 0),
+                                child: SvgPicture.asset(
+                                  PartyPageData.threeDots,
+                                  height: h * 0.004,
                                 ),
                               ),
-                            ):
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>  BlocProvider.value(
-                                  value: context.read<FeedBloc>(),
-                                  child: AddingQuote(
-                                    partyId: widget.partyId,
-                                    editQuote: feed,
-                                    fromWhichPage: widget.fromWhichPage,
-                                    politicianId: widget.politicianId,
-                                  ),
-                                ),
-                              ),
-                            )
-                            ;
+                              onSelected: (value) async {
+                                if (value == 'edit') {
+                                  final result = feed.kind == "POST"
+                                      ? await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => BlocProvider.value(
+                                              value: context.read<FeedBloc>(),
+                                              child: AddingFeed(
+                                                partyId: widget.partyId,
+                                                editFeed: feed,
+                                                fromWhichPage:
+                                                    widget.fromWhichPage,
+                                                politicianId:
+                                                    widget.politicianId,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => BlocProvider.value(
+                                              value: context.read<FeedBloc>(),
+                                              child: AddingQuote(
+                                                partyId: widget.partyId,
+                                                editQuote: feed,
+                                                fromWhichPage:
+                                                    widget.fromWhichPage,
+                                                politicianId:
+                                                    widget.politicianId,
+                                              ),
+                                            ),
+                                          ),
+                                        );
 
-                            if (result == true && mounted) {
-                              setState(() {});
-                            }
-                          }
-                         else if (value == 'share') {
-                            shareFeed(feed);
-                          } else if (value == 'delete') {
-                            final shouldDelete = await showGeneralDialog<bool>(
-                              context: context,
-                              barrierDismissible: true,
-                              barrierLabel: 'Delete',
-                              barrierColor: Colors.black.withValues(alpha: 0.25),
-                              transitionDuration: const Duration(milliseconds: 250),
-                              pageBuilder: (dialogContext,_,_) {
-                                return popUpMessageForDeleteOrCancel(
-                                  dialogContext,
-                                 feed.kind=="POST"? PartyPageData.addFeedIcon:PartyPageData.coloredQuoteIcon,
-                                  "Would you like to Delete?",
-                                  "Once deleted, this post will be permanently removed.",
-                                      () {},
-                                );
+                                  if (result == true && mounted) {
+                                    setState(() {});
+                                  }
+                                } else if (value == 'share') {
+                                  shareFeed(feed);
+                                } else if (value == 'delete') {
+                                  final shouldDelete =
+                                      await showGeneralDialog<bool>(
+                                        context: context,
+                                        barrierDismissible: true,
+                                        barrierLabel: 'Delete',
+                                        barrierColor: Colors.black.withValues(
+                                          alpha: 0.25,
+                                        ),
+                                        transitionDuration: const Duration(
+                                          milliseconds: 250,
+                                        ),
+                                        pageBuilder: (dialogContext, _, _) {
+                                          return popUpMessageForDeleteOrCancel(
+                                            dialogContext,
+                                            feed.kind == "POST"
+                                                ? PartyPageData.addFeedIcon
+                                                : PartyPageData
+                                                      .coloredQuoteIcon,
+                                            "Would you like to Delete?",
+                                            "Once deleted, this post will be permanently removed.",
+                                            () {},
+                                          );
+                                        },
+                                        transitionBuilder:
+                                            (
+                                              context,
+                                              animation,
+                                              secondaryAnimation,
+                                              child,
+                                            ) {
+                                              return SlideTransition(
+                                                position:
+                                                    Tween<Offset>(
+                                                      begin: const Offset(0, 1),
+                                                      end: Offset.zero,
+                                                    ).animate(
+                                                      CurvedAnimation(
+                                                        parent: animation,
+                                                        curve:
+                                                            Curves.easeOutCubic,
+                                                      ),
+                                                    ),
+                                                child: child,
+                                              );
+                                            },
+                                      );
+
+                                  if (shouldDelete == true && mounted) {
+                                    context.read<FeedBloc>().add(
+                                      DeleteFeedEvent(
+                                        feed.id!,
+                                        widget.partyId,
+                                        fromWhichPage: widget.fromWhichPage,
+                                        politicianId: widget.politicianId,
+                                      ),
+                                    );
+                                  }
+                                }
                               },
-                              transitionBuilder: (context, animation, secondaryAnimation, child){
-                                return SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0,1),
-                                      end: Offset.zero,
-                                    ).animate(
-                                     CurvedAnimation(parent: animation,
-                                         curve: Curves.easeOutCubic,
-                                     ),
-                                    ),
-                                  child: child,
-                                );
-                              }
-                            );
-
-                            if (shouldDelete == true && mounted) {
-                              context.read<FeedBloc>().add(
-                                DeleteFeedEvent(
-                                  feed.id!,
-                                  widget.partyId,
-                                  fromWhichPage: widget.fromWhichPage,
-                                  politicianId: widget.politicianId,
+                              itemBuilder: (BuildContext context) => [
+                                PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      SvgPicture.asset(
+                                        PartyPageData.editIcon,
+                                        width: 18,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text("Edit"),
+                                    ],
+                                  ),
                                 ),
-                              );
-                            }
-
-                          }
-                        },
-                        itemBuilder: (BuildContext context) => [
-                          PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(PartyPageData.editIcon, width: 18),
-                                const SizedBox(width: 8),
-                                const Text("Edit"),
+                                PopupMenuItem(
+                                  value: 'share',
+                                  child: Row(
+                                    children: [
+                                      SvgPicture.asset(
+                                        PartyPageData.share,
+                                        width: 18,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text("Share"),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      SvgPicture.asset(
+                                        PartyPageData.deleteIcon,
+                                        width: 18,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text("Delete"),
+                                    ],
+                                  ),
+                                ),
                               ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'share',
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(PartyPageData.share, width: 18),
-                                const SizedBox(width: 8),
-                                const Text("Share"),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(PartyPageData.deleteIcon, width: 18),
-                                const SizedBox(width: 8),
-                                const Text("Delete"),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
+                            )
                           : null,
                     ),
 
                     // Post content
-
-                    ShowingTaggedPersons(tagged:feed.tagged),
+                    ShowingTaggedPersons(tagged: feed.tagged),
                     Padding(
-                      padding: EdgeInsets.only(top: h*0.001, right: w * 0.044, left: w * 0.044),
-                      child: feed.kind=='POST'?ReadMoreText(
-                        feed.body ?? "-",
-                        trimLines: 3,
-                        trimMode: TrimMode.Line,
-                        trimCollapsedText: "\nRead More",
-                        trimExpandedText: "\nShow Less",
-                        moreStyle: const TextStyle(
-                          color: Color(0xFFFE3A31),
-                          fontWeight: FontWeight.w600,
-                        ),
-                        lessStyle: const TextStyle(
-                          color: Color(0xFFFE3A31),
-                          fontWeight: FontWeight.w600,
-                        ),
-                        style: TextStyle(
-                          fontSize: (w * 0.042),
-                          color: Colors.black,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ):null,
+                      padding: EdgeInsets.only(
+                        top: h * 0.001,
+                        right: w * 0.044,
+                        left: w * 0.044,
+                      ),
+                      child: feed.kind == 'POST'
+                          ? ReadMoreText(
+                              feed.body ?? "-",
+                              trimLines: 3,
+                              trimMode: TrimMode.Line,
+                              trimCollapsedText: "\nRead More",
+                              trimExpandedText: "\nShow Less",
+                              moreStyle: const TextStyle(
+                                color: Color(0xFFFE3A31),
+                                fontWeight: FontWeight.w600,
+                              ),
+                              lessStyle: const TextStyle(
+                                color: Color(0xFFFE3A31),
+                                fontWeight: FontWeight.w600,
+                              ),
+                              style: TextStyle(
+                                fontSize: (w * 0.042),
+                                color: Colors.black,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            )
+                          : null,
                     ),
 
                     if (feed.media != null &&
                         feed.media!.isNotEmpty &&
                         feed.kind == "POST" &&
                         feed.hidden == false) ...[
-                     SizedBox(height: h * 0.012),
+                      SizedBox(height: h * 0.012),
                       FeedMediaWidget(media: feed.media!),
                     ] else if (feed.kind == "QUOTE" && feed.hidden == false) ...[
                       SizedBox(height: h * 0.012),
@@ -543,28 +573,32 @@ class _FeedTabState extends State<FeedTab> {
                       ),
                     ],
 
-                      // Views and Interactions
+                    // Views and Interactions
                     Padding(
                       padding: EdgeInsets.only(
-                          top:feed.kind=="QUOTE"?0:h*0.012 ,
-
+                        top: feed.kind == "QUOTE" ? 0 : h * 0.012,
                       ),
                       child: Column(
                         children: [
-                          if(feed.kind=="QUOTE"||feed.media!.isEmpty)
+                          if (feed.kind == "QUOTE" || feed.media!.isEmpty)
                             Divider(
-                              color: ColorScheme.of(context).onSurface.withValues(alpha: 0.08),
+                              color: ColorScheme.of(
+                                context,
+                              ).onSurface.withValues(alpha: 0.08),
                               thickness: 1,
                             ),
                           Padding(
-                            padding:  EdgeInsets.only( right: w * 0.034, left: w * 0.044),
+                            padding: EdgeInsets.only(
+                              right: w * 0.034,
+                              left: w * 0.044,
+                            ),
                             child: Row(
                               children: [
                                 Text(
-                                 feed.viewCount.toString(),
+                                  feed.viewCount.toString(),
                                   style: TextStyle(
                                     fontWeight: FontWeight.w800,
-                                    fontSize: (w * 0.05)
+                                    fontSize: (w * 0.05),
                                   ),
                                 ),
                                 SizedBox(width: w * 0.03),
@@ -573,7 +607,9 @@ class _FeedTabState extends State<FeedTab> {
                                   style: TextStyle(
                                     fontSize: (w * 0.025).clamp(12.0, 15.0),
                                     fontWeight: FontWeight.w400,
-                                    color: ColorScheme.of(context).onSurface.withValues(alpha: 0.6),
+                                    color: ColorScheme.of(
+                                      context,
+                                    ).onSurface.withValues(alpha: 0.6),
                                   ),
                                 ),
                                 const Spacer(),
@@ -584,10 +620,12 @@ class _FeedTabState extends State<FeedTab> {
                                 ),
                                 SizedBox(width: w * 0.08),
                                 Padding(
-                                  padding:  EdgeInsets.only(right: w*0.015),
+                                  padding: EdgeInsets.only(right: w * 0.015),
                                   child: InkWell(
                                     onTap: () => shareFeed(feed),
-                                    child: SvgPicture.asset(PartyPageData.share),
+                                    child: SvgPicture.asset(
+                                      PartyPageData.share,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -617,11 +655,7 @@ class LikeButton extends StatefulWidget {
   final int? feedId;
   final bool reacted;
 
-  const LikeButton({
-    super.key,
-    required this.feedId,
-    required this.reacted,
-  });
+  const LikeButton({super.key, required this.feedId, required this.reacted});
 
   @override
   State<LikeButton> createState() => _LikeButtonState();
@@ -691,10 +725,13 @@ class _LikeButtonState extends State<LikeButton> {
     return InkWell(
       onTap: likePost,
       child: Center(
-        child:Icon(Icons.thumb_up,
-        size: MediaQuery.of(context).size.height*0.028 ,
-        color: isLiked?Color(0xFFFE3A31):ColorScheme.of(context).onSurface.withValues(alpha: 0.22),
-        )
+        child: Icon(
+          Icons.thumb_up,
+          size: MediaQuery.of(context).size.height * 0.028,
+          color: isLiked
+              ? Color(0xFFFE3A31)
+              : ColorScheme.of(context).onSurface.withValues(alpha: 0.22),
+        ),
       ),
     );
   }

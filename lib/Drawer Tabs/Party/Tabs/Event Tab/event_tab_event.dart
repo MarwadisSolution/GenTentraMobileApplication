@@ -11,13 +11,14 @@ class AddNewEvent extends EventsEvent{
   final File? bgImageUrl;
   final bool? bgImage;
   final int partyId;
-
+  final String fromWhichPage;
   AddNewEvent({
     required this.eventData,
     required this.mediaFiles,
     this.bgImageUrl,
     this.bgImage,
     required this.partyId,
+    required this.fromWhichPage,
 });
 }
 //2.  Edit Event
