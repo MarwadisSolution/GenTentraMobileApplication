@@ -99,22 +99,20 @@ class EditDevelopmentEvent extends DevelopmentEvent {
 ///-------------------Deleted development
 class DeleteDevelopmentEvent extends DevelopmentEvent{
   final int id;
-  final int partyId;
+  final int partyOrPoliticianId;
   final String fromWhichPage;
-  final int politicianId;
   const DeleteDevelopmentEvent(
-      this.id, this.partyId,
+      this.id, this.partyOrPoliticianId,
   {
-    required this.fromWhichPage, required this.politicianId,
+    required this.fromWhichPage,
 
   }
       );
   @override
   List<Object?> get props => [
     id,
-    partyId,
+    partyOrPoliticianId,
     fromWhichPage,
-    politicianId,
   ];
 }
 
