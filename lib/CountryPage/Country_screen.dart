@@ -63,6 +63,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
   final ValueNotifier<bool> _showCountryDetails = ValueNotifier<bool>(true);
   bool _isUserScrolling = false;
   bool _isInfoExpanded = false;
+  bool _isFlagExpanded = false;
+  Offset? _draggableFabPosition;
 
   @override
   void initState() {
@@ -72,7 +74,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
       vsync: this,
     );
 
-    // Tab switch listener
+    // Tab switch listener matching Party Page exactly
     _tabController.addListener(() {
       if (!mounted) return;
       if (!_tabController.indexIsChanging) {
@@ -92,6 +94,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
@@ -110,28 +113,32 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             return Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.06,
+                  horizontal: screenWidth * 0.06,
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 54,
-                      color: Color(0xFFFE3A31),
+                    SvgPicture.asset(
+                      "Assets/PartyPage/crossIcon.svg",
+                      width: screenWidth * 0.14,
+                      height: screenWidth * 0.14,
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xFFFE3A31),
+                        BlendMode.srcIn,
+                      ),
                     ),
                     SizedBox(height: screenHeight * 0.02),
                     Text(
                       state.errorMessage ?? 'Failed to load country profile',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.042,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF222222),
+                        color: const Color(0xFF222222),
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.025),
-                    ElevatedButton.icon(
+                    ElevatedButton(
                       onPressed: () {
                         context
                             .read<CountryProfileBloc>()
@@ -141,15 +148,20 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                         backgroundColor: const Color(0xFFFE3A31),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(screenWidth * 0.05),
                         ),
                         padding: EdgeInsets.symmetric(
-                          horizontal: MediaQuery.of(context).size.width * 0.06,
+                          horizontal: screenWidth * 0.06,
                           vertical: screenHeight * 0.015,
                         ),
                       ),
-                      icon: const Icon(Icons.refresh, size: 18),
-                      label: const Text('Try Again'),
+                      child: Text(
+                        'Try Again',
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.038,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -176,13 +188,9 @@ class _CountryProfileViewState extends State<_CountryProfileView>
   // [BUILD METHOD: LOADED CONTENT]
   // ==========================================================================
   Widget _buildLoadedContent(CountryModel country, double screenHeight) {
-    final bool isIndia = country.name.toLowerCase().contains('india') ||
-        country.name.isEmpty ||
-        country.registrationCode == 'IND';
-
     final List<String> banners = country.bannerImages.isNotEmpty
         ? country.bannerImages
-        : [
+        : const [
             'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/1200px-Taj_Mahal_%28Edited%29.jpeg',
             'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/1200px-Taj_Mahal_%28Edited%29.jpeg',
           ];
@@ -195,7 +203,21 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                 ? 0.247
                 : (218.0 / screenHeight).clamp(0.1, 0.85);
 
-    final String countryHeaderTitle = isIndia ? 'India - भारत' : country.name;
+    final bool isIndia = country.name.toLowerCase().contains('india') ||
+        country.name.isEmpty ||
+        country.registrationCode == 'IND';
+
+    final String countryHeaderTitle = country.name.isNotEmpty
+        ? (isIndia ? 'India - भारत' : country.name)
+        : 'India - भारत';
+
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double fabSize = screenWidth * 0.12;
+
+    _draggableFabPosition ??= Offset(
+      screenWidth - fabSize - screenWidth * 0.05,
+      screenHeight * 0.62,
+    );
 
     return Stack(
       children: [
@@ -259,10 +281,10 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                 },
                 child: Container(
                   clipBehavior: Clip.antiAlias,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(24),
+                      top: Radius.circular(screenWidth * 0.06),
                     ),
                   ),
                   child: CustomScrollView(
@@ -299,28 +321,32 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                         delegate: _SliverTabBarDelegate(
                           TabBar(
                             controller: _tabController,
+                            onTap: (index) {
+                              _selectedTabIndex.value = index;
+                            },
                             tabAlignment: TabAlignment.start,
                             overlayColor:
                                 WidgetStateProperty.all(Colors.transparent),
                             isScrollable: true,
-                            labelPadding:
-                                const EdgeInsets.symmetric(horizontal: 18),
-                            labelStyle: const TextStyle(
-                              fontSize: 13,
+                            labelPadding: EdgeInsets.symmetric(
+                              horizontal: MediaQuery.of(context).size.width * 0.045,
+                            ),
+                            labelStyle: TextStyle(
+                              fontSize: MediaQuery.of(context).size.width * 0.033,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.5,
                             ),
-                            unselectedLabelStyle: const TextStyle(
-                              fontSize: 13,
+                            unselectedLabelStyle: TextStyle(
+                              fontSize: MediaQuery.of(context).size.width * 0.033,
                               fontWeight: FontWeight.w500,
                               letterSpacing: 0.5,
                             ),
                             labelColor: const Color(0xFF1E1E1E),
                             unselectedLabelColor: const Color(0xFF757575),
                             indicatorColor: const Color(0xFFFE3A31),
-                            indicatorWeight: 2.5,
+                            indicatorWeight: MediaQuery.of(context).size.width * 0.007,
                             indicatorSize: TabBarIndicatorSize.tab,
-                            dividerColor: const Color(0xFFEEEEEE),
+                            dividerColor: const Color(0x33000000),
                             tabs: const [
                               Tab(text: CountryPageData.infoTab),
                               Tab(text: CountryPageData.flagEmblemTab),
@@ -376,196 +402,258 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             },
           ),
         ),
+
+        // ====================================================================
+        // [GLOBAL DRAGGABLE ORANGE FAB]
+        // Accessible across all tabs (Info, Flag/Emblem, Geographic)
+        // Can be freely dragged anywhere on the screen by the user
+        // ====================================================================
+        Positioned(
+          left: _draggableFabPosition!.dx,
+          top: _draggableFabPosition!.dy,
+          child: GestureDetector(
+            onPanUpdate: (details) {
+              setState(() {
+                final double minX = screenWidth * 0.02;
+                final double maxX = screenWidth - fabSize - screenWidth * 0.02;
+                final double minY = MediaQuery.of(context).padding.top + screenHeight * 0.02;
+                final double maxY = screenHeight - fabSize - MediaQuery.of(context).padding.bottom - screenHeight * 0.02;
+
+                _draggableFabPosition = Offset(
+                  (_draggableFabPosition!.dx + details.delta.dx).clamp(minX, maxX),
+                  (_draggableFabPosition!.dy + details.delta.dy).clamp(minY, maxY),
+                );
+              });
+            },
+            onTap: () {
+              if (_tabController.index != 2) {
+                _tabController.animateTo(2); // Switches to GEOGRAPHIC tab
+              }
+            },
+            child: Container(
+              width: fabSize,
+              height: fabSize,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFE3A31),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFE3A31).withValues(alpha: 0.4),
+                    blurRadius: screenWidth * 0.025,
+                    spreadRadius: 1.0,
+                    offset: Offset(0, screenHeight * 0.004),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: SvgPicture.asset(
+                  CountryPageData.orangeButtonLogo,
+                  width: fabSize * 0.46,
+                  height: fabSize * 0.46,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.white,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
 
   // ==========================================================================
-  // [BUILD METHOD: INFO TAB] Pixel-perfect match for Screenshots 1, 2, 3, 4
+  // [BUILD METHOD: INFO TAB] Full civic data with robust fallbacks
   // ==========================================================================
   Widget _buildInfoTabContent(CountryModel country) {
     final bool isIndia = country.name.toLowerCase().contains('india') ||
         country.name.isEmpty ||
         country.registrationCode == 'IND';
 
-    final String countryName = country.name.isNotEmpty ? country.name : 'India';
+    final String countryName = country.name.isNotEmpty
+        ? country.name
+        : (isIndia ? 'India' : 'Country');
 
-    final String descriptionText = country.info?.isNotEmpty == true
-        ? country.info!
-        : 'officially the Republic of India, is a country in South Asia. It is the seventh-largest country by area; the most populous country since 2023; and, since its independence in 1947, the world\'s most populous democracy.';
+    final String descriptionText = country.info?.trim().isNotEmpty == true
+        ? country.info!.trim()
+        : (isIndia
+            ? 'officially the Republic of India, is a country in South Asia. It is the seventh-largest country by area; the most populous country since 2023; and, since its independence in 1947, the world\'s most populous democracy.'
+            : '');
 
-    // Setup leadership lists
-    final List<NationalLeader> presidents = [
-      NationalLeader(
-        title: 'PRESIDENTS OF INDIA',
-        name: country.president?.isNotEmpty == true
-            ? country.president!
-            : 'Droupadi Murmu',
-        tenure: '2022 - Present',
-        badge: 'Current President',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Droupadi_Murmu_official_portrait_%28cropped%29.jpg/800px-Droupadi_Murmu_official_portrait_%28cropped%29.jpg',
-      ),
-      const NationalLeader(
-        title: 'PRESIDENTS OF INDIA',
-        name: 'Ram Nath Kovind',
-        tenure: '2017 - 2022',
-        badge: 'Former President',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Ram_Nath_Kovind_official_portrait.jpg/800px-Ram_Nath_Kovind_official_portrait.jpg',
-      ),
-      const NationalLeader(
-        title: 'PRESIDENTS OF INDIA',
-        name: 'Pranab Mukherjee',
-        tenure: '2012 - 2017',
-        badge: 'Former President',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Pranab_Mukherjee_in_2012.jpg/800px-Pranab_Mukherjee_in_2012.jpg',
-      ),
-    ];
+    // Setup leadership lists: use backend data if present, otherwise rich fallbacks
+    final List<NationalLeader> presidents = country.leaders.where((l) => l.title.toUpperCase().contains('PRESIDENT')).isNotEmpty
+        ? country.leaders.where((l) => l.title.toUpperCase().contains('PRESIDENT')).toList()
+        : [
+            NationalLeader(
+              title: isIndia ? 'PRESIDENTS OF INDIA' : 'PRESIDENT',
+              name: country.president?.trim().isNotEmpty == true
+                  ? country.president!.trim()
+                  : 'Droupadi Murmu',
+              tenure: '2022 - Present',
+              badge: 'Current President',
+              imageUrl:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Droupadi_Murmu_official_portrait_%28cropped%29.jpg/800px-Droupadi_Murmu_official_portrait_%28cropped%29.jpg',
+            ),
+            const NationalLeader(
+              title: 'PRESIDENTS OF INDIA',
+              name: 'Ram Nath Kovind',
+              tenure: '2017 - 2022',
+              badge: 'Former President',
+              imageUrl:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Ram_Nath_Kovind_official_portrait.jpg/800px-Ram_Nath_Kovind_official_portrait.jpg',
+            ),
+            const NationalLeader(
+              title: 'PRESIDENTS OF INDIA',
+              name: 'Pranab Mukherjee',
+              tenure: '2012 - 2017',
+              badge: 'Former President',
+              imageUrl:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Pranab_Mukherjee_in_2012.jpg/800px-Pranab_Mukherjee_in_2012.jpg',
+            ),
+          ];
 
-    // Prime Minister matching Screenshot 2 & 3
-    final List<NationalLeader> primeMinisters = [
-      NationalLeader(
-        title: 'PRIME MINISTER',
-        name: country.primeMinister?.isNotEmpty == true
-            ? country.primeMinister!
-            : 'Shri D. K. Shivakumar',
-        tenure: '2022 - Present',
-        badge: 'Current PM',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
-        partyLogo:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Indian_National_Congress_hand_logo.svg/800px-Indian_National_Congress_hand_logo.svg.png',
-      ),
-      const NationalLeader(
-        title: 'PRIME MINISTER',
-        name: 'Dr. Manmohan Singh',
-        tenure: '2004 - 2014',
-        badge: 'Former PM',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Manmohan_Singh_%28cropped%29.jpg/800px-Manmohan_Singh_%28cropped%29.jpg',
-        partyLogo:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Indian_National_Congress_hand_logo.svg/800px-Indian_National_Congress_hand_logo.svg.png',
-      ),
-    ];
+    final List<NationalLeader> primeMinisters = country.leaders.where((l) => l.title.toUpperCase().contains('PRIME')).isNotEmpty
+        ? country.leaders.where((l) => l.title.toUpperCase().contains('PRIME')).toList()
+        : [
+            NationalLeader(
+              title: 'PRIME MINISTER',
+              name: country.primeMinister?.trim().isNotEmpty == true
+                  ? country.primeMinister!.trim()
+                  : 'Shri Narendra Modi',
+              tenure: '2014 - Present',
+              badge: 'Current PM',
+              imageUrl:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
+              partyLogo:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bharatiya_Janata_Party_logo.svg/800px-Bharatiya_Janata_Party_logo.svg.png',
+            ),
+            const NationalLeader(
+              title: 'PRIME MINISTER',
+              name: 'Dr. Manmohan Singh',
+              tenure: '2004 - 2014',
+              badge: 'Former PM',
+              imageUrl:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Manmohan_Singh_%28cropped%29.jpg/800px-Manmohan_Singh_%28cropped%29.jpg',
+              partyLogo:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Indian_National_Congress_hand_logo.svg/800px-Indian_National_Congress_hand_logo.svg.png',
+            ),
+          ];
 
-    // Defence Minister matching Screenshot 3
-    final List<NationalLeader> defenceMinisters = [
-      const NationalLeader(
-        title: 'DEFENCE MINISTER',
-        name: 'Shri D. K. Shivakumar',
-        tenure: '2022 - Present',
-        badge: 'Current PM',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
-        partyLogo:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Indian_National_Congress_hand_logo.svg/800px-Indian_National_Congress_hand_logo.svg.png',
-      ),
-      const NationalLeader(
-        title: 'DEFENCE MINISTER',
-        name: 'Shri Rajnath Singh',
-        tenure: '2019 - Present',
-        badge: 'Current DEM',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Rajnath_Singh_in_2023.jpg/800px-Rajnath_Singh_in_2023.jpg',
-        partyLogo:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bharatiya_Janata_Party_logo.svg/800px-Bharatiya_Janata_Party_logo.svg.png',
-      ),
-    ];
+    final List<NationalLeader> defenceMinisters = country.leaders.where((l) => l.title.toUpperCase().contains('DEFENCE')).isNotEmpty
+        ? country.leaders.where((l) => l.title.toUpperCase().contains('DEFENCE')).toList()
+        : const [
+            NationalLeader(
+              title: 'DEFENCE MINISTER',
+              name: 'Shri Rajnath Singh',
+              tenure: '2019 - Present',
+              badge: 'Current DEM',
+              imageUrl:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Rajnath_Singh_in_2023.jpg/800px-Rajnath_Singh_in_2023.jpg',
+              partyLogo:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bharatiya_Janata_Party_logo.svg/800px-Bharatiya_Janata_Party_logo.svg.png',
+            ),
+            NationalLeader(
+              title: 'DEFENCE MINISTER',
+              name: 'Shri A. K. Antony',
+              tenure: '2006 - 2014',
+              badge: 'Former DEM',
+              imageUrl:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/A._K._Antony_in_2012_%28cropped%29.jpg/800px-A._K._Antony_in_2012_%28cropped%29.jpg',
+              partyLogo:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Indian_National_Congress_hand_logo.svg/800px-Indian_National_Congress_hand_logo.svg.png',
+            ),
+          ];
 
-    // Home Minister matching Screenshot 3
-    final List<NationalLeader> homeMinisters = [
-      const NationalLeader(
-        title: 'HOME MINISTER',
-        name: 'Shri D. K. Shivakumar',
-        tenure: '2022 - Present',
-        badge: 'Current PM',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
-        partyLogo:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Indian_National_Congress_hand_logo.svg/800px-Indian_National_Congress_hand_logo.svg.png',
-      ),
-      const NationalLeader(
-        title: 'HOME MINISTER',
-        name: 'Shri Amit Shah',
-        tenure: '2019 - Present',
-        badge: 'Current HM',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Amit_Shah_in_2023.jpg/800px-Amit_Shah_in_2023.jpg',
-        partyLogo:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bharatiya_Janata_Party_logo.svg/800px-Bharatiya_Janata_Party_logo.svg.png',
-      ),
-    ];
+    final List<NationalLeader> homeMinisters = country.leaders.where((l) => l.title.toUpperCase().contains('HOME')).isNotEmpty
+        ? country.leaders.where((l) => l.title.toUpperCase().contains('HOME')).toList()
+        : const [
+            NationalLeader(
+              title: 'HOME MINISTER',
+              name: 'Shri Amit Shah',
+              tenure: '2019 - Present',
+              badge: 'Current HM',
+              imageUrl:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Amit_Shah_in_2023.jpg/800px-Amit_Shah_in_2023.jpg',
+              partyLogo:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bharatiya_Janata_Party_logo.svg/800px-Bharatiya_Janata_Party_logo.svg.png',
+            ),
+            NationalLeader(
+              title: 'HOME MINISTER',
+              name: 'Shri Rajnath Singh',
+              tenure: '2014 - 2019',
+              badge: 'Former HM',
+              imageUrl:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Rajnath_Singh_in_2023.jpg/800px-Rajnath_Singh_in_2023.jpg',
+              partyLogo:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bharatiya_Janata_Party_logo.svg/800px-Bharatiya_Janata_Party_logo.svg.png',
+            ),
+          ];
 
-    // Other Cabinets matching Screenshot 4 (3 rows x 3 columns)
     final List<CabinetMinister> cabinets = country.otherCabinets.isNotEmpty
         ? country.otherCabinets
-        : [
-            // Row 1
-            const CabinetMinister(
-              firstName: 'H. D.',
-              lastName: 'Revana',
+        : const [
+            CabinetMinister(
+              firstName: 'Nitin',
+              lastName: 'Gadkari',
               imageUrl:
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Rajnath_Singh_in_2023.jpg/800px-Rajnath_Singh_in_2023.jpg',
               backgroundColor: Color(0xFFFF5252),
             ),
-            const CabinetMinister(
+            CabinetMinister(
               firstName: 'Amit',
               lastName: 'Shah',
               imageUrl:
                   'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Amit_Shah_in_2023.jpg/800px-Amit_Shah_in_2023.jpg',
               backgroundColor: Color(0xFFFFB74D),
             ),
-            const CabinetMinister(
-              firstName: 'Kunal',
-              lastName: 'Tilak',
+            CabinetMinister(
+              firstName: 'Nirmala',
+              lastName: 'Sitharaman',
               imageUrl:
-                  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Droupadi_Murmu_official_portrait_%28cropped%29.jpg/800px-Droupadi_Murmu_official_portrait_%28cropped%29.jpg',
               backgroundColor: Color(0xFFCFD8DC),
             ),
-            // Row 2
-            const CabinetMinister(
-              firstName: 'H. D.',
-              lastName: 'Revana',
+            CabinetMinister(
+              firstName: 'S.',
+              lastName: 'Jaishankar',
               imageUrl:
                   'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
               backgroundColor: Color(0xFFFF5252),
             ),
-            const CabinetMinister(
-              firstName: 'Amit',
-              lastName: 'Shah',
+            CabinetMinister(
+              firstName: 'Piyush',
+              lastName: 'Goyal',
               imageUrl:
                   'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Amit_Shah_in_2023.jpg/800px-Amit_Shah_in_2023.jpg',
               backgroundColor: Color(0xFFFFB74D),
             ),
-            const CabinetMinister(
-              firstName: 'Kunal',
-              lastName: 'Tilak',
+            CabinetMinister(
+              firstName: 'Ashwini',
+              lastName: 'Vaishnaw',
               imageUrl:
-                  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Ram_Nath_Kovind_official_portrait.jpg/800px-Ram_Nath_Kovind_official_portrait.jpg',
               backgroundColor: Color(0xFFCFD8DC),
             ),
-            // Row 3
-            const CabinetMinister(
-              firstName: 'H. D.',
-              lastName: 'Revana',
+            CabinetMinister(
+              firstName: 'Dharmendra',
+              lastName: 'Pradhan',
               imageUrl:
                   'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
               backgroundColor: Color(0xFFFF5252),
             ),
-            const CabinetMinister(
-              firstName: 'Amit',
-              lastName: 'Shah',
+            CabinetMinister(
+              firstName: 'Mansukh',
+              lastName: 'Mandaviya',
               imageUrl:
                   'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Amit_Shah_in_2023.jpg/800px-Amit_Shah_in_2023.jpg',
               backgroundColor: Color(0xFFFFB74D),
             ),
-            const CabinetMinister(
-              firstName: 'Kunal',
-              lastName: 'Tilak',
+            CabinetMinister(
+              firstName: 'Hardip',
+              lastName: 'Puri',
               imageUrl:
-                  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Rajnath_Singh_in_2023.jpg/800px-Rajnath_Singh_in_2023.jpg',
               backgroundColor: Color(0xFFCFD8DC),
             ),
           ];
@@ -582,51 +670,54 @@ class _CountryProfileViewState extends State<_CountryProfileView>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ==================================================================
-          // [OVERVIEW PARAGRAPH & READ MORE] Matches Screenshot 1
+          // [OVERVIEW PARAGRAPH & READ MORE]
           // ==================================================================
-          RichText(
-            maxLines: _isInfoExpanded ? null : 4,
-            overflow:
-                _isInfoExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-            text: TextSpan(
-              style: const TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFF333333),
-                height: 1.5,
-              ),
-              children: [
-                TextSpan(
-                  text: '$countryName, ',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+          if (descriptionText.isNotEmpty) ...[
+            RichText(
+              maxLines: _isInfoExpanded ? null : 4,
+              overflow:
+                  _isInfoExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: screenWidth * 0.034,
+                  fontWeight: FontWeight.w400,
+                  color: const Color(0xFF333333),
+                  height: 1.5,
                 ),
-                TextSpan(
-                  text: descriptionText.startsWith(countryName)
-                      ? descriptionText.substring(countryName.length).trimLeft()
-                      : descriptionText,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: screenHeight * 0.008),
-          GestureDetector(
-            onTap: () {
-              setState(() => _isInfoExpanded = !_isInfoExpanded);
-            },
-            child: Text(
-              _isInfoExpanded ? 'READ LESS' : 'READ MORE',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFFFE3A31),
-                letterSpacing: 0.3,
+                children: [
+                  if (countryName.isNotEmpty)
+                    TextSpan(
+                      text: '$countryName, ',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  TextSpan(
+                    text: (countryName.isNotEmpty && descriptionText.startsWith(countryName))
+                        ? descriptionText.substring(countryName.length).trimLeft()
+                        : descriptionText,
+                  ),
+                ],
               ),
             ),
-          ),
-          SizedBox(height: screenHeight * 0.02),
+            SizedBox(height: screenHeight * 0.008),
+            GestureDetector(
+              onTap: () {
+                setState(() => _isInfoExpanded = !_isInfoExpanded);
+              },
+              child: Text(
+                _isInfoExpanded ? 'READ LESS' : 'READ MORE',
+                style: TextStyle(
+                  fontSize: screenWidth * 0.031,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFFFE3A31),
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+            SizedBox(height: screenHeight * 0.02),
+          ],
 
           // ==================================================================
-          // [6 KEY CIVIC DETAIL ROWS WITH ICONS] Matches Screenshot 1
+          // [6 KEY CIVIC DETAIL ROWS WITH ICONS]
           // ==================================================================
           // 1. CAPITAL
           _buildCivicDetailRow(
@@ -636,8 +727,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
               height: screenWidth * 0.058,
             ),
             label: CountryPageData.capital,
-            value: country.capital?.isNotEmpty == true
-                ? country.capital!
+            value: country.capital?.trim().isNotEmpty == true
+                ? country.capital!.trim()
                 : (isIndia ? 'New Delhi' : '-'),
           ),
 
@@ -649,12 +740,12 @@ class _CountryProfileViewState extends State<_CountryProfileView>
               height: screenWidth * 0.058,
             ),
             label: CountryPageData.nationalAnthem,
-            value: country.nationalAnthem?.isNotEmpty == true
-                ? country.nationalAnthem!
+            value: country.nationalAnthem?.trim().isNotEmpty == true
+                ? country.nationalAnthem!.trim()
                 : (isIndia ? 'JANA GANA MANA' : '-'),
           ),
 
-          // 3. POPULATION with Map Floating Action Button on right
+          // 3. POPULATION
           _buildCivicDetailRow(
             icon: SvgPicture.asset(
               CountryPageData.populationIcon,
@@ -662,36 +753,9 @@ class _CountryProfileViewState extends State<_CountryProfileView>
               height: screenWidth * 0.058,
             ),
             label: CountryPageData.population,
-            value: country.population?.isNotEmpty == true
-                ? country.population!
+            value: country.population?.trim().isNotEmpty == true
+                ? country.population!.trim()
                 : (isIndia ? '145.09 crores (2024)' : '-'),
-            trailing: GestureDetector(
-              onTap: () {
-                _tabController.animateTo(2); // Switches to GEOGRAPHIC tab
-              },
-              child: Container(
-                width: screenWidth * 0.11,
-                height: screenWidth * 0.11,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFE3A31),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFE3A31).withValues(alpha: 0.35),
-                      blurRadius: screenWidth * 0.02,
-                      offset: Offset(0, screenHeight * 0.004),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: SvgPicture.asset(
-                    CountryPageData.orangeButtonLogo,
-                    width: screenWidth * 0.052,
-                    height: screenWidth * 0.052,
-                  ),
-                ),
-              ),
-            ),
           ),
 
           // 4. PRESIDENT
@@ -702,8 +766,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
               height: screenWidth * 0.058,
             ),
             label: CountryPageData.president,
-            value: country.president?.isNotEmpty == true
-                ? country.president!
+            value: country.president?.trim().isNotEmpty == true
+                ? country.president!.trim()
                 : (isIndia ? 'Droupadi Murmu' : '-'),
           ),
 
@@ -715,8 +779,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
               height: screenWidth * 0.058,
             ),
             label: CountryPageData.primeMinister,
-            value: country.primeMinister?.isNotEmpty == true
-                ? country.primeMinister!
+            value: country.primeMinister?.trim().isNotEmpty == true
+                ? country.primeMinister!.trim()
                 : (isIndia ? 'Shri Narendra Modi' : '-'),
           ),
 
@@ -728,38 +792,28 @@ class _CountryProfileViewState extends State<_CountryProfileView>
               height: screenWidth * 0.055,
             ),
             label: CountryPageData.dateOfIndependence,
-            value: country.independenceDay?.isNotEmpty == true &&
+            value: country.independenceDay?.trim().isNotEmpty == true &&
                     formatCountryDate(country.independenceDay) != '-'
                 ? formatCountryDate(country.independenceDay)
                 : (isIndia ? '15 August 1947' : '-'),
           ),
 
-          // Divider before leadership sections
-          Divider(
-            thickness: 1,
-            color: const Color(0xFFEEEEEE),
-            height: screenHeight * 0.04,
-          ),
+          // Divider before leadership
+          buildSectionDivider(context),
 
           // ==================================================================
-          // [PRESIDENTS OF INDIA] Matches Screenshot 2
+          // [PRESIDENTS]
           // ==================================================================
           _buildLeaderHorizontalSection(
-            title: isIndia
-                ? 'PRESIDENTS OF INDIA'
-                : 'PRESIDENTS OF ${country.name.toUpperCase()}',
+            title: isIndia ? 'PRESIDENTS OF INDIA' : 'PRESIDENT',
             leaders: presidents,
-            showPartyLogo: false, // President is non-partisan
+            showPartyLogo: false,
           ),
 
-          Divider(
-            thickness: 1,
-            color: const Color(0xFFEEEEEE),
-            height: screenHeight * 0.04,
-          ),
+          buildSectionDivider(context),
 
           // ==================================================================
-          // [PRIME MINISTER] Matches Screenshot 2 & 3
+          // [PRIME MINISTER]
           // ==================================================================
           _buildLeaderHorizontalSection(
             title: 'PRIME MINISTER',
@@ -767,14 +821,10 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             showPartyLogo: true,
           ),
 
-          Divider(
-            thickness: 1,
-            color: const Color(0xFFEEEEEE),
-            height: screenHeight * 0.04,
-          ),
+          buildSectionDivider(context),
 
           // ==================================================================
-          // [DEFENCE MINISTER] Matches Screenshot 3
+          // [DEFENCE MINISTER]
           // ==================================================================
           _buildLeaderHorizontalSection(
             title: 'DEFENCE MINISTER',
@@ -782,14 +832,10 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             showPartyLogo: true,
           ),
 
-          Divider(
-            thickness: 1,
-            color: const Color(0xFFEEEEEE),
-            height: screenHeight * 0.04,
-          ),
+          buildSectionDivider(context),
 
           // ==================================================================
-          // [HOME MINISTER] Matches Screenshot 3
+          // [HOME MINISTER]
           // ==================================================================
           _buildLeaderHorizontalSection(
             title: 'HOME MINISTER',
@@ -797,16 +843,14 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             showPartyLogo: true,
           ),
 
-          Divider(
-            thickness: 1,
-            color: const Color(0xFFEEEEEE),
-            height: screenHeight * 0.04,
-          ),
+          buildSectionDivider(context),
 
           // ==================================================================
-          // [OTHER CABINATE] Matches Screenshot 4
+          // [OTHER CABINATE]
           // ==================================================================
           _buildOtherCabinetsSection(cabinets),
+
+          buildSectionDivider(context),
         ],
       ),
     );
@@ -841,20 +885,20 @@ class _CountryProfileViewState extends State<_CountryProfileView>
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 10.5,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.026,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
-                    color: Color(0xFF888888),
+                    color: const Color(0xFF888888),
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.003),
                 Text(
                   value,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.035,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E1E1E),
+                    color: const Color(0xFF1E1E1E),
                   ),
                 ),
               ],
@@ -867,9 +911,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
   }
 
   // ==========================================================================
-  // [BUILD METHOD: LEADERSHIP HORIZONTAL SECTION] Matches Screenshot 2 & 3
-  // Sized strictly using MediaQuery without hardcoded dimensions,
-  // matching Figma specs: 280w x 339h image, 280w x 396h card, 20px radius.
+  // [BUILD METHOD: LEADERSHIP HORIZONTAL SECTION]
+  // Sized strictly using MediaQuery without hardcoded dimensions.
   // ==========================================================================
   Widget _buildLeaderHorizontalSection({
     required String title,
@@ -879,12 +922,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
 
-    // Responsive scaling strictly based on MediaQuery:
-    // Reference screen width 375px with 280px card gives factor 280 / 375 ≈ 0.7467
     final double cardWidth = screenWidth * (280.0 / 375.0);
-    // Exact proportional image height matching Figma 280w x 339h
     final double cardImageHeight = cardWidth * (339.0 / 280.0);
-    // Exact proportional total card list height matching Figma 280w x 396h
     final double listHeight = cardWidth * (396.0 / 280.0);
     final double cardRadius = cardWidth * (20.0 / 280.0);
     final double cardMarginRight = screenWidth * (16.0 / 375.0);
@@ -901,11 +940,11 @@ class _CountryProfileViewState extends State<_CountryProfileView>
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 13.5,
+          style: TextStyle(
+            fontSize: screenWidth * 0.034,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.6,
-            color: Color(0xFF1E1E1E),
+            color: const Color(0xFF1E1E1E),
           ),
         ),
         SizedBox(height: screenHeight * 0.016),
@@ -936,10 +975,25 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(cardRadius),
-                            child: buildImageWidget(
-                              leader.imageUrl,
-                              fit: BoxFit.cover,
-                            ),
+                            child: leader.imageUrl.isNotEmpty
+                                ? buildImageWidget(
+                                    leader.imageUrl,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    color: const Color(0xFFF5F5F5),
+                                    child: Center(
+                                      child: SvgPicture.asset(
+                                        "Assets/PartyPage/personIcon.svg",
+                                        width: cardWidth * 0.25,
+                                        height: cardWidth * 0.25,
+                                        colorFilter: const ColorFilter.mode(
+                                          Color(0xFFBDBDBD),
+                                          BlendMode.srcIn,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                           ),
                           if (leader.badge.isNotEmpty)
                             Positioned(
@@ -968,7 +1022,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                       ),
                     ),
                     SizedBox(height: spacingBelowImage),
-                    // Below image: Party Logo (if applicable) and Name + Tenure in GREEN
+                    // Below image: Party Logo (if applicable) and Name + Tenure
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -996,21 +1050,23 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                                 leader.name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 13.5,
+                                style: TextStyle(
+                                  fontSize: cardWidth * (13.5 / 280.0),
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1E1E1E),
+                                  color: const Color(0xFF1E1E1E),
                                 ),
                               ),
-                              SizedBox(height: screenHeight * 0.003),
-                              Text(
-                                leader.tenure,
-                                style: const TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF4CAF50), // Green tenure as shown in screenshot
+                              if (leader.tenure.isNotEmpty) ...[
+                                SizedBox(height: screenHeight * 0.003),
+                                Text(
+                                  leader.tenure,
+                                  style: TextStyle(
+                                    fontSize: cardWidth * (11.5 / 280.0),
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF4CAF50),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),
@@ -1027,7 +1083,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
   }
 
   // ==========================================================================
-  // [BUILD METHOD: OTHER CABINATE] Matches Screenshot 4
+  // [BUILD METHOD: OTHER CABINETS]
   // ==========================================================================
   Widget _buildOtherCabinetsSection(List<CabinetMinister> cabinets) {
     final double screenWidth = MediaQuery.of(context).size.width;
@@ -1038,21 +1094,30 @@ class _CountryProfileViewState extends State<_CountryProfileView>
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
+          children: [
             Text(
               'OTHER CABINATE',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: screenWidth * 0.033,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.6,
-                color: Color(0xFF1E1E1E),
+                color: const Color(0xFF1E1E1E),
               ),
             ),
-            Icon(Icons.arrow_forward, size: 18, color: Color(0xFFFE3A31)),
+            SvgPicture.asset(
+              CountryPageData.arrow,
+              width: screenWidth * 0.046,
+              height: screenWidth * 0.046,
+              colorFilter: const ColorFilter.mode(
+                Color(0xFFFE3A31),
+                BlendMode.srcIn,
+              ),
+            ),
           ],
         ),
-        SizedBox(height: screenHeight * 0.016),
+        SizedBox(height: screenHeight * 0.003),
         GridView.builder(
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -1077,10 +1142,25 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(ministerRadius),
-                      child: buildImageWidget(
-                        minister.imageUrl,
-                        fit: BoxFit.cover,
-                      ),
+                      child: minister.imageUrl.isNotEmpty
+                          ? buildImageWidget(
+                              minister.imageUrl,
+                              fit: BoxFit.cover,
+                            )
+                          : Container(
+                              color: const Color(0xFFF5F5F5),
+                              child: Center(
+                                child: SvgPicture.asset(
+                                  "Assets/PartyPage/personIcon.svg",
+                                  width: screenWidth * 0.1,
+                                  height: screenWidth * 0.1,
+                                  colorFilter: const ColorFilter.mode(
+                                    Color(0xFFBDBDBD),
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                              ),
+                            ),
                     ),
                   ),
                 ),
@@ -1089,20 +1169,20 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                   minister.firstName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12.5,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.032,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E1E1E),
+                    color: const Color(0xFF1E1E1E),
                   ),
                 ),
                 Text(
                   minister.lastName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.028,
                     fontWeight: FontWeight.w400,
-                    color: Color(0xFF666666),
+                    color: const Color(0xFF666666),
                   ),
                 ),
               ],
@@ -1119,46 +1199,227 @@ class _CountryProfileViewState extends State<_CountryProfileView>
   Widget _buildPlacesAndSymbolsTab(CountryModel country) {
     final w = MediaQuery.of(context).size.width;
     final h = MediaQuery.of(context).size.height;
+    final bool isIndia = country.name.toLowerCase().contains('india') ||
+        country.name.isEmpty ||
+        country.registrationCode == 'IND';
 
-    final places = country.placesToVisit?.places ?? [];
-    final symbols = country.symbols.isNotEmpty
-        ? country.symbols
-        : [
-            const SymbolView(
-              id: 1,
-              kind: 'FLAG',
-              label: 'National Flag of India (Tiranga)',
-              urls: [
-                'https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/1200px-Flag_of_India.svg.png'
-              ],
-              downloadable: true,
-            ),
-            const SymbolView(
-              id: 2,
-              kind: 'EMBLEM',
-              label: 'State Emblem of India (Lion Capital)',
-              urls: [
-                'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Emblem_of_India.svg/800px-Emblem_of_India.svg.png'
-              ],
-              downloadable: true,
-            ),
-          ];
+    // 1. Dynamic Backend Lookup
+    SymbolView? flagSymbol;
+    SymbolView? emblemSymbol;
+    for (final s in country.symbols) {
+      final kind = (s.kind ?? '').toUpperCase();
+      final label = (s.label ?? '').toLowerCase();
+      if ((kind.contains('FLAG') || label.contains('flag') || label.contains('tiranga')) && flagSymbol == null) {
+        flagSymbol = s;
+      } else if ((kind.contains('EMBLEM') || label.contains('emblem') || label.contains('capital') || label.contains('lion')) && emblemSymbol == null) {
+        emblemSymbol = s;
+      }
+    }
+    if (flagSymbol == null && country.symbols.isNotEmpty) {
+      flagSymbol = country.symbols.first;
+    }
+    if (emblemSymbol == null && country.symbols.length > 1) {
+      emblemSymbol = country.symbols[1];
+    }
+
+    // 2. Dynamic Description from Backend or fallback
+    final String? backendDesc = (flagSymbol?.description?.trim().isNotEmpty == true)
+        ? flagSymbol!.description
+        : ((emblemSymbol?.description?.trim().isNotEmpty == true)
+            ? emblemSymbol!.description
+            : (country.cultureAndTradition?.trim().isNotEmpty == true
+                ? country.cultureAndTradition
+                : (country.info?.trim().isNotEmpty == true ? country.info : null)));
+
+    final String flagDesc = backendDesc?.trim().isNotEmpty == true
+        ? backendDesc!.trim()
+        : 'The national flag of India, popularly known as the Tiranga (Tricolour), is a horizontal rectangular flag featuring three colors — India saffron, white, and India green — with the navy-blue Ashoka Chakra in the centre.';
+
+    // 3. Dynamic Image URLs
+    final String flagUrl = flagSymbol?.urls.firstWhere(
+          (u) => u.trim().isNotEmpty,
+          orElse: () => '',
+        ) ?? '';
+    final String emblemUrl = emblemSymbol?.urls.firstWhere(
+          (u) => u.trim().isNotEmpty,
+          orElse: () => '',
+        ) ?? '';
+
+    // 4. Labels
+    final String flagLabel = (flagSymbol?.label?.trim().isNotEmpty == true)
+        ? flagSymbol!.label!
+        : (isIndia ? 'Indian Flag' : (country.name.isNotEmpty ? '${country.name} Flag' : 'Flag'));
+
+    final String emblemLabel = (emblemSymbol?.label?.trim().isNotEmpty == true)
+        ? emblemSymbol!.label!
+        : (isIndia ? 'Indian Emblem' : (country.name.isNotEmpty ? '${country.name} Emblem' : 'Emblem'));
+
+    // 5. Proportional MediaQuery Dimensions (180x180 & 180x193 on 375w reference)
+    final double flagWidth = w * (180.0 / 375.0);
+    final double flagHeight = flagWidth * (180.0 / 180.0);
+
+    final double emblemWidth = w * (180.0 / 375.0);
+    final double emblemHeight = emblemWidth * (193.0 / 180.0);
 
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: w * 0.05,
-        vertical: h * 0.02,
+        vertical: h * 0.018,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSymbolsSection(symbols),
-          if (places.isNotEmpty) ...[
-            SizedBox(height: h * 0.035),
-            _buildPlacesSection(country.placesToVisit!),
-          ],
+          // Description Paragraph with READ MORE / READ LESS toggle
+          RichText(
+            maxLines: _isFlagExpanded ? null : 4,
+            overflow:
+                _isFlagExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+            text: TextSpan(
+              style: TextStyle(
+                fontSize: w * 0.034,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFF333333),
+                height: 1.5,
+              ),
+              text: flagDesc,
+            ),
+          ),
+          SizedBox(height: h * 0.008),
+          GestureDetector(
+            onTap: () {
+              setState(() => _isFlagExpanded = !_isFlagExpanded);
+            },
+            child: Text(
+              _isFlagExpanded ? 'READ LESS' : 'READ MORE',
+              style: TextStyle(
+                fontSize: w * 0.031,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFFFE3A31),
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+          SizedBox(height: h * 0.025),
+
+          // Centered Flag
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: flagWidth,
+                  height: flagHeight,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(flagWidth * (8.0 / 180.0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: flagWidth * (8.0 / 180.0),
+                        offset: Offset(0, h * 0.002),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  alignment: Alignment.center,
+                  child: _buildFlagImageWidget(flagUrl, flagWidth, flagHeight),
+                ),
+                SizedBox(height: h * 0.014),
+                Text(
+                  flagLabel,
+                  style: TextStyle(
+                    fontSize: w * 0.03,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF333333),
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: h * 0.035),
+
+          // Centered Emblem
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: emblemWidth,
+                  height: emblemHeight,
+                  child: Center(
+                    child: _buildEmblemImageWidget(emblemUrl, emblemWidth, emblemHeight),
+                  ),
+                ),
+                SizedBox(height: h * 0.014),
+                Text(
+                  emblemLabel,
+                  style: TextStyle(
+                    fontSize: w * 0.03,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF333333),
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: h * 0.02),
+          buildSectionDivider(context),
         ],
       ),
+    );
+  }
+
+  Widget _buildFlagImageWidget(String rawUrl, double width, double height) {
+    final url = rawUrl.trim();
+    if (url.isNotEmpty && !url.toLowerCase().contains('wikimedia.org')) {
+      final fullUrl = (url.startsWith('http://') || url.startsWith('https://'))
+          ? url
+          : (url.startsWith('/') ? '$api$url' : '$api/$url');
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(width * (8.0 / 180.0)),
+        child: buildImageWidget(
+          fullUrl,
+          width: width,
+          height: height,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(width * (8.0 / 180.0)),
+      child: SvgPicture.asset(
+        CountryPageData.indianFlagSvg,
+        width: width,
+        height: height,
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+
+  Widget _buildEmblemImageWidget(String rawUrl, double width, double height) {
+    final url = rawUrl.trim();
+    if (url.isNotEmpty && !url.toLowerCase().contains('wikimedia.org')) {
+      final fullUrl = (url.startsWith('http://') || url.startsWith('https://'))
+          ? url
+          : (url.startsWith('/') ? '$api$url' : '$api/$url');
+      return buildImageWidget(
+        fullUrl,
+        width: width,
+        height: height,
+        fit: BoxFit.contain,
+      );
+    }
+    return Image.asset(
+      CountryPageData.indianEmblemPng,
+      width: width,
+      height: height,
+      fit: BoxFit.contain,
     );
   }
 
@@ -1166,179 +1427,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
   // [BUILD METHOD: GEOGRAPHIC TAB]
   // ==========================================================================
   Widget _buildGeographicTabContent(CountryModel country) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
-    final bool isIndia = country.name.toLowerCase().contains('india') ||
-        country.name.isEmpty ||
-        country.registrationCode == 'IND';
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: w * 0.05,
-        vertical: h * 0.02,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          buildSectionHeader(context, title: 'GEOGRAPHIC & ADMINISTRATIVE'),
-          SizedBox(height: h * 0.015),
-          Container(
-            padding: EdgeInsets.all(w * 0.04),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFAFAFA),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.black.withOpacity(0.05)),
-            ),
-            child: Column(
-              children: [
-                _buildGeographicRow('Country Name', isIndia ? 'India (भारत)' : country.name),
-                Divider(height: h * 0.03),
-                _buildGeographicRow('Capital City', country.capital ?? (isIndia ? 'New Delhi' : '-')),
-                Divider(height: h * 0.03),
-                _buildGeographicRow(
-                  'Registration Code',
-                  country.registrationCode ?? (isIndia ? 'IND' : '-'),
-                ),
-                Divider(height: h * 0.03),
-                _buildGeographicRow(
-                  'Numeric Code',
-                  country.numericCode?.toString() ?? (isIndia ? '356' : '-'),
-                ),
-                Divider(height: h * 0.03),
-                _buildGeographicRow(
-                  'States',
-                  country.statesCount ?? (isIndia ? '28' : '-'),
-                ),
-                Divider(height: h * 0.03),
-                _buildGeographicRow(
-                  'Union Territories',
-                  country.unionTerritories?.toString() ?? (isIndia ? '8' : '-'),
-                ),
-                Divider(height: h * 0.03),
-                _buildGeographicRow('Population', country.population ?? (isIndia ? '145.09 crores (2024)' : '-')),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGeographicRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF777777),
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF333333),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPlacesSection(PlacesToVisit placesToVisit) {
-    final h = MediaQuery.of(context).size.height;
-    final places = placesToVisit.places;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildSectionHeader(
-          context,
-          title: CountryPageData.placesToVisit,
-          trailing: places.length > 2
-              ? Text(
-                  '${places.length} places',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF888888),
-                  ),
-                )
-              : null,
-        ),
-        if (placesToVisit.description != null &&
-            placesToVisit.description!.isNotEmpty) ...[
-          SizedBox(height: h * 0.005),
-          Text(
-            placesToVisit.description!,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF666666),
-            ),
-          ),
-          SizedBox(height: h * 0.015),
-        ],
-        if (places.isNotEmpty)
-          SizedBox(
-            height: h * 0.26,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              clipBehavior: Clip.none,
-              itemCount: places.length,
-              itemBuilder: (context, index) {
-                return buildPlaceCard(context, places[index]);
-              },
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildSymbolsSection(List<SymbolView> symbols) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildSectionHeader(
-          context,
-          title: 'NATIONAL SYMBOLS & EMBLEMS',
-          trailing: Text(
-            '${symbols.length} symbols',
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF888888),
-            ),
-          ),
-        ),
-        SizedBox(height: h * 0.012),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: w * 0.035,
-            mainAxisSpacing: w * 0.035,
-            childAspectRatio: 0.95,
-          ),
-          itemCount: symbols.length,
-          itemBuilder: (context, index) {
-            return buildSymbolCard(
-              context,
-              symbols[index],
-              onDownload: (url) {
-                downloadImage(url, context);
-              },
-            );
-          },
-        ),
-      ],
-    );
+    return GeographicTabSection(country: country);
   }
 }
 
@@ -1376,5 +1465,294 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
     return oldDelegate.tabBar != tabBar ||
         oldDelegate.backgroundColor != backgroundColor ||
         oldDelegate.dividerHeight != dividerHeight;
+  }
+}
+
+// ============================================================================
+// [GEOGRAPHIC TAB SECTION]
+// Responsive Geographic & Administrative Profile Section
+// Includes 3-Level Interactive Vector India Map (Country -> State -> District)
+// ============================================================================
+class GeographicTabSection extends StatefulWidget {
+  final CountryModel country;
+
+  const GeographicTabSection({
+    super.key,
+    required this.country,
+  });
+
+  @override
+  State<GeographicTabSection> createState() => _GeographicTabSectionState();
+}
+
+class _GeographicTabSectionState extends State<GeographicTabSection> {
+  bool _isExpanded = true;
+
+  static const String _defaultKarnatakaDescription =
+      "**Karnataka** has **31 districts**, organized into multiple divisions for administration. Geographically, the state is divided into three main regions-the coastal plains (Karavali), the hilly Western Ghats (Malnad), and the inland Deccan Plateau.\n\n"
+      "The coastal region lies along the Arabian Sea and receives heavy rainfall, while the Western Ghats are rich in forests and biodiversity. The eastern part forms the Deccan Plateau, which is relatively dry with rolling plains.\n\n"
+      "Major rivers such as the Krishna River and Cauvery River flow through the state, supporting agriculture and water supply. Karnataka's varied geography gives it a mix of climates, from humid coastal weather to semi-arid inland conditions.\n\n"
+      "Karnataka is grouped into four administrative divisions **Bengaluru**, **Mysuru**, **Belagavi**, and **Kalaburagi** which help in efficient governance.";
+
+  String _formatArea(String? area, bool isIndia) {
+    if (area != null && area.trim().isNotEmpty) {
+      final a = area.trim();
+      if (a.toLowerCase().contains('km') || a.toLowerCase().contains('sq')) {
+        return a;
+      }
+      return '$a km2';
+    }
+    return isIndia ? '191,791 km2' : '-';
+  }
+
+  Widget _buildFormattedParagraph(String text, double fontSize, {EdgeInsetsGeometry? padding}) {
+    final spans = <TextSpan>[];
+    final regex = RegExp(r'\*\*(.*?)\*\*');
+    int lastMatchEnd = 0;
+
+    for (final match in regex.allMatches(text)) {
+      if (match.start > lastMatchEnd) {
+        spans.add(TextSpan(
+          text: text.substring(lastMatchEnd, match.start),
+          style: TextStyle(
+            fontSize: fontSize,
+            fontWeight: FontWeight.w400,
+            color: const Color(0xFF333333),
+            height: 1.45,
+            letterSpacing: 0.1,
+          ),
+        ));
+      }
+      spans.add(TextSpan(
+        text: match.group(1),
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w700,
+          color: const Color(0xFF1E1E1E),
+          height: 1.45,
+          letterSpacing: 0.1,
+        ),
+      ));
+      lastMatchEnd = match.end;
+    }
+
+    if (lastMatchEnd < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastMatchEnd),
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w400,
+          color: const Color(0xFF333333),
+          height: 1.45,
+          letterSpacing: 0.1,
+        ),
+      ));
+    }
+
+    final richText = RichText(
+      text: TextSpan(children: spans),
+    );
+
+    if (padding != null) {
+      return Padding(
+        padding: padding,
+        child: richText,
+      );
+    }
+    return richText;
+  }
+
+  Widget _buildStatRow({
+    required BuildContext context,
+    required String iconAsset,
+    required String label,
+    required String value,
+    required double w,
+    required double h,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: w * 0.048,
+          height: w * 0.048,
+          child: Center(
+            child: SvgPicture.asset(
+              iconAsset,
+              width: w * 0.038,
+              height: w * 0.038,
+            ),
+          ),
+        ),
+        SizedBox(width: w * 0.035),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: w * 0.026,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF9E9E9E),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              SizedBox(height: h * 0.002),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: w * 0.035,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1E1E1E),
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    final bool isIndia = widget.country.name.toLowerCase().contains('india') ||
+        widget.country.name.isEmpty ||
+        widget.country.registrationCode == 'IND' ||
+        widget.country.registrationCode == 'KA';
+
+    // 1. Description: API first, then rich fallback
+    final String rawDescription = widget.country.geographicDescription?.trim().isNotEmpty == true
+        ? widget.country.geographicDescription!.trim()
+        : (widget.country.info?.trim().isNotEmpty == true
+            ? widget.country.info!.trim()
+            : _defaultKarnatakaDescription);
+
+    final List<String> allParagraphs = rawDescription
+        .split(RegExp(r'\n\s*\n'))
+        .where((p) => p.trim().isNotEmpty)
+        .toList();
+
+    final List<String> paragraphs = allParagraphs.isNotEmpty
+        ? allParagraphs
+        : rawDescription.split('\n').where((p) => p.trim().isNotEmpty).toList();
+
+    final List<String> visibleParagraphs = _isExpanded
+        ? paragraphs
+        : (paragraphs.length > 2 ? paragraphs.sublist(0, 2) : paragraphs);
+
+    final bool canToggle = paragraphs.length > 2 || rawDescription.length > 250;
+
+    // 2. Stats values from API with fallback
+    final String areaValue = _formatArea(widget.country.area, isIndia);
+    final String regCodeValue = widget.country.registrationCode?.trim().isNotEmpty == true
+        ? widget.country.registrationCode!.trim()
+        : (isIndia ? 'KA' : '-');
+    final String populationValue = widget.country.population?.trim().isNotEmpty == true
+        ? widget.country.population!.trim()
+        : (isIndia ? '61,095,297' : '-');
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: w * 0.05,
+        vertical: h * 0.018,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Full-width description paragraphs
+          for (int i = 0; i < visibleParagraphs.length; i++) ...[
+            _buildFormattedParagraph(
+              visibleParagraphs[i],
+              w * 0.034,
+            ),
+            if (i < visibleParagraphs.length - 1)
+              SizedBox(height: h * 0.016),
+          ],
+
+          // SHOW LESS / SHOW MORE Toggle
+          if (canToggle) ...[
+            SizedBox(height: h * 0.012),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
+                });
+              },
+              child: Text(
+                _isExpanded ? 'SHOW LESS' : 'SHOW MORE',
+                style: TextStyle(
+                  fontSize: w * 0.032,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFFFE3A31),
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
+
+          SizedBox(height: h * 0.025),
+
+          // Civic Stats (AREA, REGISTRATION CODE, POPULATION)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Stats 1: AREA
+              _buildStatRow(
+                context: context,
+                iconAsset: CountryPageData.geographicAreaIcon,
+                label: 'AREA',
+                value: areaValue,
+                w: w,
+                h: h,
+              ),
+
+              SizedBox(height: h * 0.016),
+
+              // Stats 2: REGISTRATION CODE
+              _buildStatRow(
+                context: context,
+                iconAsset: CountryPageData.geographicRegistrationCodeIcon,
+                label: 'REGISTRATION CODE',
+                value: regCodeValue,
+                w: w,
+                h: h,
+              ),
+
+              SizedBox(height: h * 0.016),
+
+              // Stats 3: POPULATION
+              _buildStatRow(
+                context: context,
+                iconAsset: CountryPageData.geographicPopulationIcon,
+                label: 'POPULATION',
+                value: populationValue,
+                w: w,
+                h: h,
+              ),
+            ],
+          ),
+
+          SizedBox(height: h * 0.025),
+
+          // ── INTERACTIVE INDIA MAP SECTION ──
+          IndiaMapWidget(
+            initialSelectedState: widget.country.registrationCode == 'KA' ? 'Karnataka' : null,
+            onStateSelected: (state) {
+              debugPrint('Selected State: ${state.name} (${state.code})');
+            },
+            onDistrictSelected: (district) {
+              debugPrint('Selected District: ${district.districtName} in ${district.stateName}');
+            },
+          ),
+
+          SizedBox(height: h * 0.02),
+        ],
+      ),
+    );
   }
 }

@@ -172,6 +172,7 @@ class SymbolView {
   final String? kind; // 'FLAG', 'MAP', 'EMBLEM', 'SYMBOL', 'LOGO'
   final List<String> urls;
   final String? label;
+  final String? description;
   final bool isDefault;
   final bool downloadable;
 
@@ -182,25 +183,87 @@ class SymbolView {
     this.kind,
     this.urls = const [],
     this.label,
+    this.description,
     this.isDefault = false,
     this.downloadable = false,
   });
 
+  SymbolView copyWith({
+    int? id,
+    String? ownerType,
+    int? ownerId,
+    String? kind,
+    List<String>? urls,
+    String? label,
+    String? description,
+    bool? isDefault,
+    bool? downloadable,
+  }) {
+    return SymbolView(
+      id: id ?? this.id,
+      ownerType: ownerType ?? this.ownerType,
+      ownerId: ownerId ?? this.ownerId,
+      kind: kind ?? this.kind,
+      urls: urls ?? this.urls,
+      label: label ?? this.label,
+      description: description ?? this.description,
+      isDefault: isDefault ?? this.isDefault,
+      downloadable: downloadable ?? this.downloadable,
+    );
+  }
+
   factory SymbolView.fromJson(Map<String, dynamic> json) {
     List<String> urlsList = [];
-    final rawUrls = json['urls'] ?? json['partyLogo'] ?? json['url'];
+    final rawUrls = json['urls'] ??
+        json['partyLogo'] ??
+        json['images'] ??
+        json['url'] ??
+        json['symbolUrl'] ??
+        json['imageUrl'] ??
+        json['flagUrl'] ??
+        json['emblemUrl'] ??
+        json['mediaUrl'];
     if (rawUrls != null && rawUrls is List) {
       urlsList = rawUrls.map((e) => e.toString()).toList();
     } else if (rawUrls is String && rawUrls.isNotEmpty) {
       urlsList = [rawUrls];
     }
+
+    final rawDesc = json['description'] ??
+        json['logoDescription'] ??
+        json['details'] ??
+        json['info'] ??
+        json['content'];
+    final rawLabel = json['label'] ??
+        json['name'] ??
+        json['title'] ??
+        json['symbolName'];
+
+    String? parsedLabel;
+    String? parsedDesc;
+
+    if (rawDesc != null && rawDesc.toString().isNotEmpty) {
+      parsedDesc = rawDesc.toString();
+      parsedLabel = rawLabel?.toString();
+    } else if (rawLabel != null) {
+      final labelStr = rawLabel.toString();
+      // If label is long paragraph, treat as description
+      if (labelStr.length > 50 || labelStr.contains('\n')) {
+        parsedDesc = labelStr;
+        parsedLabel = json['kind']?.toString() ?? json['type']?.toString();
+      } else {
+        parsedLabel = labelStr;
+      }
+    }
+
     return SymbolView(
       id: _parseInt(json['id']) ?? 0,
       ownerType: json['ownerType']?.toString(),
       ownerId: _parseInt(json['ownerId']),
-      kind: json['kind']?.toString(),
+      kind: (json['kind'] ?? json['type'] ?? json['category'])?.toString(),
       urls: urlsList,
-      label: (json['label'] ?? json['logoDescription'])?.toString(),
+      label: parsedLabel,
+      description: parsedDesc,
       isDefault: _parseBool(json['isDefault'], defaultValue: false),
       downloadable: _parseBool(
         json['downloadable'] ?? json['downloadEnabled'],
@@ -221,6 +284,8 @@ class CountryModel {
   final int? unionTerritories;
   final String? statesCount;
   final String? population;
+  final String? area;
+  final String? geographicDescription;
   final String? president;
   final String? primeMinister;
   final String? independenceDay;
@@ -243,6 +308,8 @@ class CountryModel {
     this.unionTerritories,
     this.statesCount,
     this.population,
+    this.area,
+    this.geographicDescription,
     this.president,
     this.primeMinister,
     this.independenceDay,
@@ -277,7 +344,7 @@ class CountryModel {
 
     // Parse national symbols
     List<SymbolView> symbolsList = [];
-    final rawSymbols = json['symbols'];
+    final rawSymbols = json['symbols'] ?? json['symbol'] ?? json['nationalSymbols'];
     if (rawSymbols != null && rawSymbols is List) {
       symbolsList = rawSymbols
           .whereType<Map>()
@@ -285,6 +352,44 @@ class CountryModel {
             (e) => SymbolView.fromJson(Map<String, dynamic>.from(e)),
           )
           .toList();
+    } else if (rawSymbols != null && rawSymbols is Map) {
+      final items = rawSymbols['items'] ??
+          rawSymbols['content'] ??
+          rawSymbols['symbols'] ??
+          rawSymbols['data'] ??
+          [rawSymbols];
+      if (items is List) {
+        symbolsList = items
+            .whereType<Map>()
+            .map((e) => SymbolView.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+    }
+
+    // Direct flag / emblem fallback in json if symbols array wasn't provided
+    if (symbolsList.isEmpty) {
+      final flagUrl = (json['flagUrl'] ?? (json['flag'] is Map ? json['flag']['url'] : json['flag']))?.toString();
+      if (flagUrl != null && flagUrl.isNotEmpty) {
+        symbolsList.add(SymbolView(
+          id: 1,
+          kind: 'FLAG',
+          label: 'Indian Flag',
+          urls: [flagUrl],
+          description: json['flagDescription']?.toString() ?? json['flagDesc']?.toString(),
+          downloadable: true,
+        ));
+      }
+      final emblemUrl = (json['emblemUrl'] ?? (json['emblem'] is Map ? json['emblem']['url'] : json['emblem']))?.toString();
+      if (emblemUrl != null && emblemUrl.isNotEmpty) {
+        symbolsList.add(SymbolView(
+          id: 2,
+          kind: 'EMBLEM',
+          label: 'Indian Emblem',
+          urls: [emblemUrl],
+          description: json['emblemDescription']?.toString() ?? json['emblemDesc']?.toString(),
+          downloadable: true,
+        ));
+      }
     }
 
     // Safely extract leader names whether represented as String or Map
@@ -334,6 +439,16 @@ class CountryModel {
       unionTerritories: _parseInt(json['unionTerritories']),
       statesCount: json['states']?.toString() ?? json['statesCount']?.toString(),
       population: json['population']?.toString(),
+      area: json['area']?.toString() ??
+          json['totalArea']?.toString() ??
+          json['geographicArea']?.toString() ??
+          json['areaSqKm']?.toString(),
+      geographicDescription: json['geographicDescription']?.toString() ??
+          json['geography']?.toString() ??
+          json['geographic']?.toString() ??
+          json['geoDescription']?.toString() ??
+          json['geographyDescription']?.toString() ??
+          json['geographicInfo']?.toString(),
       president: parsedPresident,
       primeMinister: parsedPrimeMinister,
       independenceDay: json['independenceDay']?.toString(),
@@ -358,6 +473,8 @@ class CountryModel {
     int? unionTerritories,
     String? statesCount,
     String? population,
+    String? area,
+    String? geographicDescription,
     String? president,
     String? primeMinister,
     String? independenceDay,
@@ -380,6 +497,8 @@ class CountryModel {
       unionTerritories: unionTerritories ?? this.unionTerritories,
       statesCount: statesCount ?? this.statesCount,
       population: population ?? this.population,
+      area: area ?? this.area,
+      geographicDescription: geographicDescription ?? this.geographicDescription,
       president: president ?? this.president,
       primeMinister: primeMinister ?? this.primeMinister,
       independenceDay: independenceDay ?? this.independenceDay,

@@ -162,6 +162,7 @@ class CountryProfileRepository {
 
   /// [SYMBOLS] `GET /api/v1/civic/symbols?ownerType=COUNTRY&ownerId={id}`
   Future<List<SymbolView>> fetchCountrySymbols(int countryId) async {
+    // 1. Try civic symbols endpoint with ownerType & ownerId
     try {
       final response = await _dio.get(
         '$api/api/v1/civic/symbols',
@@ -170,32 +171,51 @@ class CountryProfileRepository {
           'ownerId': countryId,
         },
       );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = response.data;
-        final dynamic rawData = responseData is Map<String, dynamic>
-            ? (responseData['data'] ?? responseData)
-            : responseData;
-
-        if (rawData is List) {
-          return rawData
-              .whereType<Map>()
-              .map((e) => SymbolView.fromJson(Map<String, dynamic>.from(e)))
-              .toList();
-        }
-
-        if (rawData is Map) {
-          final items = rawData['items'] ?? rawData['content'] ?? rawData['data'];
-          if (items is List) {
-            return items
-                .whereType<Map>()
-                .map((e) => SymbolView.fromJson(Map<String, dynamic>.from(e)))
-                .toList();
-          }
-        }
-      }
+      final symbols = _parseSymbolsResponse(response.data);
+      if (symbols.isNotEmpty) return symbols;
     } catch (_) {}
+
+    // 2. Try nested endpoint /api/v1/civic/countries/{id}/symbols
+    try {
+      final response = await _dio.get('$api/api/v1/civic/countries/$countryId/symbols');
+      final symbols = _parseSymbolsResponse(response.data);
+      if (symbols.isNotEmpty) return symbols;
+    } catch (_) {}
+
+    // 3. Try /api/v1/civic/symbols with countryId param
+    try {
+      final response = await _dio.get(
+        '$api/api/v1/civic/symbols',
+        queryParameters: {'countryId': countryId},
+      );
+      final symbols = _parseSymbolsResponse(response.data);
+      if (symbols.isNotEmpty) return symbols;
+    } catch (_) {}
+
     return [];
+  }
+
+  List<SymbolView> _parseSymbolsResponse(dynamic responseData) {
+    if (responseData == null) return [];
+    final dynamic rawData = responseData is Map<String, dynamic>
+        ? (responseData['data'] ?? responseData)
+        : responseData;
+
+    List items = [];
+    if (rawData is List) {
+      items = rawData;
+    } else if (rawData is Map) {
+      items = (rawData['items'] ??
+          rawData['content'] ??
+          rawData['symbols'] ??
+          rawData['data'] ??
+          [rawData]) as List;
+    }
+
+    return items
+        .whereType<Map>()
+        .map((e) => SymbolView.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   }
 
   /// [PLACES] `GET /api/v1/civic/places?category=COUNTRY&ownerId={id}`

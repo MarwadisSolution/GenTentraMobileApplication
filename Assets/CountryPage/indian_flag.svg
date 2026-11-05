@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600">
+  <rect width="900" height="200" fill="#FF671F"/>
+  <rect y="200" width="900" height="200" fill="#FFFFFF"/>
+  <rect y="400" width="900" height="200" fill="#046A38"/>
+  <g transform="translate(450, 300)">
+    <circle r="85" fill="none" stroke="#000080" stroke-width="8"/>
+    <circle r="17" fill="#000080"/>
+    <line x1="0" y1="0" x2="0.00" y2="-82.00" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="21.22" y2="-79.21" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="41.00" y2="-71.01" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="57.98" y2="-57.98" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="71.01" y2="-41.00" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="79.21" y2="-21.22" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="82.00" y2="-0.00" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="79.21" y2="21.22" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="71.01" y2="41.00" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="57.98" y2="57.98" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="41.00" y2="71.01" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="21.22" y2="79.21" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="0.00" y2="82.00" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="-21.22" y2="79.21" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="-41.00" y2="71.01" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="-57.98" y2="57.98" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="-71.01" y2="41.00" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="-79.21" y2="21.22" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="-82.00" y2="0.00" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="-79.21" y2="-21.22" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="-71.01" y2="-41.00" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="-57.98" y2="-57.98" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="-41.00" y2="-71.01" stroke="#000080" stroke-width="4"/>
+    <line x1="0" y1="0" x2="-21.22" y2="-79.21" stroke="#000080" stroke-width="4"/>
+  </g>
+</svg>
