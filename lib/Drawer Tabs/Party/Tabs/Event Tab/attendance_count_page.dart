@@ -10,18 +10,12 @@ import '../../../../Reusable Functions/reusable_functions.dart';
 import 'event_modal.dart';
 import 'apis.dart';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
-import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_bar_reusable.dart';
 
 import 'event_tab_bloc.dart';
 import 'event_tab_event.dart';
 import 'event_tab_state.dart';
-import 'event_modal.dart';
-import 'apis.dart';
 
 class AttendanceCountPage extends StatefulWidget {
   final int eventId;

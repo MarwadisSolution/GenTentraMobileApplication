@@ -53,7 +53,7 @@ class CountryPageData {
   // Section tabs
   static const String infoTab = "INFO";
   static const String flagEmblemTab = "FLAG / EMBLEM";
-  static const String placesTab = "FLAG / EMBLEM";
+  static const String placesTab = "PLACES TO VISIT";
   static const String geographicTab = "GEOGRAPHIC";
 
   // SVG Icons from Assets

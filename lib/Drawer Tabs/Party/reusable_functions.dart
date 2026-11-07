@@ -1,25 +1,12 @@
-import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_quill/flutter_quill.dart';
-import 'package:flutter_quill_extensions/flutter_quill_extensions.dart' show FlutterQuillEmbeds, QuillEditorImageEmbedConfig;
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_tab.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/journey_tab.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Leadership%20Tab/leadership_tab.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_apis.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_modal.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
 import '../../Favourite/favourite_api.dart';
-import 'Tabs/Feed Tab/apis.dart';
-import 'Tabs/Feed Tab/feed_bloc.dart';
-import 'Tabs/info_tab.dart';
-import 'Tabs/symbol_tab.dart';
 import 'following_party_caching.dart';
 ///--------------------Filter chips-----------------------------------------
 

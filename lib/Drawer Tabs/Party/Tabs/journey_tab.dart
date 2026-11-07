@@ -185,7 +185,7 @@ class _JourneyTabState extends State<JourneyTab> {
                               ? "$api${item.imagePath}"
                               : item.imagePath!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
+                          errorBuilder: (_, _, _) =>
                               const Center(child: Icon(Icons.image)),
                         ),
                       );
@@ -245,7 +245,7 @@ class _JourneyTabState extends State<JourneyTab> {
                                     fontSize: size * 0.04,
                                     color: const Color(
                                       0xFF000000,
-                                    ).withOpacity(0.6),
+                                    ).withValues(alpha: 0.6),
                                   ),
                                 ),
                               ),
@@ -309,7 +309,7 @@ class _JourneyTabState extends State<JourneyTab> {
                                       ? Colors.white
                                       : const Color(
                                           0xFF000000,
-                                        ).withOpacity(0.4),
+                                        ).withValues(alpha: 0.4),
                                 ),
                                 child: Text(journeys[index].year),
                               ),

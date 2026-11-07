@@ -301,10 +301,10 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
 
                         child: Container(
                           clipBehavior: Clip.antiAlias,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(24),
+                              top: Radius.circular(screenWidth * 0.06),
                             ),
                           ),
                           child: _buildSheetContent(
@@ -745,6 +745,7 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
 
     return CustomScrollView(
       controller: scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         // Header Section (Politician details, animated when user scrolls)
         SliverToBoxAdapter(
@@ -764,11 +765,21 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
                 ),
               );
             },
-            child: _buildPoliticianDetailsSection(
-              context,
-              politician,
-              screenWidth,
-              screenHeight,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildPoliticianDetailsSection(
+                  context,
+                  politician,
+                  screenWidth,
+                  screenHeight,
+                ),
+                Container(
+                  height: MediaQuery.of(context).size.width * (6.0 / 375.0),
+                  width: double.infinity,
+                  color: const Color(0xFFEBEBEB),
+                ),
+              ],
             ),
           ),
         ),
@@ -779,6 +790,9 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
           delegate: _PoliticianProfileTabBarDelegate(
             TabBar(
               controller: _tabController,
+              onTap: (index) {
+                _selectedTabIndex.value = index;
+              },
               tabAlignment: TabAlignment.center,
               overlayColor: WidgetStateProperty.all(Colors.transparent),
               padding: EdgeInsets.only(left: screenWidth * 0.02),
@@ -811,7 +825,7 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
                 Tab(text: PoliticianPageData.development),
               ],
             ),
-            dividerHeight: screenHeight * 0.01,
+            dividerHeight: 0,
           ),
         ),
 
@@ -884,6 +898,14 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
                 ],
               );
             },
+          ),
+        ),
+
+        // Bottom Spacing matching Country Page
+        SliverToBoxAdapter(
+          child: Container(
+            color: Colors.white,
+            height: screenHeight * 0.06,
           ),
         ),
       ],
@@ -1585,9 +1607,13 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
 
 class _PoliticianProfileTabBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar tabBar;
+  final Color backgroundColor;
   final double dividerHeight;
 
-  _PoliticianProfileTabBarDelegate(this.tabBar, {this.dividerHeight = 8.0});
+  _PoliticianProfileTabBarDelegate(
+    this.tabBar, {
+    this.dividerHeight = 0.0,
+  }) : backgroundColor = Colors.white;
 
   @override
   Widget build(
@@ -1596,20 +1622,8 @@ class _PoliticianProfileTabBarDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Container(
-      color: Colors.white,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: double.infinity,
-            height: dividerHeight,
-            child: ColoredBox(
-              color: const Color(0xFF000000).withValues(alpha: 0.08),
-            ),
-          ),
-          tabBar,
-        ],
-      ),
+      color: backgroundColor,
+      child: tabBar,
     );
   }
 
@@ -1617,11 +1631,12 @@ class _PoliticianProfileTabBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => tabBar.preferredSize.height + dividerHeight;
 
   @override
-  double get minExtent => tabBar.preferredSize.height + dividerHeight;
+  double get minExtent => tabBar.preferredSize.height;
 
   @override
   bool shouldRebuild(_PoliticianProfileTabBarDelegate oldDelegate) {
     return oldDelegate.tabBar != tabBar ||
+        oldDelegate.backgroundColor != backgroundColor ||
         oldDelegate.dividerHeight != dividerHeight;
   }
 }

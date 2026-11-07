@@ -12,8 +12,6 @@ import '../../Reusable Functions/Bottom Navigation/bloc_conde_in_one_navigation.
 import '../../Reusable Functions/Bottom Navigation/main_page.dart';
 import '../../Reusable Functions/Drawer/bloc_code_in_one.dart';
 import '../Login Bloc/login_event.dart';
-import '../Login Bloc/login_modal.dart';
-import '../login_apis.dart';
 class AddressPage extends StatefulWidget {
   final String verificationToken;
   const AddressPage({super.key, required this.verificationToken});

@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_state.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/login_pages_data.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Reusable Functions/reusable_functions.dart';
 import '../Reusable Functions/Bottom Navigation/bloc_conde_in_one_navigation.dart';
@@ -211,7 +210,7 @@ class _PasswordVerificationPageState extends State<PasswordVerificationPage> {
                                           ),
                                           gradient:passwordController.text.isNotEmpty?
                                           GradientColors.primaryGradient:null,
-                                          color: passwordController.text.isNotEmpty?null:ColorScheme.of(context).onSurface.withOpacity(0.3)
+                                          color: passwordController.text.isNotEmpty?null:ColorScheme.of(context).onSurface.withValues(alpha: 0.3)
                                         ),
                                         child: Center(
                                           child: state.isLoading?

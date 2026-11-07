@@ -7,10 +7,7 @@ import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_ev
 import 'package:gen_tentra_mobile_application/Login%20Page/Login%20Bloc/login_state.dart';
 import 'package:gen_tentra_mobile_application/Login%20Page/verify_otp_page.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'Login Bloc/login_modal.dart';
 import 'Sign up/signup_page.dart';
-import 'login_apis.dart';
 import 'login_pages_data.dart';
 
 class OtpPage extends StatefulWidget {
