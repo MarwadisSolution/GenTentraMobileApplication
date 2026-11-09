@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Development/development_apis.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Development/development_bloc.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Development/development_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../Favourite/favourite_api.dart';
@@ -48,6 +51,9 @@ class PoliticianProfileScreen extends StatelessWidget {
         ),
         BlocProvider<FeedBloc>(create: (_) => FeedBloc(FeedApis())),
         BlocProvider<EventsBloc>(create: (_) => EventsBloc(EventApis())),
+        BlocProvider<DevelopmentBloc>(
+          create: (_) => DevelopmentBloc(DevelopmentApis()),
+        ),
       ],
       child: _PoliticianProfileView(
         politicianId: politicianId,
@@ -442,7 +448,9 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
                                                               partyId: widget
                                                                   .politicianId,
                                                               fromWhichPage:
-                                                                  "Politician", isPolitician: isPolitician,
+                                                                  "Politician",
+                                                              isPolitician:
+                                                                  isPolitician,
                                                             ),
                                                           ),
                                                     ),
@@ -936,13 +944,11 @@ class _PoliticianProfileViewState extends State<_PoliticianProfileView>
         );
 
       case 4:
-        return _buildPlaceholderTab(
-          context,
-          icon: Icons.work_outline_rounded,
-          title: "No Development Updates",
-          subtitle: "Development milestones and projects will be shown here.",
-          h: screenHeight,
-          w: screenWidth,
+        return DevelopmentTab(
+          id: widget.politicianId,
+          scrollController: scrollController,
+          isVisible: _tabController.index == 4,
+          fromWhichPage: 'Politician',
         );
 
       default:

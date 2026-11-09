@@ -315,15 +315,6 @@ class _TaggedPeopleDialogContentState
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              // trailing: InkWell(
-              //   onTap: () {
-              //     removePerson(index);
-              //   },
-              //   child: const Icon(
-              //     Icons.close,
-              //     color: Colors.black,
-              //   ),
-              // ),
             );
           },
         ),
@@ -437,10 +428,17 @@ class _TaggedPeopleDialogContentState
 }
 
 ///----------------------------
-class FeedMediaWidget extends StatelessWidget {
-  final List<FeedMedia> media;
+class FeedMediaWidget<T> extends StatelessWidget {
+  final List<T> media;
 
-  const FeedMediaWidget({super.key, required this.media});
+  final String? Function(T item) getMediaUrl;
+  final String? Function(T item) getMediaType;
+
+  const FeedMediaWidget({
+    super.key,
+    required this.media,
+    required this.getMediaUrl,
+    required this.getMediaType,});
 
   @override
   Widget build(BuildContext context) {
@@ -599,24 +597,6 @@ class FeedMediaWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-
-              // if (media[index].mediaType == "VIDEO")
-              //   Positioned(
-              //     top: 10,
-              //     right: 10,
-              //     child: Container(
-              //       padding: const EdgeInsets.all(6),
-              //       decoration: BoxDecoration(
-              //         color: Colors.black.withOpacity(0.55),
-              //         shape: BoxShape.circle,
-              //       ),
-              //       child: const Icon(
-              //         Icons.play_arrow,
-              //         color: Colors.red,
-              //         size: 18,
-              //       ),
-              //     ),
-              //   ),
             ],
           ),
         ),
@@ -627,10 +607,11 @@ class FeedMediaWidget extends StatelessWidget {
   // MEDIA PREVIEW
   // ============================================================
 
-  Widget _mediaPreview(FeedMedia item) {
-    final url = item.url ?? "";
+  Widget _mediaPreview(T item) {
+    final url = getMediaUrl(item) ?? "";
+    final type = getMediaType(item);
 
-    if (item.mediaType == "VIDEO") {
+    if (type == "VIDEO") {
       return VideoPreview(url: url);
     }
 
@@ -676,7 +657,12 @@ class FeedMediaWidget extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) {
-          return FeedMediaViewer(media: media, initialIndex: initialIndex);
+          return FeedMediaViewer<T>(
+            media: media,
+            initialIndex: initialIndex,
+            getMediaUrl: getMediaUrl,
+            getMediaType: getMediaType,
+          );
         },
       ),
     );
@@ -882,14 +868,19 @@ class VideoPreviewState extends State<VideoPreview> {
 }
 
 
-class FeedMediaViewer extends StatefulWidget {
-  final List<FeedMedia> media;
+class FeedMediaViewer<T> extends StatefulWidget {
+  final List<T> media;
   final int initialIndex;
+
+  final String? Function(T item) getMediaUrl;
+  final String? Function(T item) getMediaType;
 
   const FeedMediaViewer({
     super.key,
     required this.media,
     required this.initialIndex,
+    required this.getMediaUrl,
+    required this.getMediaType,
   });
 
   @override

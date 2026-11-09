@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Development/development_apis.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Development/development_bloc.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Development/development_events.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Development/development_states.dart';
@@ -15,8 +14,10 @@ import 'package:visibility_detector/visibility_detector.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../party_page_data.dart';
 
+import '../../reusable_functions.dart';
 import '../Feed Tab/functions.dart';
 import '../Feed Tab/reusable_functions.dart';
+import 'development_model.dart';
 
 class DevelopmentTab extends StatefulWidget {
   final int id;
@@ -227,7 +228,7 @@ void _cancelViewTimer(int postId){
                     _onDevelopmentVisibilityChanged(developments.id, info.visibleFraction);
                   },
               child: Container(
-                key: ValueKey(developments.id ?? index),
+                key: ValueKey(developments.id),
                 margin: EdgeInsets.only(bottom: h * 0.012),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,8 +261,7 @@ void _cancelViewTimer(int postId){
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Change it",
-                            //getTimeAgo(DateTime(developments.timeStamp)),
+                            getTimeAgo(developments.timeStamp),
                             style: TextStyle(
                               fontSize: (w * 0.025).clamp(12.0, 15.0),
                               fontWeight: FontWeight.w400,
@@ -307,162 +307,126 @@ void _cancelViewTimer(int postId){
                           ),
                         ],
                       ),
-                      // trailing:
-                      // isAdmin == true ||
-                      //     (isPolitician == true &&
-                      //         widget.fromWhichPage == "Politician")
-                      //     ? PopupMenuButton<String>(
-                      //   icon: Transform.translate(
-                      //     offset: const Offset(20, 0),
-                      //     child: SvgPicture.asset(
-                      //       PartyPageData.threeDots,
-                      //       height: h * 0.004,
-                      //     ),
-                      //   ),
-                      //   onSelected: (value) async {
-                      //     if (value == 'edit') {
-                      //       final result = feed.kind == "POST"
-                      //           ? await Navigator.push(
-                      //         context,
-                      //         MaterialPageRoute(
-                      //           builder: (_) => BlocProvider.value(
-                      //             value: context.read<FeedBloc>(),
-                      //             child: AddingFeed(
-                      //               partyId: widget.partyId,
-                      //               editFeed: feed,
-                      //               fromWhichPage:
-                      //               widget.fromWhichPage,
-                      //               politicianId:
-                      //               widget.politicianId,
-                      //             ),
-                      //           ),
-                      //         ),
-                      //       )
-                      //           : await Navigator.push(
-                      //         context,
-                      //         MaterialPageRoute(
-                      //           builder: (_) => BlocProvider.value(
-                      //             value: context.read<DevelopmentBloc>(),
-                      //             child: AddingQuote(
-                      //               partyId: widget.partyId,
-                      //               editQuote: feed,
-                      //               fromWhichPage:
-                      //               widget.fromWhichPage,
-                      //               politicianId:
-                      //               widget.politicianId,
-                      //             ),
-                      //           ),
-                      //         ),
-                      //       );
-                      //
-                      //       if (result == true && mounted) {
-                      //         setState(() {});
-                      //       }
-                      //     } else if (value == 'share') {
-                      //       shareDevelopment(developments);
-                      //     } else if (value == 'delete') {
-                      //       final shouldDelete =
-                      //       await showGeneralDialog<bool>(
-                      //         context: context,
-                      //         barrierDismissible: true,
-                      //         barrierLabel: 'Delete',
-                      //         barrierColor: Colors.black.withValues(
-                      //           alpha: 0.25,
-                      //         ),
-                      //         transitionDuration: const Duration(
-                      //           milliseconds: 250,
-                      //         ),
-                      //        pageBuilder: (dialogContext, _, _) {
-                      //           return popUpMessageForDeleteOrCancel(
-                      //             dialogContext,
-                      //             developments == "POST"
-                      //                 ? PartyPageData.addFeedIcon
-                      //                 : PartyPageData
-                      //                 .coloredQuoteIcon,
-                      //             "Would you like to Delete?",
-                      //             "Once deleted, this post will be permanently removed.",
-                      //                 () {},
-                      //           );
-                      //         },
-                      //         transitionBuilder:
-                      //             (
-                      //             context,
-                      //             animation,
-                      //             secondaryAnimation,
-                      //             child,
-                      //             ) {
-                      //           return SlideTransition(
-                      //             position:
-                      //             Tween<Offset>(
-                      //               begin: const Offset(0, 1),
-                      //               end: Offset.zero,
-                      //             ).animate(
-                      //               CurvedAnimation(
-                      //                 parent: animation,
-                      //                 curve:
-                      //                 Curves.easeOutCubic,
-                      //               ),
-                      //             ),
-                      //             child: child,
-                      //           );
-                      //         },
-                      //       );
-                      //
-                      //       if (shouldDelete == true && mounted) {
-                      //         context.read<DevelopmentBloc>().add(
-                      //           DeleteDevelopmentEvent(
-                      //             developments.id,
-                      //             widget.id,
-                      //             fromWhichPage: widget.fromWhichPage,
-                      //           ),
-                      //         );
-                      //       }
-                      //     }
-                      //   },
-                      //   itemBuilder: (BuildContext context) => [
-                      //     PopupMenuItem(
-                      //       value: 'edit',
-                      //       child: Row(
-                      //         children: [
-                      //           SvgPicture.asset(
-                      //             PartyPageData.editIcon,
-                      //             width: 18,
-                      //           ),
-                      //           const SizedBox(width: 8),
-                      //           const Text("Edit"),
-                      //         ],
-                      //       ),
-                      //     ),
-                      //     PopupMenuItem(
-                      //       value: 'share',
-                      //       child: Row(
-                      //         children: [
-                      //           SvgPicture.asset(
-                      //             PartyPageData.share,
-                      //             width: 18,
-                      //           ),
-                      //           const SizedBox(width: 8),
-                      //           const Text("Share"),
-                      //         ],
-                      //       ),
-                      //     ),
-                      //     PopupMenuItem(
-                      //       value: 'delete',
-                      //       child: Row(
-                      //         children: [
-                      //           SvgPicture.asset(
-                      //             PartyPageData.deleteIcon,
-                      //             width: 18,
-                      //           ),
-                      //           const SizedBox(width: 8),
-                      //           const Text("Delete"),
-                      //         ],
-                      //       ),
-                      //     ),
-                      //   ],
-                      // )
-                      //     : null,
+
+                      ///----------------Need to be checked-------------------------
+                      trailing:
+                      isAdmin == true ||
+                          (isPolitician == true &&
+                              widget.fromWhichPage == "Politician")
+                          ? PopupMenuButton<String>(
+                        icon: Transform.translate(
+                          offset: const Offset(20, 0),
+                          child: SvgPicture.asset(
+                            PartyPageData.threeDots,
+                            height: h * 0.004,
+                          ),
+                        ),
+                        onSelected: (value) async {
+                          if (value == 'edit') {
+
+                          } else if (value == 'share') {
+                            shareDevelopment(developments);
+                          } else if (value == 'delete') {
+                            final shouldDelete =
+                            await showGeneralDialog<bool>(
+                              context: context,
+                              barrierDismissible: true,
+                              barrierLabel: 'Delete',
+                              barrierColor: Colors.black.withValues(
+                                alpha: 0.25,
+                              ),
+                              transitionDuration: const Duration(
+                                milliseconds: 250,
+                              ),
+                             pageBuilder: (dialogContext, _, _) {
+                                return popUpMessageForDeleteOrCancel(
+                                  dialogContext,
+                                 PartyPageData.addFeedIcon,
+                                  "Would you like to Delete?",
+                                  "Once deleted, this post will be permanently removed.",
+                                      () {},
+                                );
+                              },
+                              transitionBuilder:
+                                  (
+                                  context,
+                                  animation,
+                                  secondaryAnimation,
+                                  child,
+                                  ) {
+                                return SlideTransition(
+                                  position:
+                                  Tween<Offset>(
+                                    begin: const Offset(0, 1),
+                                    end: Offset.zero,
+                                  ).animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve:
+                                      Curves.easeOutCubic,
+                                    ),
+                                  ),
+                                  child: child,
+                                );
+                              },
+                            );
+
+                            if (shouldDelete == true && mounted) {
+                              context.read<DevelopmentBloc>().add(
+                                DeleteDevelopmentEvent(
+                                  developments.id,
+                                  widget.id,
+                                  fromWhichPage: widget.fromWhichPage,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        itemBuilder: (BuildContext context) => [
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(
+                                  PartyPageData.editIcon,
+                                  width: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text("Edit"),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'share',
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(
+                                  PartyPageData.share,
+                                  width: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text("Share"),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(
+                                  PartyPageData.deleteIcon,
+                                  width: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text("Delete"),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )
+                          : null,
                     ),
+                    ///------------------------Need to be checked--------------------------
                     ShowingTaggedPersons(
                       tagged:[]
                     //  developments.taggedPoliticians,
@@ -497,9 +461,11 @@ void _cancelViewTimer(int postId){
                     ),
                     if(developments.media!=null && developments.media!.isNotEmpty)...[
                       SizedBox(height: h * 0.012),
-                      FeedMediaWidget(media:[]
-                      //developments.media
-                      ),
+                      FeedMediaWidget<DevelopmentMedia>(
+                        media: developments.media ?? [],
+                        getMediaUrl: (item) => item.url,
+                        getMediaType: (item) => item.mediaType,
+                      )
                     ],
                     Padding(   padding: EdgeInsets.only(
                       top:  h * 0.012,
@@ -514,7 +480,7 @@ void _cancelViewTimer(int postId){
                           child: Row(
                             children: [
                               Text(
-                               "1000",
+                              "20",
                                 style: TextStyle(
                                   fontWeight: FontWeight.w800,
                                   fontSize: (w * 0.05),

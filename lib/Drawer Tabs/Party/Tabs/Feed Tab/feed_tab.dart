@@ -18,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import 'apis.dart';
+import 'feed_model.dart';
 import 'functions.dart';
 
 class FeedTab extends StatefulWidget {
@@ -561,7 +562,11 @@ class _FeedTabState extends State<FeedTab> {
                         feed.kind == "POST" &&
                         feed.hidden == false) ...[
                       SizedBox(height: h * 0.012),
-                      FeedMediaWidget(media: feed.media!),
+                      FeedMediaWidget<FeedMedia>(
+                        media: feed.media ?? [],
+                        getMediaUrl: (item) => item.url,
+                        getMediaType: (item) => item.mediaType,
+                      )
                     ] else if (feed.kind == "QUOTE" && feed.hidden == false) ...[
                       SizedBox(height: h * 0.012),
                       FeedQuoteWidget(

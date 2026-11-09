@@ -206,12 +206,6 @@ class _AddingFeedState extends State<AddingFeed> {
         selectedVideos.addAll(finalVideos);
       });
 
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   const SnackBar(
-      //     content: Text('Media ready to upload'),
-      //     duration: Duration(seconds: 2),
-      //   ),
-      // );
     } catch (e) {
       if (!mounted) return;
 
@@ -319,8 +313,6 @@ class _AddingFeedState extends State<AddingFeed> {
           );
         }
       }
-print(widget.editFeed);
-      print(widget.politicianId);
       final feed = FeedModel(
         id:widget.editFeed?.id,
         kind: "POST",
@@ -731,12 +723,16 @@ print(widget.editFeed);
                                           existingVideos.isNotEmpty) ...[
                                         SizedBox(height: h * 0.01),
 
-                                        ReusableMediaGrid(
+                                        ReusableMediaGrid<FeedMedia>(
                                           existingImages: existingImages,
                                           existingVideos: existingVideos,
                                           selectedImages: selectedImages,
                                           selectedVideos: selectedVideos,
                                           deletedMediaIds: deletedMediaIds,
+
+                                          getMediaUrl: (media) => media.url,
+                                          getMediaId: (media) => media.id,
+
                                           videoPlayerHelper: videoPlayerHelper,
                                           onPlayVideo: playVideo,
                                           onMediaChanged: () {

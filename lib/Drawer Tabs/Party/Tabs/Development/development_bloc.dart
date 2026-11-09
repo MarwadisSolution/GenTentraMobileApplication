@@ -175,11 +175,11 @@ class DevelopmentBloc
   // ADD DEVELOPMENT
   // ==================================================
 
+
   Future<void> _addDevelopment(
       AddNewDevelopmentEvent event,
       Emitter<DevelopmentState> emit,
       ) async {
-
     emit(state.copyWith(
       isAdding: true,
       clearError: true,
@@ -187,28 +187,37 @@ class DevelopmentBloc
     ));
 
     try {
+      // Call POST Development API
+      final DevelopmentModel createdDevelopment =
+      await developmentApis.postTheDevelopment(
+        development: event.development,
+        mediaFiles: event.mediaFiles,
+      );
 
-      // TODO:
-      // Connect your POST API here.
-      //
-      // Example:
-      //
-      // await developmentApis.addDevelopment(
-      //   partyId: event.partyId,
-      //   politicianId: event.politicianId,
-      //   fromWhichPage: event.fromWhichPage,
-      //   development: event.development,
-      //   mediaFiles: event.mediaFiles,
-      // );
+      // Add newly created development to the existing list
+      final List<DevelopmentModel> updatedList = [
+        createdDevelopment,
+        ...state.developments.where(
+              (development) => development.id != createdDevelopment.id,
+        ),
+      ];
 
       emit(state.copyWith(
+        developments: updatedList,
+
+        // Apply currently selected year filter
+        filteredDevelopments: _filterByYear(
+          updatedList,
+          state.selectedYear,
+        ),
+
         isAdding: false,
         isSuccess: true,
-        successMessage: 'Add Development API not connected yet.',
+        successMessage: 'Development added successfully.',
+        clearError: true,
       ));
 
     } catch (e) {
-
       emit(state.copyWith(
         isAdding: false,
         isError: true,
@@ -216,6 +225,7 @@ class DevelopmentBloc
       ));
     }
   }
+
 
   // ==================================================
   // EDIT DEVELOPMENT

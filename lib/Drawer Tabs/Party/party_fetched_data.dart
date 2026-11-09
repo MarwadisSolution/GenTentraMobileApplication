@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Development/development_apis.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Development/development_bloc.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Development/development_tab.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/add_event.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/apis.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/event_tab.dart';
@@ -19,6 +22,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/reusable_funct
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Reusable Functions/reusable_functions.dart';
+import 'Tabs/Development/adding_development.dart';
 import 'Tabs/Feed Tab/apis.dart';
 import 'Tabs/Feed Tab/feed_bloc.dart';
 import 'Tabs/Feed Tab/feed_tab.dart';
@@ -49,7 +53,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
   final ValueNotifier<bool> _showPartyDetails = ValueNotifier<bool>(true);
   bool _isUserScrolling = false;
   bool? isAdmin;
-  bool isPolitician=false;
+  bool isPolitician = false;
   final ValueNotifier<int> _selectedTabIndex = ValueNotifier<int>(0);
   final ValueNotifier<double> _sheetProgress = ValueNotifier(0.0);
 
@@ -68,16 +72,17 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
       isAdmin = admin;
     });
   }
-  Future<void>checkPolitician()async{
-    final  prefs=await SharedPreferences.getInstance();
-    isPolitician= prefs.getString("role")=="ROLE_POLITICIAN";
+
+  Future<void> checkPolitician() async {
+    final prefs = await SharedPreferences.getInstance();
+    isPolitician = prefs.getString("role") == "ROLE_POLITICIAN";
   }
 
   @override
   void initState() {
     super.initState();
 
-    _tabController = TabController(length: 7, vsync: this);
+    _tabController = TabController(length: 8, vsync: this);
 
     isAdminChecking();
     checkPolitician();
@@ -135,7 +140,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
           isVisible: _tabController.index == 4,
           fromWhichPage: "Party",
           politicianId:
-              0, //------------------I have kept 0 as in party not needed
+          0, //------------------I have kept 0 as in party not needed
         );
       case 5:
         return EventTab(
@@ -148,6 +153,12 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
           scrollController: scrollController,
           isAdmin: isAdmin ?? false,
         );
+      case 7:
+        return DevelopmentTab(id: widget.partyData["id"],
+            scrollController: scrollController,
+            isVisible:  _tabController.index == 7,
+            fromWhichPage: "Party"
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -157,7 +168,10 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
 
   @override
   Widget build(BuildContext context) {
-    final double screenHeight = MediaQuery.of(context).size.height;
+    final double screenHeight = MediaQuery
+        .of(context)
+        .size
+        .height;
     print(screenHeight);
     final double defaultSheetRatio = (screenHeight < 500)
         ? 0.45
@@ -174,6 +188,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
         BlocProvider<ManifestoBloc>(
           create: (_) => ManifestoBloc(ManifestoApis()),
         ),
+        BlocProvider<DevelopmentBloc>(create: (_)=>DevelopmentBloc(DevelopmentApis()),),
       ],
       child: Builder(
         builder: (context) {
@@ -197,9 +212,9 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                   NotificationListener<DraggableScrollableNotification>(
                     onNotification: ((notification) {
                       final progress =
-                          ((notification.extent - defaultSheetRatio) /
-                                  (0.9 - defaultSheetRatio))
-                              .clamp(0.0, 1.0);
+                      ((notification.extent - defaultSheetRatio) /
+                          (0.9 - defaultSheetRatio))
+                          .clamp(0.0, 1.0);
                       if ((progress - _sheetProgress.value).abs() > 0.005) {
                         _sheetProgress.value = progress;
                       }
@@ -259,9 +274,11 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                     child: Padding(
                                       padding: const EdgeInsets.all(30),
                                       child: CircularProgressIndicator(
-                                        color: ColorScheme.of(
+                                        color: ColorScheme
+                                            .of(
                                           context,
-                                        ).onSurface,
+                                        )
+                                            .onSurface,
                                       ),
                                     ),
                                   );
@@ -275,24 +292,24 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
 
                                 final fullData = snapshot.data!;
                                 final PartyProfileModel party =
-                                    fullData['party'] as PartyProfileModel;
+                                fullData['party'] as PartyProfileModel;
                                 final SymbolModel symbol =
-                                    fullData['symbol'] as SymbolModel;
+                                fullData['symbol'] as SymbolModel;
                                 final List<JourneyModel> journey =
-                                    fullData['journey'] as List<JourneyModel>;
+                                fullData['journey'] as List<JourneyModel>;
                                 final List<LeaderGroupModel> leaders =
-                                    fullData['leaderGroup']
-                                        as List<LeaderGroupModel>;
+                                fullData['leaderGroup']
+                                as List<LeaderGroupModel>;
                                 final List<MemberDirectoryModel> members =
-                                    fullData['members']
-                                        as List<MemberDirectoryModel>;
+                                fullData['members']
+                                as List<MemberDirectoryModel>;
                                 final Map<String, List<MemberDirectoryModel>>
                                 membersByRegion =
-                                    fullData['membersByRegion']
-                                        as Map<
-                                          String,
-                                          List<MemberDirectoryModel>
-                                        >;
+                                fullData['membersByRegion']
+                                as Map<
+                                    String,
+                                    List<MemberDirectoryModel>
+                                >;
 
                                 return CustomScrollView(
                                   controller: scrollController,
@@ -339,9 +356,12 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                           ),
                                           padding: EdgeInsets.only(
                                             left:
-                                                MediaQuery.of(
-                                                  context,
-                                                ).size.width *
+                                            MediaQuery
+                                                .of(
+                                              context,
+                                            )
+                                                .size
+                                                .width *
                                                 0.02,
                                           ),
                                           isScrollable: true,
@@ -360,9 +380,12 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                             0xFF666666,
                                           ),
                                           indicatorColor: Colors.red,
-                                          dividerColor: ColorScheme.of(
+                                          dividerColor: ColorScheme
+                                              .of(
                                             context,
-                                          ).onSurface.withValues(alpha: 0.2),
+                                          )
+                                              .onSurface
+                                              .withValues(alpha: 0.2),
                                           tabs: [
                                             Tab(text: PartyPageData.info),
                                             Tab(text: PartyPageData.symbol),
@@ -371,10 +394,14 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                             Tab(text: PartyPageData.feed),
                                             Tab(text: PartyPageData.event),
                                             Tab(text: PartyPageData.manifesto),
+                                            Tab(text: PartyPageData.development,)
                                           ],
                                         ),
                                         dividerHeight:
-                                            MediaQuery.of(context).size.height *
+                                        MediaQuery
+                                            .of(context)
+                                            .size
+                                            .height *
                                             0.01,
                                       ),
                                     ),
@@ -385,136 +412,152 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                         valueListenable: _selectedTabIndex,
                                         builder:
                                             (context, selectedIndex, child) {
-                                              return Stack(
-                                                children: [
-                                                  // INFO
-                                                  Offstage(
-                                                    offstage:
-                                                        selectedIndex != 0,
-                                                    child: _buildTabContent(
-                                                      index: 0,
-                                                      party: party,
-                                                      symbol: symbol,
-                                                      journey: journey,
-                                                      leaders: leaders,
-                                                      members: members,
-                                                      membersByRegion:
-                                                          membersByRegion,
-                                                      scrollController:
-                                                          scrollController,
-                                                    ),
-                                                  ),
+                                          return Stack(
+                                            children: [
+                                              // INFO
+                                              Offstage(
+                                                offstage:
+                                                selectedIndex != 0,
+                                                child: _buildTabContent(
+                                                  index: 0,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion:
+                                                  membersByRegion,
+                                                  scrollController:
+                                                  scrollController,
+                                                ),
+                                              ),
 
-                                                  // SYMBOL
-                                                  Offstage(
-                                                    offstage:
-                                                        selectedIndex != 1,
-                                                    child: _buildTabContent(
-                                                      index: 1,
-                                                      party: party,
-                                                      symbol: symbol,
-                                                      journey: journey,
-                                                      leaders: leaders,
-                                                      members: members,
-                                                      membersByRegion:
-                                                          membersByRegion,
-                                                      scrollController:
-                                                          scrollController,
-                                                    ),
-                                                  ),
+                                              // SYMBOL
+                                              Offstage(
+                                                offstage:
+                                                selectedIndex != 1,
+                                                child: _buildTabContent(
+                                                  index: 1,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion:
+                                                  membersByRegion,
+                                                  scrollController:
+                                                  scrollController,
+                                                ),
+                                              ),
 
-                                                  // JOURNEY
-                                                  Offstage(
-                                                    offstage:
-                                                        selectedIndex != 2,
-                                                    child: _buildTabContent(
-                                                      index: 2,
-                                                      party: party,
-                                                      symbol: symbol,
-                                                      journey: journey,
-                                                      leaders: leaders,
-                                                      members: members,
-                                                      membersByRegion:
-                                                          membersByRegion,
-                                                      scrollController:
-                                                          scrollController,
-                                                    ),
-                                                  ),
+                                              // JOURNEY
+                                              Offstage(
+                                                offstage:
+                                                selectedIndex != 2,
+                                                child: _buildTabContent(
+                                                  index: 2,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion:
+                                                  membersByRegion,
+                                                  scrollController:
+                                                  scrollController,
+                                                ),
+                                              ),
 
-                                                  // LEADERSHIP
-                                                  Offstage(
-                                                    offstage:
-                                                        selectedIndex != 3,
-                                                    child: _buildTabContent(
-                                                      index: 3,
-                                                      party: party,
-                                                      symbol: symbol,
-                                                      journey: journey,
-                                                      leaders: leaders,
-                                                      members: members,
-                                                      membersByRegion:
-                                                          membersByRegion,
-                                                      scrollController:
-                                                          scrollController,
-                                                    ),
-                                                  ),
+                                              // LEADERSHIP
+                                              Offstage(
+                                                offstage:
+                                                selectedIndex != 3,
+                                                child: _buildTabContent(
+                                                  index: 3,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion:
+                                                  membersByRegion,
+                                                  scrollController:
+                                                  scrollController,
+                                                ),
+                                              ),
 
-                                                  // FEED
-                                                  Offstage(
-                                                    offstage:
-                                                        selectedIndex != 4,
-                                                    child: _buildTabContent(
-                                                      index: 4,
-                                                      party: party,
-                                                      symbol: symbol,
-                                                      journey: journey,
-                                                      leaders: leaders,
-                                                      members: members,
-                                                      membersByRegion:
-                                                          membersByRegion,
-                                                      scrollController:
-                                                          scrollController,
-                                                    ),
-                                                  ),
+                                              // FEED
+                                              Offstage(
+                                                offstage:
+                                                selectedIndex != 4,
+                                                child: _buildTabContent(
+                                                  index: 4,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion:
+                                                  membersByRegion,
+                                                  scrollController:
+                                                  scrollController,
+                                                ),
+                                              ),
 
-                                                  // EVENT
-                                                  Offstage(
-                                                    offstage:
-                                                        selectedIndex != 5,
-                                                    child: _buildTabContent(
-                                                      index: 5,
-                                                      party: party,
-                                                      symbol: symbol,
-                                                      journey: journey,
-                                                      leaders: leaders,
-                                                      members: members,
-                                                      membersByRegion:
-                                                          membersByRegion,
-                                                      scrollController:
-                                                          scrollController,
-                                                    ),
-                                                  ),
+                                              // EVENT
+                                              Offstage(
+                                                offstage:
+                                                selectedIndex != 5,
+                                                child: _buildTabContent(
+                                                  index: 5,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion:
+                                                  membersByRegion,
+                                                  scrollController:
+                                                  scrollController,
+                                                ),
+                                              ),
 
-                                                  // MANIFESTO
-                                                  Offstage(
-                                                    offstage:
-                                                        selectedIndex != 6,
-                                                    child: _buildTabContent(
-                                                      index: 6,
-                                                      party: party,
-                                                      symbol: symbol,
-                                                      journey: journey,
-                                                      leaders: leaders,
-                                                      members: members,
-                                                      membersByRegion:
-                                                          membersByRegion,
-                                                      scrollController:
-                                                          scrollController,
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
-                                            },
+                                              // MANIFESTO
+                                              Offstage(
+                                                offstage:
+                                                selectedIndex != 6,
+                                                child: _buildTabContent(
+                                                  index: 6,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion:
+                                                  membersByRegion,
+                                                  scrollController:
+                                                  scrollController,
+                                                ),
+                                              ),
+                                              Offstage(
+                                                offstage:
+                                                selectedIndex != 7,
+                                                child: _buildTabContent(
+                                                  index: 7,
+                                                  party: party,
+                                                  symbol: symbol,
+                                                  journey: journey,
+                                                  leaders: leaders,
+                                                  members: members,
+                                                  membersByRegion:
+                                                  membersByRegion,
+                                                  scrollController:
+                                                  scrollController,
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
                                       ),
                                     ),
                                   ],
@@ -530,11 +573,14 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                     valueListenable: _selectedTabIndex,
                     builder: (context, selectedIndex, child) {
                       if ((selectedIndex == 4 ||
-                              selectedIndex == 5 ||
-                              selectedIndex == 6) &&
+                          selectedIndex == 5 ||
+                          selectedIndex == 6 || selectedIndex == 7 ) &&
                           isAdmin == true) {
                         return Positioned(
-                          bottom: MediaQuery.of(context).size.height * 0.03,
+                          bottom: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.03,
                           left: 0,
                           right: 0,
                           child: Center(
@@ -553,13 +599,19 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                       children: [
                                         Positioned(
                                           bottom:
-                                              MediaQuery.of(
-                                                    context,
-                                                  ).size.height *
-                                                  0.03 +
-                                              MediaQuery.of(
-                                                    context,
-                                                  ).size.width *
+                                          MediaQuery
+                                              .of(
+                                            context,
+                                          )
+                                              .size
+                                              .height *
+                                              0.03 +
+                                              MediaQuery
+                                                  .of(
+                                                context,
+                                              )
+                                                  .size
+                                                  .width *
                                                   0.2 +
                                               20,
                                           left: 0,
@@ -567,14 +619,17 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                           child: Center(
                                             child: VerticalActionMenu(
                                               height:
-                                                  MediaQuery.of(
-                                                    context,
-                                                  ).size.height *
+                                              MediaQuery
+                                                  .of(
+                                                context,
+                                              )
+                                                  .size
+                                                  .height *
                                                   0.35,
                                               items: [
                                                 ActionMenuItem(
                                                   imageIcon:
-                                                      PartyPageData.addFeedIcon,
+                                                  PartyPageData.addFeedIcon,
                                                   title: PartyPageData.feed,
                                                   onTap: () {
                                                     Navigator.pop(context);
@@ -586,16 +641,16 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                             BlocProvider.value(
                                                               value: context
                                                                   .read<
-                                                                    FeedBloc
-                                                                  >(),
+                                                                  FeedBloc
+                                                              >(),
                                                               child: AddingFeed(
                                                                 partyId: widget
                                                                     .partyData["id"],
                                                                 editFeed: null,
                                                                 fromWhichPage:
-                                                                    "Party",
+                                                                "Party",
                                                                 politicianId:
-                                                                    0, //--------I have kept 0 as in party not needed
+                                                                0, //--------I have kept 0 as in party not needed
                                                               ),
                                                             ),
                                                       ),
@@ -616,16 +671,16 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                             BlocProvider.value(
                                                               value: context
                                                                   .read<
-                                                                    FeedBloc
-                                                                  >(),
+                                                                  FeedBloc
+                                                              >(),
                                                               child: AddingQuote(
                                                                 partyId: widget
                                                                     .partyData["id"],
                                                                 editQuote: null,
                                                                 fromWhichPage:
-                                                                    "Party",
+                                                                "Party",
                                                                 politicianId:
-                                                                    0, //--------I have kept 0 as in party not needed
+                                                                0, //--------I have kept 0 as in party not needed
                                                               ),
                                                             ),
                                                       ),
@@ -635,7 +690,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
 
                                                 ActionMenuItem(
                                                   imageIcon:
-                                                      PartyPageData.eventIcon,
+                                                  PartyPageData.eventIcon,
                                                   title: PartyPageData.event,
                                                   onTap: () {
                                                     Navigator.pop(context);
@@ -647,13 +702,13 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                             BlocProvider.value(
                                                               value: context
                                                                   .read<
-                                                                    EventsBloc
-                                                                  >(),
+                                                                  EventsBloc
+                                                              >(),
                                                               child: AddEvent(
                                                                 partyId: widget
                                                                     .partyData["id"],
                                                                 fromWhichPage:
-                                                                    "Party",
+                                                                "Party",
                                                                 isPolitician: isPolitician,
                                                               ),
                                                             ),
@@ -661,7 +716,31 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                     );
                                                   },
                                                 ),
+                                                ActionMenuItem(
+                                                  imageIcon: PartyPageData
+                                                      .newGroupIcon,
+                                                  title: PartyPageData.development,
+                                                  onTap: () {
+                                                    Navigator.pop(context);
 
+                                                    final developmentBloc = context.read<DevelopmentBloc>();
+
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (_) => BlocProvider.value(
+                                                          value: developmentBloc,
+                                                          child: AddingDevelopment(
+                                                            partyId: widget.partyData["id"],
+                                                            editDevelopment: null,
+                                                            fromWhichPage: "Party",
+                                                            politicianId: 0,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
                                                 ActionMenuItem(
                                                   imageIcon: PartyPageData
                                                       .newGroupIcon,
@@ -674,36 +753,32 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                   imageIcon: PartyPageData
                                                       .calenderIcon,
                                                   title:
-                                                      PartyPageData.manifesto,
+                                                  PartyPageData.manifesto,
                                                   onTap: () async {
-                                                    // Close the action menu first
                                                     Navigator.pop(context);
 
-                                                    final result =
-                                                        await Navigator.push<
-                                                          bool
-                                                        >(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (_) =>
-                                                                AddManifest(
-                                                                  partyId: widget
-                                                                      .partyData["id"],
-                                                                ),
-                                                          ),
-                                                        );
+                                                    // Get the existing BLoC before navigating.
+                                                    final manifestoBloc = context.read<ManifestoBloc>();
 
-                                                    // Manifesto was successfully added
-                                                    if (result == true &&
-                                                        context.mounted) {
-                                                      context
-                                                          .read<ManifestoBloc>()
-                                                          .add(
-                                                            GetManifestosEvent(
-                                                              partyId: widget
-                                                                  .partyData["id"],
-                                                            ),
-                                                          );
+                                                    final result = await Navigator.push<bool>(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (_) => BlocProvider.value(
+                                                          value: manifestoBloc,
+                                                          child: AddManifest(
+                                                            partyId: widget.partyData["id"],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+
+                                                    // Refresh the Manifesto tab after successful publishing.
+                                                    if (result == true && mounted) {
+                                                      manifestoBloc.add(
+                                                        GetManifestosEvent(
+                                                          partyId: widget.partyData["id"],
+                                                        ),
+                                                      );
                                                     }
                                                   },
                                                 ),
@@ -720,15 +795,15 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                   transitionBuilder: (_, animation, _, child) {
                                     return SlideTransition(
                                       position:
-                                          Tween<Offset>(
-                                            begin: const Offset(0, 1),
-                                            end: Offset.zero,
-                                          ).animate(
-                                            CurvedAnimation(
-                                              parent: animation,
-                                              curve: Curves.easeInOutCubic,
-                                            ),
-                                          ),
+                                      Tween<Offset>(
+                                        begin: const Offset(0, 1),
+                                        end: Offset.zero,
+                                      ).animate(
+                                        CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeInOutCubic,
+                                        ),
+                                      ),
                                       child: child,
                                     );
                                   },
@@ -740,7 +815,10 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                 builder: (context, isSelected, child) {
                                   return Container(
                                     height:
-                                        MediaQuery.of(context).size.width *
+                                    MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width *
                                         0.18,
                                     decoration: BoxDecoration(
                                       gradient: GradientColors.primaryGradient,
@@ -752,10 +830,16 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                             ? PartyPageData.crossIconLight
                                             : PartyPageData.addIconLight,
                                         height:
-                                            MediaQuery.of(context).size.width *
+                                        MediaQuery
+                                            .of(context)
+                                            .size
+                                            .width *
                                             0.06,
                                         width:
-                                            MediaQuery.of(context).size.width *
+                                        MediaQuery
+                                            .of(context)
+                                            .size
+                                            .width *
                                             0.06,
                                       ),
                                     ),
@@ -786,14 +870,12 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   final double dividerHeight;
 
   _SliverTabBarDelegate(this.tabBar, {this.dividerHeight = 8.0})
-    : backgroundColor = Colors.white;
+      : backgroundColor = Colors.white;
 
   @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
+  Widget build(BuildContext context,
+      double shrinkOffset,
+      bool overlapsContent,) {
     return Container(
       color: backgroundColor,
       child: Column(

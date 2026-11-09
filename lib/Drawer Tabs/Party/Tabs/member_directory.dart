@@ -130,7 +130,6 @@ class _MemberDirectoryState extends State<MemberDirectory> {
       body: Container(
         decoration: BoxDecoration(
       color: Colors.black.withValues(alpha: 0.08),
-          //gradient: GradientColorsForBellowAppbar.gradientBelowAppbar,
          ),
         child: CustomScrollView(
           slivers: [
@@ -342,10 +341,10 @@ class _MemberDirectoryState extends State<MemberDirectory> {
                   padding:  EdgeInsets.only(left: w*0.025,right: w*0.025),
                   child: Container(
                     height: w*0.4,
-decoration: BoxDecoration(
+                     decoration: BoxDecoration(
     color: Colors.white,
   borderRadius: BorderRadius.circular(w*0.04)
-),
+            ),
 
                     padding: EdgeInsets.symmetric(
                       horizontal: w * 0.025,
@@ -423,7 +422,7 @@ decoration: BoxDecoration(
                                     softWrap: true,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontSize: (w * 0.029).clamp(9.0, 11.0),
+                                      fontSize: (w * 0.03),
                                       fontWeight: FontWeight.w600,
                                       color: Colors.black,
                                       height: 1.1,

@@ -8,14 +8,16 @@ import '../../../../Reusable Functions/reusable_functions.dart';
 import 'feed_model.dart';
 import 'reusable_functions.dart';
 
-class ReusableMediaGrid extends StatefulWidget {
-  final List<FeedMedia> existingImages;
-  final List<FeedMedia> existingVideos;
+class ReusableMediaGrid<T> extends StatefulWidget {
+  final List<T> existingImages;
+  final List<T> existingVideos;
 
   final List<XFile> selectedImages;
   final List<XFile> selectedVideos;
 
   final List<int> deletedMediaIds;
+  final String? Function(T media) getMediaUrl;
+  final int? Function(T media) getMediaId;
 
   final VideoPlayerHelper videoPlayerHelper;
 
@@ -33,16 +35,18 @@ class ReusableMediaGrid extends StatefulWidget {
     required this.selectedImages,
     required this.selectedVideos,
     required this.deletedMediaIds,
+    required this.getMediaUrl,
+    required this.getMediaId,
     required this.videoPlayerHelper,
     required this.onPlayVideo,
     required this.onMediaChanged,
   });
 
   @override
-  State<ReusableMediaGrid> createState() => _ReusableMediaGridState();
+  State<ReusableMediaGrid<T>> createState() => _ReusableMediaGridState<T>();
 }
 
-class _ReusableMediaGridState extends State<ReusableMediaGrid> {
+class _ReusableMediaGridState<T> extends State<ReusableMediaGrid<T>> {
   @override
   Widget build(BuildContext context) {
     final totalMedia = widget.existingImages.length +
@@ -78,7 +82,7 @@ class _ReusableMediaGridState extends State<ReusableMediaGrid> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: buildImageWidget(
-                    image.url ?? "",
+                    widget.getMediaUrl(image) ?? "",
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -90,10 +94,11 @@ class _ReusableMediaGridState extends State<ReusableMediaGrid> {
                 child: InkWell(
                   onTap: () {
                     final media = widget.existingImages[imageIndex];
+                    final mediaId = widget.getMediaId(media);
 
-                    if (media.id != null &&
-                        !widget.deletedMediaIds.contains(media.id!)) {
-                      widget.deletedMediaIds.add(media.id!);
+                    if (mediaId != null &&
+                        !widget.deletedMediaIds.contains(mediaId)) {
+                      widget.deletedMediaIds.add(mediaId);
                     }
 
                     widget.existingImages.removeAt(imageIndex);
@@ -224,10 +229,10 @@ class _ReusableMediaGridState extends State<ReusableMediaGrid> {
                     }
 
                     final media = widget.existingVideos[videoIndex];
-
-                    if (media.id != null &&
-                        !widget.deletedMediaIds.contains(media.id!)) {
-                      widget.deletedMediaIds.add(media.id!);
+                    final mediaId = widget.getMediaId(media);
+                    if (mediaId != null &&
+                        !widget.deletedMediaIds.contains(mediaId)) {
+                      widget.deletedMediaIds.add(mediaId);
                     }
 
                     widget.existingVideos.removeAt(videoIndex);

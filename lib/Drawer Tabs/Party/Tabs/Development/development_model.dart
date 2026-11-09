@@ -11,7 +11,7 @@ class DevelopmentModel {
   final List<DevelopmentMedia> media;
   final List<dynamic>taggedPoliticians;
   final List<dynamic>taggedParties;
-  final String?timeStamp;
+  final DateTime?timeStamp;
   final String? updatedAt;
 
   DevelopmentModel({
@@ -39,11 +39,14 @@ class DevelopmentModel {
       title: json['title'],
       description: json['description'],
       from: json['from']?.toString(),
+      to: json['to']?.toString(),
       media: (json['media'] as List? ??[])
         .map((e)=>DevelopmentMedia.fromJson(e)).toList(),
       taggedPoliticians: json['taggedPoliticians']??[],
       taggedParties: json['taggedParties']??[],
-      timeStamp: json['timestamp'],
+      timeStamp: json["timestamp"] != null
+          ? DateTime.parse(json["timestamp"])
+          : null,
       updatedAt: json['updatedAt'],
     );
   }
