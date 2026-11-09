@@ -306,26 +306,35 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
     final h = MediaQuery.of(context).size.height;
     final w = MediaQuery.of(context).size.width;
 
-    final bool isIndia = widget.country.name.toLowerCase().contains('india') ||
-        widget.country.name.isEmpty ||
-        widget.country.registrationCode == 'IND';
-
-    final String countryTitle = widget.country.name.isNotEmpty
-        ? (isIndia ? 'India - भारत' : widget.country.name)
-        : 'India - भारत';
+    final String countryTitle = widget.country.name.trim().isNotEmpty
+        ? widget.country.name.trim()
+        : 'Country';
 
     final String capitalText = widget.country.capital != null &&
-            widget.country.capital!.isNotEmpty
-        ? widget.country.capital!
-        : (isIndia ? 'New Delhi' : '-');
+            widget.country.capital!.trim().isNotEmpty
+        ? widget.country.capital!.trim()
+        : '-';
 
-    final String statesValue = widget.country.statesCount?.isNotEmpty == true
-        ? widget.country.statesCount!
-        : (isIndia ? '28' : '-');
+    final bool isState = widget.country.registrationCode != null &&
+        widget.country.registrationCode!.trim().isNotEmpty &&
+        widget.country.registrationCode != 'IND' &&
+        widget.country.registrationCode != 'IN';
+
+    final String statesValue = widget.country.statesCount?.trim().isNotEmpty == true
+        ? widget.country.statesCount!.trim()
+        : '-';
 
     final String utValue = widget.country.unionTerritories != null
         ? widget.country.unionTerritories!.toString().padLeft(2, '0')
-        : (isIndia ? '08' : '-');
+        : '-';
+
+    final String stateCodeValue = widget.country.numericCode != null
+        ? widget.country.numericCode.toString()
+        : '-';
+
+    final String regCodeValue = widget.country.registrationCode?.trim().isNotEmpty == true
+        ? widget.country.registrationCode!.trim()
+        : '-';
 
     return Container(
       padding: EdgeInsets.only(
@@ -390,67 +399,160 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
           ),
           SizedBox(height: h * 0.018),
 
-          // Stats Row: STATES and UNION TERRITORIES with vertical separator
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // States
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    CountryPageData.states,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: w * 0.028,
-                      letterSpacing: 0.5,
-                      color: const Color(0xFF757575),
+          // Stats Row: DISTRICTS/STATES, STATE CODE/UT, REGISTRATION with vertical separators
+          if (isState)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Districts
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'DISTRICTS',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: w * 0.026,
+                        letterSpacing: 0.5,
+                        color: const Color(0xFF757575),
+                      ),
                     ),
-                  ),
-                  SizedBox(height: h * 0.003),
-                  Text(
-                    statesValue,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: w * 0.058,
-                      color: const Color(0xFF1E1E1E),
+                    SizedBox(height: h * 0.003),
+                    Text(
+                      statesValue,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: w * 0.055,
+                        color: const Color(0xFF1E1E1E),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              // Thin vertical divider line
-              Container(
-                height: h * 0.052,
-                width: w * 0.003,
-                color: const Color(0xFFE0E0E0),
-                margin: EdgeInsets.symmetric(horizontal: w * 0.07),
-              ),
-              // Union Territories
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    CountryPageData.unionTerritories,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: w * 0.028,
-                      letterSpacing: 0.5,
-                      color: const Color(0xFF757575),
+                  ],
+                ),
+                // Thin vertical divider line
+                Container(
+                  height: h * 0.045,
+                  width: w * 0.003,
+                  color: const Color(0xFFE0E0E0),
+                  margin: EdgeInsets.symmetric(horizontal: w * 0.05),
+                ),
+                // State Code
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'STATE CODE',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: w * 0.026,
+                        letterSpacing: 0.5,
+                        color: const Color(0xFF757575),
+                      ),
                     ),
-                  ),
-                  SizedBox(height: h * 0.003),
-                  Text(
-                    utValue,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: w * 0.058,
-                      color: const Color(0xFF1E1E1E),
+                    SizedBox(height: h * 0.003),
+                    Text(
+                      stateCodeValue,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: w * 0.055,
+                        color: const Color(0xFF1E1E1E),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                  ],
+                ),
+                // Thin vertical divider line
+                Container(
+                  height: h * 0.045,
+                  width: w * 0.003,
+                  color: const Color(0xFFE0E0E0),
+                  margin: EdgeInsets.symmetric(horizontal: w * 0.05),
+                ),
+                // Registration
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'REGISTRATION',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: w * 0.026,
+                        letterSpacing: 0.5,
+                        color: const Color(0xFF757575),
+                      ),
+                    ),
+                    SizedBox(height: h * 0.003),
+                    Text(
+                      regCodeValue,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: w * 0.055,
+                        color: const Color(0xFF1E1E1E),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // States
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      CountryPageData.states,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: w * 0.028,
+                        letterSpacing: 0.5,
+                        color: const Color(0xFF757575),
+                      ),
+                    ),
+                    SizedBox(height: h * 0.003),
+                    Text(
+                      statesValue,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: w * 0.058,
+                        color: const Color(0xFF1E1E1E),
+                      ),
+                    ),
+                  ],
+                ),
+                // Thin vertical divider line
+                Container(
+                  height: h * 0.052,
+                  width: w * 0.003,
+                  color: const Color(0xFFE0E0E0),
+                  margin: EdgeInsets.symmetric(horizontal: w * 0.07),
+                ),
+                // Union Territories
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      CountryPageData.unionTerritories,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: w * 0.028,
+                        letterSpacing: 0.5,
+                        color: const Color(0xFF757575),
+                      ),
+                    ),
+                    SizedBox(height: h * 0.003),
+                    Text(
+                      utValue,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: w * 0.058,
+                        color: const Color(0xFF1E1E1E),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
         ],
       ),
     );
@@ -466,7 +568,7 @@ Widget buildSectionDivider(
   final double screenWidth = MediaQuery.of(context).size.width;
   final double screenHeight = MediaQuery.of(context).size.height;
   return Container(
-    width: screenWidth,
+    width: double.infinity,
     height: screenWidth * (1.6 / 375.0),
     margin: EdgeInsets.only(
       top: topMargin ?? screenHeight * 0.012,
@@ -498,7 +600,7 @@ Widget buildSectionHeader(
             color: const Color(0xFF1A1A1A),
           ),
         ),
-        if (trailing != null) trailing,
+        ?trailing,
       ],
     ),
   );

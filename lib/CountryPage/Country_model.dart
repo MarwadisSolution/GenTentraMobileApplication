@@ -373,7 +373,7 @@ class CountryModel {
         symbolsList.add(SymbolView(
           id: 1,
           kind: 'FLAG',
-          label: 'Indian Flag',
+          label: json['flagTitle']?.toString() ?? 'Flag',
           urls: [flagUrl],
           description: json['flagDescription']?.toString() ?? json['flagDesc']?.toString(),
           downloadable: true,
@@ -384,7 +384,7 @@ class CountryModel {
         symbolsList.add(SymbolView(
           id: 2,
           kind: 'EMBLEM',
-          label: 'Indian Emblem',
+          label: json['emblemTitle']?.toString() ?? 'Emblem',
           urls: [emblemUrl],
           description: json['emblemDescription']?.toString() ?? json['emblemDesc']?.toString(),
           downloadable: true,

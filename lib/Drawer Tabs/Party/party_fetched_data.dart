@@ -259,10 +259,12 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                           },
                           child: Container(
                             clipBehavior: Clip.antiAlias,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(24),
+                                top: Radius.circular(
+                                  MediaQuery.of(context).size.width * 0.06,
+                                ),
                               ),
                             ),
                             child: FutureBuilder<Map<String, dynamic>>(
@@ -313,6 +315,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
 
                                 return CustomScrollView(
                                   controller: scrollController,
+                                  physics:
+                                      const AlwaysScrollableScrollPhysics(),
                                   slivers: [
                                     // Header Section (Party details)
                                     SliverToBoxAdapter(
@@ -336,10 +340,20 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                             ),
                                           );
                                         },
-                                        child: PartyDetailsSection(
-                                          key: const ValueKey('party_details'),
-                                          partyData: widget.partyData,
-                                          type: "PARTY",
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            PartyDetailsSection(
+                                              key: const ValueKey('party_details'),
+                                              partyData: widget.partyData,
+                                              type: "PARTY",
+                                            ),
+                                            Container(
+                                              height: MediaQuery.of(context).size.width * (6.0 / 375.0),
+                                              width: double.infinity,
+                                              color: const Color(0xFFEBEBEB),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
@@ -350,6 +364,9 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                       delegate: _SliverTabBarDelegate(
                                         TabBar(
                                           controller: _tabController,
+                                          onTap: (index) {
+                                            _selectedTabIndex.value = index;
+                                          },
                                           tabAlignment: TabAlignment.center,
                                           overlayColor: WidgetStateProperty.all(
                                             Colors.transparent,
@@ -397,12 +414,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                             Tab(text: PartyPageData.development,)
                                           ],
                                         ),
-                                        dividerHeight:
-                                        MediaQuery
-                                            .of(context)
-                                            .size
-                                            .height *
-                                            0.01,
+
+                                        dividerHeight: 0,
                                       ),
                                     ),
 
@@ -558,6 +571,18 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                             ],
                                           );
                                         },
+                                      ),
+                                    ),
+
+                                    // Bottom Spacing matching Country Page
+                                    SliverToBoxAdapter(
+                                      child: Container(
+                                        color: Colors.white,
+                                        height:
+                                            MediaQuery.of(
+                                              context,
+                                            ).size.height *
+                                            0.06,
                                       ),
                                     ),
                                   ],
@@ -869,8 +894,11 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   final Color backgroundColor;
   final double dividerHeight;
 
-  _SliverTabBarDelegate(this.tabBar, {this.dividerHeight = 8.0})
-      : backgroundColor = Colors.white;
+
+  _SliverTabBarDelegate(
+    this.tabBar, {
+    this.dividerHeight = 0.0,
+  }) : backgroundColor = Colors.white;
 
   @override
   Widget build(BuildContext context,
@@ -878,19 +906,7 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
       bool overlapsContent,) {
     return Container(
       color: backgroundColor,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: double.infinity,
-            height: dividerHeight,
-            child: ColoredBox(
-              color: const Color(0xFF000000).withValues(alpha: 0.08),
-            ),
-          ),
-          tabBar,
-        ],
-      ),
+      child: tabBar,
     );
   }
 
@@ -898,7 +914,7 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => tabBar.preferredSize.height + dividerHeight;
 
   @override
-  double get minExtent => tabBar.preferredSize.height + dividerHeight;
+  double get minExtent => tabBar.preferredSize.height;
 
   @override
   bool shouldRebuild(_SliverTabBarDelegate oldDelegate) {

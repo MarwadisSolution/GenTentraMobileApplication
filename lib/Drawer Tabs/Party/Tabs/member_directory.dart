@@ -177,7 +177,7 @@ class _MemberDirectoryState extends State<MemberDirectory> {
                         scrollDirection: Axis.horizontal,
                         padding: EdgeInsets.symmetric(horizontal: w * 0.03),
                         itemCount: regions.length,
-                        separatorBuilder: (_, __) =>
+                        separatorBuilder: (_, _) =>
                             SizedBox(width: w * 0.025),
                         itemBuilder: (context, index) {
                           final region = regions[index];
@@ -207,7 +207,7 @@ class _MemberDirectoryState extends State<MemberDirectory> {
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? Colors.white
-                                    : const Color(0xFF000000).withOpacity(0.26),
+                                    : const Color(0xFF000000).withValues(alpha: 0.26),
                                 borderRadius: BorderRadius.circular(w*0.14),
                               ),
                               child: Text(
@@ -355,7 +355,7 @@ class _MemberDirectoryState extends State<MemberDirectory> {
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: topLeaders.length,
-                        separatorBuilder: (_, __) => SizedBox(width: w * 0.025),
+                        separatorBuilder: (_, _) => SizedBox(width: w * 0.025),
 
                         itemBuilder: (context, index) {
                           final leader = topLeaders[index];

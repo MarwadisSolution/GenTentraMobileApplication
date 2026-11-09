@@ -64,8 +64,8 @@ class FeedApis {
       final response = await _dio.get(
 
         fromWhichPage=="Party"?
-        "$api/api/v1/feed/parties/${partyId}/posts":
-        "$api/api/v1/feed/politicians/${politicianId}/posts",
+        "$api/api/v1/feed/parties/$partyId/posts":
+        "$api/api/v1/feed/politicians/$politicianId/posts",
         queryParameters: {
           "page": page,
           "size": size,
