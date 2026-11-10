@@ -15,6 +15,7 @@ import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../party_page_data.dart';
 
 import '../../reusable_functions.dart';
+import '../Event Tab/event_modal.dart';
 import '../Feed Tab/functions.dart';
 import '../Feed Tab/reusable_functions.dart';
 import 'development_model.dart';
@@ -428,8 +429,7 @@ void _cancelViewTimer(int postId){
                     ),
                     ///------------------------Need to be checked--------------------------
                     ShowingTaggedPersons(
-                      tagged:[]
-                    //  developments.taggedPoliticians,
+                      tagged: developments.taggedPoliticians,
                     ),
 
                     Padding(

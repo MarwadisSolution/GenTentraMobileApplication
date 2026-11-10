@@ -67,6 +67,9 @@ class DevelopmentApis {
           ),
         );
       }
+      print("========== FINAL POST PAYLOAD ==========");
+      print(jsonEncode(development.toJson()));
+      print("=========================================");
 
       final response = await _dio.post(
         "$api/api/v1/developments",

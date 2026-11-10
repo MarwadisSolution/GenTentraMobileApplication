@@ -458,8 +458,8 @@ class _ActionMenuButtonState extends State<ActionMenuButton> {
               SvgPicture.asset(
                 widget.imageIcon,
                 color: selected
-                    ? null
-                    : const Color(0xFF000000)
+                    ? Color(0xFFFE3A31)
+                    :  Color(0xFF000000)
               ),
               SizedBox(height: MediaQuery.of(context).size.height*0.01),
               Text(
@@ -468,7 +468,7 @@ class _ActionMenuButtonState extends State<ActionMenuButton> {
                   color: selected
                       ? Colors.black
                       : const Color(0xFF000000).withValues(alpha: 0.4),
-                  fontSize: MediaQuery.of(context).size.height * 0.015,
+                  fontSize: MediaQuery.of(context).size.height * 0.012,
                   fontWeight: FontWeight.w400,
                   letterSpacing: 0.22,
                 ),

@@ -12,7 +12,8 @@ class TaggingPeopleBloc
   int _searchRequestId = 0;
   TaggingPeopleBloc({
     required this.searchPeople,
-}): super (TaggingPeopleState.initial()){
+    List<SelectedTaggingPersonModel> initialSelectedPeople = const [],
+}): super (TaggingPeopleState.initial(  selectedPeople: initialSelectedPeople,)){
     on<SearchPeopleEvent>(_searchPeopleHandler);
     on<ClearSearchEvent>(_clearSearch);
     on<TogglePersonSelectionEvent>(_togglePersonSelection);
@@ -102,24 +103,26 @@ void _togglePersonSelection(TogglePersonSelectionEvent event,
     );
 }
 ///------------Save selected people
-void _saveTaggedPeople(
-    SaveTaggedPeopleEvent event,
-    Emitter<TaggingPeopleState> emit,
-    ){
-    if(state.selectedPeople.isEmpty){
+  void _saveTaggedPeople(
+      SaveTaggedPeopleEvent event,
+      Emitter<TaggingPeopleState> emit,
+      ) {
+    if (state.selectedPeople.isEmpty) {
       emit(
         state.copyWith(
           errorMessage: 'Please select at least one person.',
-        )
+        ),
       );
       return;
     }
-    emit(state.copyWith(
-      saveCompleted: true,
-      clearError: true,
-    )
+
+    emit(
+      state.copyWith(
+        saveCompleted: true,
+        clearError: true,
+      ),
     );
-}
+  }
 void _clearError(
     ClearTaggingErrorEvent event,
     Emitter<TaggingPeopleState>emit,

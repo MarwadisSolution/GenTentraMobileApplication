@@ -143,21 +143,21 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
           0, //------------------I have kept 0 as in party not needed
         );
       case 5:
+        return DevelopmentTab(id: widget.partyData["id"],
+            scrollController: scrollController,
+            isVisible:  _tabController.index == 5,
+            fromWhichPage: "Party"
+        );
+      case 6:
         return EventTab(
           partyId: widget.partyData["id"],
           scrollController: scrollController,
         );
-      case 6:
+      case 7:
         return ManifestoTab(
           partyId: widget.partyData["id"],
           scrollController: scrollController,
           isAdmin: isAdmin ?? false,
-        );
-      case 7:
-        return DevelopmentTab(id: widget.partyData["id"],
-            scrollController: scrollController,
-            isVisible:  _tabController.index == 7,
-            fromWhichPage: "Party"
         );
       default:
         return const SizedBox.shrink();
@@ -409,9 +409,10 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                             Tab(text: PartyPageData.journey),
                                             Tab(text: PartyPageData.leadership),
                                             Tab(text: PartyPageData.feed),
+                                            Tab(text: PartyPageData.development,),
                                             Tab(text: PartyPageData.event),
                                             Tab(text: PartyPageData.manifesto),
-                                            Tab(text: PartyPageData.development,)
+
                                           ],
                                         ),
 
@@ -516,8 +517,6 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                   scrollController,
                                                 ),
                                               ),
-
-                                              // EVENT
                                               Offstage(
                                                 offstage:
                                                 selectedIndex != 5,
@@ -534,8 +533,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                   scrollController,
                                                 ),
                                               ),
-
-                                              // MANIFESTO
+                                              // EVENT
                                               Offstage(
                                                 offstage:
                                                 selectedIndex != 6,
@@ -552,6 +550,8 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                   scrollController,
                                                 ),
                                               ),
+
+                                              // MANIFESTO
                                               Offstage(
                                                 offstage:
                                                 selectedIndex != 7,
@@ -568,13 +568,13 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                   scrollController,
                                                 ),
                                               ),
+
                                             ],
                                           );
                                         },
                                       ),
                                     ),
 
-                                    // Bottom Spacing matching Country Page
                                     SliverToBoxAdapter(
                                       child: Container(
                                         color: Colors.white,
@@ -643,6 +643,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                           right: 0,
                                           child: Center(
                                             child: VerticalActionMenu(
+
                                               height:
                                               MediaQuery
                                                   .of(
@@ -650,7 +651,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                               )
                                                   .size
                                                   .height *
-                                                  0.35,
+                                                  0.45,
                                               items: [
                                                 ActionMenuItem(
                                                   imageIcon:
@@ -684,7 +685,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                 ),
                                                 ActionMenuItem(
                                                   imageIcon: PartyPageData
-                                                      .addQuoteIcon,
+                                                      .addquoteIcon,
                                                   title: PartyPageData.quotes,
                                                   onTap: () {
                                                     Navigator.pop(context);
@@ -715,7 +716,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
 
                                                 ActionMenuItem(
                                                   imageIcon:
-                                                  PartyPageData.eventIcon,
+                                                  PartyPageData.addEventIcon,
                                                   title: PartyPageData.event,
                                                   onTap: () {
                                                     Navigator.pop(context);
@@ -776,7 +777,7 @@ class _PartyFetchedDataState extends State<PartyFetchedData>
                                                 ),
                                                 ActionMenuItem(
                                                   imageIcon: PartyPageData
-                                                      .calenderIcon,
+                                                      .addMenifestoIcon,
                                                   title:
                                                   PartyPageData.manifesto,
                                                   onTap: () async {

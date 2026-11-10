@@ -20,8 +20,12 @@ class TaggingPeopleState extends Equatable{
     this.saveCompleted = false,
     this.errorMessage,
 });
-  factory TaggingPeopleState.initial(){
-    return const TaggingPeopleState();
+  factory TaggingPeopleState.initial({
+    List<SelectedTaggingPersonModel> selectedPeople = const [],
+  }) {
+    return TaggingPeopleState(
+      selectedPeople: selectedPeople,
+    );
   }
   TaggingPeopleState copyWith({
     String? searchQuery,

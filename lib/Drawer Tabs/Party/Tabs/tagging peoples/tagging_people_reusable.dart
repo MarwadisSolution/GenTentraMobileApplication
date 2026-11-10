@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/tagging%20peoples/tagging_people_bloc.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/tagging%20peoples/tagging_people_event.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/tagging%20peoples/tagging_people_model.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/tagging%20peoples/tagging_people_state.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_bar_reusable.dart';
@@ -11,8 +12,13 @@ import '../../../../Reusable Functions/reusable_functions.dart';
 
 class TaggingPeopleReusable extends StatefulWidget {
   final SearchPeopleFunction searchPeople;
+  final List<SelectedTaggingPersonModel> initialSelectedPeople;
 
-  const TaggingPeopleReusable({super.key, required this.searchPeople});
+  const TaggingPeopleReusable({
+    super.key,
+    required this.searchPeople,
+    this.initialSelectedPeople = const [],
+  });
 
   @override
   State<TaggingPeopleReusable> createState() => _TaggingPeopleReusableState();
@@ -26,7 +32,10 @@ class _TaggingPeopleReusableState extends State<TaggingPeopleReusable> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _taggingPeopleBloc = TaggingPeopleBloc(searchPeople: widget.searchPeople);
+    _taggingPeopleBloc = TaggingPeopleBloc(
+      searchPeople: widget.searchPeople,
+      initialSelectedPeople: widget.initialSelectedPeople,
+    );
   }
 
   @override
@@ -41,6 +50,7 @@ class _TaggingPeopleReusableState extends State<TaggingPeopleReusable> {
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
     final h = MediaQuery.of(context).size.height;
+
     return BlocProvider.value(
       value: _taggingPeopleBloc,
       child: Scaffold(
@@ -64,6 +74,11 @@ class _TaggingPeopleReusableState extends State<TaggingPeopleReusable> {
           },
 
           builder: (context, state) {
+            print("Initial Selected People:");
+            print(widget.initialSelectedPeople.isNotEmpty?widget.initialSelectedPeople.first.name:"");
+
+            print("Currently Selected People:");
+            print(state.selectedPeople.isNotEmpty?state.selectedPeople.first.name:"");
             return CustomScrollView(
               slivers: [
                 ReusableSliverAppBar(
@@ -159,7 +174,9 @@ class _TaggingPeopleReusableState extends State<TaggingPeopleReusable> {
                                   onTap: () {
                                     FocusScope.of(context).unfocus();
                                     _taggingPeopleBloc.add(
-                                      SearchPeopleEvent(_searchController.text.trim()),
+                                      SearchPeopleEvent(
+                                        _searchController.text.trim(),
+                                      ),
                                     );
                                   },
                                   child: Padding(
@@ -186,43 +203,42 @@ class _TaggingPeopleReusableState extends State<TaggingPeopleReusable> {
                   ),
                 ),
                 SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                      final person = state.searchResults[index];
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final person = state.searchResults[index];
 
-                      final isSelected = state.selectedPeople.any(
-                            (selected) =>
-                        selected.politicianId == person.politicianId,
-                      );
+                    final isSelected = state.selectedPeople.any(
+                      (selected) =>
+                          selected.politicianId == person.politicianId,
+                    );
 
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: person.imagePath != null &&
-                              person.imagePath!.isNotEmpty
-                              ? NetworkImage(person.imagePath!)
-                              : null,
-                          child: person.imagePath == null ||
-                              person.imagePath!.isEmpty
-                              ? const Icon(Icons.person)
-                              : null,
-                        ),
-                        title: Text(person.fullName),
-                        subtitle: Text(person.designation),
-                        trailing: Icon(
-                          isSelected
-                              ? Icons.check_circle
-                              : Icons.add_circle_outline,
-                          color: isSelected ? Colors.green : Colors.grey,
-                        ),
-                        onTap: (){
-                          context.read<TaggingPeopleBloc>().add(
-                            TogglePersonSelectionEvent(person),
-                          );
-                        },
-                      );
-                    },
-                    childCount: state.searchResults.length,
-                  ),
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage:
+                            person.imagePath != null &&
+                                person.imagePath!.isNotEmpty
+                            ? NetworkImage(person.imagePath!)
+                            : null,
+                        child:
+                            person.imagePath == null ||
+                                person.imagePath!.isEmpty
+                            ? const Icon(Icons.person)
+                            : null,
+                      ),
+                      title: Text(person.fullName),
+                      subtitle: Text(person.designation),
+                      trailing: Icon(
+                        isSelected
+                            ? Icons.check_circle
+                            : Icons.add_circle_outline,
+                        color: isSelected ? Colors.green : Colors.grey,
+                      ),
+                      onTap: () {
+                        context.read<TaggingPeopleBloc>().add(
+                          TogglePersonSelectionEvent(person),
+                        );
+                      },
+                    );
+                  }, childCount: state.searchResults.length),
                 ),
                 // No search results
                 if (!state.isSearching &&
@@ -231,9 +247,7 @@ class _TaggingPeopleReusableState extends State<TaggingPeopleReusable> {
                   const SliverToBoxAdapter(
                     child: Padding(
                       padding: EdgeInsets.all(20),
-                      child: Center(
-                        child: Text('No people found'),
-                      ),
+                      child: Center(child: Text('No people found')),
                     ),
                   ),
                 // Save button
@@ -243,22 +257,22 @@ class _TaggingPeopleReusableState extends State<TaggingPeopleReusable> {
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: state.selectedPeople.isEmpty ||
-                            state.isSaving
+                        onPressed:
+                            state.selectedPeople.isEmpty || state.isSaving
                             ? null
                             : () {
-                          context.read<TaggingPeopleBloc>().add(
-                            SaveTaggedPeopleEvent(),
-                          );
-                        },
+                                context.read<TaggingPeopleBloc>().add(
+                                  SaveTaggedPeopleEvent(),
+                                );
+                              },
                         child: state.isSaving
                             ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : const Text('Save'),
                       ),
                     ),

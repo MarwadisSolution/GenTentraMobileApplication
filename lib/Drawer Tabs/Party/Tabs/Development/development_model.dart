@@ -1,4 +1,6 @@
 
+import '../Feed Tab/feed_model.dart' show Tagged;
+
 class DevelopmentModel {
   final int id;
   final DevelopmentAuthor? author;
@@ -9,8 +11,10 @@ class DevelopmentModel {
   final String? from;
   final String? to;
   final List<DevelopmentMedia> media;
-  final List<dynamic>taggedPoliticians;
-  final List<dynamic>taggedParties;
+  final List<Tagged> taggedPoliticians;
+  final List<Tagged> taggedParties;
+  final List<int> taggedPoliticianIds;
+  final List<int> taggedPartyIds;
   final DateTime?timeStamp;
   final String? updatedAt;
 
@@ -24,8 +28,10 @@ class DevelopmentModel {
     this.from,
     this.to,
     this.media=const [],
-    this.taggedPoliticians=const [],
-    this.taggedParties= const [],
+    this.taggedPoliticians = const [],
+    this.taggedParties = const [],
+    this.taggedPoliticianIds = const [],
+    this.taggedPartyIds = const [],
     this.timeStamp,
     this.updatedAt,
 });
@@ -42,8 +48,27 @@ class DevelopmentModel {
       to: json['to']?.toString(),
       media: (json['media'] as List? ??[])
         .map((e)=>DevelopmentMedia.fromJson(e)).toList(),
-      taggedPoliticians: json['taggedPoliticians']??[],
-      taggedParties: json['taggedParties']??[],
+      taggedPoliticians: (json['taggedPoliticians'] as List? ?? [])
+          .map((e) => Tagged.fromJson(
+        Map<String, dynamic>.from(e),
+      ))
+          .toList(),
+
+      taggedParties: (json['taggedParties'] as List? ?? [])
+          .map((e) => Tagged.fromJson(
+        Map<String, dynamic>.from(e),
+      ))
+          .toList(),
+
+      taggedPoliticianIds:
+      (json['taggedPoliticianIds'] as List? ?? [])
+          .map((e) => e as int)
+          .toList(),
+
+      taggedPartyIds: (json['taggedPartyIds'] as List? ?? [])
+          .map((e) => e as int)
+          .toList(),
+
       timeStamp: json["timestamp"] != null
           ? DateTime.parse(json["timestamp"])
           : null,
@@ -58,8 +83,8 @@ class DevelopmentModel {
       'from':from,
       'to':to,
       'media': media.map((e) => e.toJson()).toList(),
-      'taggedPoliticianIds':taggedPoliticians,
-      'taggedPartyIds': taggedParties,
+      'taggedPoliticianIds': taggedPoliticianIds,
+      'taggedPartyIds': taggedPartyIds,
     };
   }
 }

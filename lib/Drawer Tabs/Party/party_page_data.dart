@@ -72,7 +72,7 @@ class PartyPageData {
   static final personSearchIcon = "Assets/PartyPage/personSearchIcon.svg";
   static final clock = "Assets/PartyPage/clock.svg";
   static final eventIcon = "Assets/PartyPage/eventIcon.svg";
-  static final newGroupIcon = "Assets/PartyPage/newGroupIcon.svg";
+  static final newGroupIcon = "Assets/PartyPage/newGroup.svg";
   static final addIconLight = "Assets/PartyPage/addIconLight.svg";
   static final crossIconLight = "Assets/PartyPage/crossIconLight.svg";
   static final coloredQuoteIcon = "Assets/PartyPage/coloredQuoteIcon.svg";
@@ -124,6 +124,10 @@ static final politicalPartyIcon = "Assets/LeadershipPage/Info/PoliticalParty.svg
 static final constituencyIcon = "Assets/LeadershipPage/Info/Constituency.svg";
 static final politicianAddressIcon = "Assets/LeadershipPage/Info/Address.svg";
 static final politicianEducationIcon = "Assets/LeadershipPage/Info/Education.svg";
+
+static final addEventIcon ="Assets/PartyPage/Addevent.svg";
+  static final addquoteIcon ="Assets/PartyPage/addQuote.svg";
+  static final addMenifestoIcon="Assets/PartyPage/addMenifesto.svg";
 }
 
 // Used / imported for Politician Profile

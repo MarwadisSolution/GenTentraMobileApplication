@@ -87,14 +87,14 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
               );
             }).toList();
           },
-          // initialSelectedPeople: taggedPeople.map((person) {
-          //   return SelectedTaggingPersonModel(
-          //     politicianId: person.id ?? 0,
-          //     type: person.type ?? 'POLITICIAN',
-          //     name: person.name ?? '',
-          //     imagePath: person.photoUrl,
-          //   );
-          // }).toList(),
+          initialSelectedPeople: taggedPeople.map((person) {
+            return SelectedTaggingPersonModel(
+              politicianId: person.id ?? 0,
+              type: person.type ?? 'POLITICIAN',
+              name: person.name ?? '',
+              imagePath: person.photoUrl,
+            );
+          }).toList(),
         ),
       ),
     );
@@ -111,6 +111,8 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
         );
       }).toList();
     });
+    print("Selected Tagged People:");
+    print(taggedPeople.map((e) => e.id).toList());
   }
   Future<void> playVideo(int index, {required bool isExisting}) async {
     if (isExisting) {
@@ -260,10 +262,6 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
   void initState() {
     super.initState();
 
-    // taggedPeopleHandler = TaggedPeopleHandler(
-    //   context: context,
-    //   api: api,
-    // );
 
     if (widget.isEditMode) {
       final development = widget.editDevelopment!;
@@ -282,8 +280,9 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
           .where((e) => e.mediaType?.toUpperCase() == 'VIDEO')
           .toList();
 
-      // Existing tagged IDs will be initialized
-      // after checking your Tagged model structure.
+      taggedPeople = List<Tagged>.from(
+        development.taggedPoliticians,
+      );
     }
   }
 
@@ -299,6 +298,7 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
     super.dispose();
   }
   ///------------Publish
+
 
   Future<void> _publishDevelopment() async {
     // Validate title
@@ -333,6 +333,13 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
         ...selectedImages.map((e) => File(e.path)),
         ...selectedVideos.map((e) => File(e.path)),
       ];
+      final List<int> taggedPoliticianIds = taggedPeople
+          .map((person) => person.id)
+          .whereType<int>()
+          .toList();
+
+      debugPrint("Selected Tagged People: ${taggedPeople.map((e) => e.id).toList()}");
+      debugPrint("IDs before creating model: $taggedPoliticianIds");
 
       final development = DevelopmentModel(
         id: widget.editDevelopment?.id ?? 0,
@@ -340,7 +347,6 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
         title: titleController.text.trim(),
         description: descriptionController.text.trim(),
 
-        // Party gets its ID; politician gets null.
         authorPartyId: widget.fromWhichPage == "Party"
             ? widget.partyId
             : null,
@@ -348,14 +354,15 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
         from: fromController.text.trim(),
         to: toController.text.trim(),
 
-        // Preserve existing media that was not deleted.
+        // Preserve existing media
         media: [
           ...existingImages,
           ...existingVideos,
         ],
+        taggedPoliticianIds: taggedPoliticianIds,
 
-        // taggedPoliticians: taggedPoliticianIds,
-        // taggedParties: taggedPartyIds,
+        taggedPartyIds:
+        widget.editDevelopment?.taggedPartyIds ?? const [],
       );
 
       if (widget.isEditMode) {
@@ -390,6 +397,7 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
       );
     }
   }
+
 
 
   @override
