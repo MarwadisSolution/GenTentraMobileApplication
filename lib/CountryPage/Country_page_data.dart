@@ -2,6 +2,11 @@
 // Centralizes route strings, navigation helpers, UI label constants, and
 // barrel exports for the Country Profile module.
 import 'package:flutter/material.dart';
+import 'Country_Flag_Page.dart';
+import 'Country_Geo_Page.dart';
+import 'Country_Info_Page.dart';
+import 'Country_PlacesToVisit_Page.dart';
+import 'Country_model.dart';
 import 'Country_screen.dart';
 
 // [BARREL EXPORTS] Allows external files to import all CountryPage components via this single file.
@@ -12,6 +17,11 @@ export 'Country_model.dart';
 export 'Country_screen.dart';
 export 'Country_state.dart';
 export 'india_map_widget.dart';
+export 'Country_Info_Page.dart';
+export 'Country_Flag_Page.dart';
+export 'Country_Geo_Page.dart';
+export 'Country_PlacesToVisit_Page.dart';
+export 'reusable_functions.dart';
 
 class CountryPageData {
   static const String routeName = '/country-profile';
@@ -34,6 +44,32 @@ class CountryPageData {
     );
   }
 
+  // Section tabs
+  static const String infoTab = "INFO";
+  static const String flagEmblemTab = "FLAG / EMBLEM";
+  static const String geographicTab = "GEOGRAPHIC";
+  static const String placesTab = "PLACES TO VISIT";
+
+  /// [TAB ROUTING HELPER] Routes tab index to the respective page component
+  /// matching Party page tab routing pattern exactly.
+  static Widget buildTabContent({
+    required int index,
+    required CountryModel country,
+  }) {
+    switch (index) {
+      case 0:
+        return CountryInfoPage(country: country);
+      case 1:
+        return CountryFlagPage(country: country);
+      case 2:
+        return CountryGeoPage(country: country);
+      case 3:
+        return CountryPlacesToVisitPage(country: country);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
   // Header & Info Labels
   static const String states = "STATES";
   static const String unionTerritories = "UNION TERRITORIES";
@@ -49,12 +85,6 @@ class CountryPageData {
   static const String generalInfo = "GENERAL INFORMATION";
   static const String placesToVisit = "PLACES TO VISIT";
   static const String nationalSymbols = "NATIONAL SYMBOLS";
-
-  // Section tabs
-  static const String infoTab = "INFO";
-  static const String flagEmblemTab = "FLAG / EMBLEM";
-  static const String placesTab = "PLACES TO VISIT";
-  static const String geographicTab = "GEOGRAPHIC";
 
   // SVG Icons from Assets
   static const String arrow = "Assets/arrow.svg";
