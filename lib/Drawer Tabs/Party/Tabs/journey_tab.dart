@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import '../../../Reusable Functions/reusable_functions.dart';
 import '../party_page_modal.dart';
 
@@ -128,7 +129,7 @@ class _JourneyTabState extends State<JourneyTab> {
         padding: EdgeInsets.all(height * 0.045),
         child: Center(
           child: Text(
-            "No journey found",
+            PartyPageData.noJourney,
             style: TextStyle(
               color: ColorScheme.of(context).onSurface,
               fontSize: size * 0.045,
@@ -144,7 +145,6 @@ class _JourneyTabState extends State<JourneyTab> {
       },
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // Calculate available height safely from constraints
           final availableHeight = constraints.hasBoundedHeight
               ? constraints.maxHeight
               : height * 0.8;
@@ -168,6 +168,7 @@ class _JourneyTabState extends State<JourneyTab> {
                     onPageChanged: _onYearChanged,
                     itemBuilder: (context, index) {
                       final item = journeys[index];
+                      final isSelected=selectedIndex==index;
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: EdgeInsets.symmetric(
@@ -178,15 +179,20 @@ class _JourneyTabState extends State<JourneyTab> {
                           borderRadius: BorderRadius.circular(size * 0.04),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: Image.network(
-                          item.imagePath == null
-                              ? ""
-                              : item.imagePath!.startsWith("/api/")
-                              ? "$api${item.imagePath}"
-                              : item.imagePath!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) =>
-                              const Center(child: Icon(Icons.image)),
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                          opacity: isSelected?1.0:0.3,
+                          child: Image.network(
+                            item.imagePath == null
+                                ? ""
+                                : item.imagePath!.startsWith("/api/")
+                                ? "$api${item.imagePath}"
+                                : item.imagePath!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) =>
+                                const Center(child: Icon(Icons.image)),
+                          ),
                         ),
                       );
                     },

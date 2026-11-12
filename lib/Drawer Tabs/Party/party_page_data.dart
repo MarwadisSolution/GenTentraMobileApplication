@@ -87,8 +87,7 @@ class PartyPageData {
   static final aboutEvent = "About Event";
   static final address = "Address";
   static final locationIcon = "Assets/PartyPage/locationIcon.svg";
-  static final youCannotChange =
-      "You cannot change the date or time once it has passed.";
+  static final youCannotChange = "You cannot change the date or time once it has passed.";
   static final backgroundImage = "Background Image";
   static final displayJoinButton = "Display Join Button";
   static final manifestoCard = "Manifesto";
@@ -104,8 +103,7 @@ class PartyPageData {
   static final viewAll = "View\n All Members";
   static final viewAllIcon = "Assets/PartyPage/viewAll.svg";
   static final indiaPresence = "INDIA PRESENCE";
-
-  // Politician Profile
+ static final noJourney="No journey found";
   static final development = "DEVELOPMENT";
   static final gender = "GENDER";
   static final dobAge = "DOB / AGE";
@@ -116,7 +114,6 @@ class PartyPageData {
   static final follow = "Follow";
   static final designationPrefix = "Designation - ";
 
-// Politician Profile SVGs / Icons
 static final genderIcon = "Assets/LeadershipPage/Info/Gender.svg";
 static final dobIcon = "Assets/LeadershipPage/Info/DoB.svg";
 static final birthPlaceIcon = "Assets/LeadershipPage/Info/BirthPlace.svg";
@@ -130,7 +127,6 @@ static final addEventIcon ="Assets/PartyPage/Addevent.svg";
   static final addMenifestoIcon="Assets/PartyPage/addMenifesto.svg";
 }
 
-// Used / imported for Politician Profile
 class PoliticianInfoIcons {
   static final String gender = PartyPageData.genderIcon;
   static final String dob = PartyPageData.dobIcon;
