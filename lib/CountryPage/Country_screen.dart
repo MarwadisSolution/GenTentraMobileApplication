@@ -102,12 +102,12 @@ class _CountryProfileViewState extends State<_CountryProfileView>
       backgroundColor: const Color(0xFFEBEBEB),
       body: BlocConsumer<CountryProfileBloc, CountryProfileState>(
         listener: (context, state) {
-          if (state is CountryProfileErrorState) {
+          if (state.status == CountryProfileStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  state.message.isNotEmpty
-                      ? state.message
+                  state.errorMessage?.isNotEmpty==true
+                      ? state.errorMessage!
                       : 'Unable to load profile data',
                 ),
                 backgroundColor: const Color(0xFFFE3A31),
@@ -127,7 +127,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
         },
         builder: (context, state) {
           // Loading State
-          if (state is CountryProfileLoadingState) {
+          if (state.status == CountryProfileStatus.loading &&
+              state.country == null) {
             return Center(
               child: CircularProgressIndicator(
                 color: ColorScheme.of(context).onSurface,
@@ -136,7 +137,8 @@ class _CountryProfileViewState extends State<_CountryProfileView>
           }
 
           // Error State with fallback
-          if (state is CountryProfileErrorState && state.cachedCountry == null) {
+          if (state.status == CountryProfileStatus.failure &&
+              state.country == null) {
             return Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
@@ -159,7 +161,9 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                     ),
                     SizedBox(height: screenHeight * 0.01),
                     Text(
-                      state.message,
+                      state.errorMessage?.isNotEmpty == true
+                          ? state.errorMessage!
+                          : 'Unable to load profile data',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: screenWidth * 0.032,
@@ -193,13 +197,14 @@ class _CountryProfileViewState extends State<_CountryProfileView>
           }
 
           // Loaded State
-          if (state is CountryProfileLoadedState && state.country != null) {
+          if (state.country != null) {
             return _buildLoadedContent(state.country!, screenHeight);
           }
 
           // Fallback if cached country is present during error
-          if (state is CountryProfileErrorState && state.cachedCountry != null) {
-            return _buildLoadedContent(state.cachedCountry!, screenHeight);
+          if (state.status == CountryProfileStatus.failure &&
+              state.country != null) {
+            return _buildLoadedContent(state.country!, screenHeight);
           }
 
           return const SizedBox.shrink();
