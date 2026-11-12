@@ -1,8 +1,4 @@
-
-// Country Profile BLoC
-// Manages the state machine for the Country Profile Screen.
-// Handles loading, success, failure, retry, and pull-to-refresh events.
-
+﻿
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'Country_api.dart';
 import 'Country_event.dart';
@@ -19,8 +15,6 @@ class CountryProfileBloc
     on<RefreshCountryProfileEvent>(_onRefreshCountryProfile);
   }
 
-  /// [EVENT HANDLER] Fetches profile data for the given country ID.
-  /// Emits loading -> success or failure.
   Future<void> _onFetchCountryProfile(
     FetchCountryProfileEvent event,
     Emitter<CountryProfileState> emit,
@@ -53,7 +47,6 @@ class CountryProfileBloc
     }
   }
 
-  /// [EVENT HANDLER] Silently re-fetches profile data on pull-to-refresh.
   Future<void> _onRefreshCountryProfile(
     RefreshCountryProfileEvent event,
     Emitter<CountryProfileState> emit,
@@ -79,5 +72,4 @@ class CountryProfileBloc
   }
 }
 
-// Aliases for compatibility
-typedef PoliticianProfileBloc = CountryProfileBloc;
+

@@ -33,7 +33,7 @@ Widget buildSectionDivider(
       top: topMargin ?? screenHeight * 0.012,
       bottom: bottomMargin ?? screenHeight * 0.018,
     ),
-    color: const Color(0x33000000),
+    color: ColorScheme.of(context).onSurface.withValues(alpha: 0.2),
   );
 }
 
@@ -92,14 +92,17 @@ class _SmallTabIndicatorPainter extends BoxPainter {
   @override
   void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
     final Rect rect = offset & (configuration.size ?? Size.zero);
-    final double indicatorWidth = decoration.width;
-    final double left = rect.center.dx - (indicatorWidth / 2);
-    final double top = rect.bottom - decoration.height;
+    // Increase width by 10% and height by 5% per spec
+    final double indicatorWidth = decoration.width * 1.1;
+    final double indicatorHeight = decoration.height * 1.05;
+    // Left-align indicator to start at left edge of tab text
+    final double left = rect.left;
+    final double top = rect.bottom - indicatorHeight;
     final Rect indicatorRect = Rect.fromLTWH(
       left,
       top,
       indicatorWidth,
-      decoration.height,
+      indicatorHeight,
     );
     final Paint paint = Paint()..color = decoration.color;
     canvas.drawRRect(

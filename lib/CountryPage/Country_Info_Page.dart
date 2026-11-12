@@ -28,22 +28,59 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
     final String countryName = country.name;
     final String descriptionText = country.info?.trim() ?? '';
 
-    // Setup leadership lists from backend data without hardcoded fallbacks
     final List<NationalLeader> presidents = country.leaders
-        .where((l) => l.title.toUpperCase().contains('PRESIDENT'))
+        .where((l) => (l.title + " " + l.badge).toUpperCase().contains('PRESIDENT'))
         .toList();
+    if (presidents.isEmpty && country.president?.trim().isNotEmpty == true) {
+      presidents.add(NationalLeader(
+        title: 'PRESIDENT',
+        name: country.president!.trim(),
+        tenure: '',
+        badge: 'President',
+        imageUrl: '',
+      ));
+    }
 
     final List<NationalLeader> primeMinisters = country.leaders
-        .where((l) => l.title.toUpperCase().contains('PRIME'))
+        .where((l) =>
+            (l.title + " " + l.badge).toUpperCase().contains('PRIME') ||
+            (l.title + " " + l.badge).toUpperCase().contains('PM'))
         .toList();
+    if (primeMinisters.isEmpty && country.primeMinister?.trim().isNotEmpty == true) {
+      primeMinisters.add(NationalLeader(
+        title: 'PRIME MINISTER',
+        name: country.primeMinister!.trim(),
+        tenure: '',
+        badge: 'Prime Minister',
+        imageUrl: '',
+      ));
+    }
 
     final List<NationalLeader> defenceMinisters = country.leaders
-        .where((l) => l.title.toUpperCase().contains('DEFENCE'))
+        .where((l) => (l.title + " " + l.badge).toUpperCase().contains('DEFEN'))
         .toList();
+    if (defenceMinisters.isEmpty && country.defenceMinister?.trim().isNotEmpty == true) {
+      defenceMinisters.add(NationalLeader(
+        title: 'DEFENCE MINISTER',
+        name: country.defenceMinister!.trim(),
+        tenure: '',
+        badge: 'Defence Minister',
+        imageUrl: '',
+      ));
+    }
 
     final List<NationalLeader> homeMinisters = country.leaders
-        .where((l) => l.title.toUpperCase().contains('HOME'))
+        .where((l) => (l.title + " " + l.badge).toUpperCase().contains('HOME'))
         .toList();
+    if (homeMinisters.isEmpty && country.homeMinister?.trim().isNotEmpty == true) {
+      homeMinisters.add(NationalLeader(
+        title: 'HOME MINISTER',
+        name: country.homeMinister!.trim(),
+        tenure: '',
+        badge: 'Home Minister',
+        imageUrl: '',
+      ));
+    }
 
     final List<CabinetMinister> cabinets = country.otherCabinets;
 
@@ -57,9 +94,6 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ==================================================================
-          // [OVERVIEW PARAGRAPH & READ MORE]
-          // ==================================================================
           if (descriptionText.isNotEmpty) ...[
             Padding(
               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
@@ -71,10 +105,10 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
                     overflow:
                         _isInfoExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
                     text: TextSpan(
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.034,
+                      style: const TextStyle(
+                        fontSize: 14,
                         fontWeight: FontWeight.w400,
-                        color: const Color(0xFF333333),
+                        color: Color(0xFF333333),
                         height: 1.5,
                       ),
                       children: [
@@ -98,10 +132,10 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
                     },
                     child: Text(
                       _isInfoExpanded ? 'READ LESS' : 'READ MORE',
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.031,
+                      style: const TextStyle(
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFFFE3A31),
+                        color: Color(0xFFFE3A31),
                         letterSpacing: 0.3,
                       ),
                     ),
@@ -111,16 +145,11 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
               ),
             ),
           ],
-
-          // ==================================================================
-          // [6 KEY CIVIC DETAIL ROWS WITH ICONS]
-          // ==================================================================
           Padding(
             padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. CAPITAL
                 _buildCivicDetailRow(
                   context,
                   icon: SvgPicture.asset(
@@ -133,8 +162,6 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
                       ? country.capital!.trim()
                       : '-',
                 ),
-
-                // 2. NATIONAL ANTHEM
                 _buildCivicDetailRow(
                   context,
                   icon: SvgPicture.asset(
@@ -147,8 +174,6 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
                       ? country.nationalAnthem!.trim()
                       : '-',
                 ),
-
-                // 3. POPULATION
                 _buildCivicDetailRow(
                   context,
                   icon: SvgPicture.asset(
@@ -161,8 +186,6 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
                       ? country.population!.trim()
                       : '-',
                 ),
-
-                // 4. PRESIDENT
                 _buildCivicDetailRow(
                   context,
                   icon: SvgPicture.asset(
@@ -175,8 +198,6 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
                       ? country.president!.trim()
                       : '-',
                 ),
-
-                // 5. PRIME MINISTER
                 _buildCivicDetailRow(
                   context,
                   icon: SvgPicture.asset(
@@ -189,8 +210,6 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
                       ? country.primeMinister!.trim()
                       : '-',
                 ),
-
-                // 6. DATE OF INDEPENDENCE
                 _buildCivicDetailRow(
                   context,
                   icon: SvgPicture.asset(
@@ -207,10 +226,6 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
               ],
             ),
           ),
-
-          // ==================================================================
-          // [LEADERSHIP SECTIONS - ONLY RENDERED IF BACKEND PROVIDES DATA]
-          // ==================================================================
           if (presidents.isNotEmpty) ...[
             buildSectionDivider(context),
             _buildLeaderHorizontalSection(
@@ -261,10 +276,6 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
       ),
     );
   }
-
-  // ==========================================================================
-  // [CIVIC DETAIL ROW HELPER]
-  // ==========================================================================
   Widget _buildCivicDetailRow(
     BuildContext context, {
     required Widget icon,
@@ -292,35 +303,31 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: screenWidth * 0.026,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.5,
-                    color: const Color(0xFF888888),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.21,
+                    color: Color(0xFF666666),
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.003),
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: screenWidth * 0.035,
-                    fontWeight: FontWeight.w700,
+                    fontSize: (screenWidth * 0.045).clamp(14.0, 16.0),
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.31,
                     color: const Color(0xFF1E1E1E),
                   ),
                 ),
               ],
             ),
           ),
-          ?trailing,
+          if (trailing != null) trailing,
         ],
       ),
     );
   }
-
-  // ==========================================================================
-  // [BUILD METHOD: LEADERSHIP HORIZONTAL SECTION]
-  // Sized strictly using MediaQuery without hardcoded dimensions.
-  // ==========================================================================
   Widget _buildLeaderHorizontalSection(
     BuildContext context, {
     required String title,
@@ -350,11 +357,11 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
           padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
           child: Text(
             title,
-            style: TextStyle(
-              fontSize: screenWidth * 0.034,
+            style: const TextStyle(
+              fontSize: 16,
               fontWeight: FontWeight.w800,
-              letterSpacing: 0.6,
-              color: const Color(0xFF1E1E1E),
+              letterSpacing: 0.5,
+              color: Color(0xFF1E1E1E),
             ),
           ),
         ),
@@ -422,9 +429,9 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
                                 ),
                                 child: Text(
                                   leader.badge,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: cardWidth * (11.0 / 280.0),
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -462,20 +469,20 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
                                 leader.name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: cardWidth * (13.5 / 280.0),
+                                style: const TextStyle(
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF1E1E1E),
+                                  color: Color(0xFF1E1E1E),
                                 ),
                               ),
                               if (leader.tenure.isNotEmpty) ...[
                                 SizedBox(height: screenHeight * 0.003),
                                 Text(
                                   leader.tenure,
-                                  style: TextStyle(
-                                    fontSize: cardWidth * (11.5 / 280.0),
+                                  style: const TextStyle(
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF4CAF50),
+                                    color: Color(0xFF4CAF50),
                                   ),
                                 ),
                               ],
@@ -493,10 +500,6 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
       ],
     );
   }
-
-  // ==========================================================================
-  // [BUILD METHOD: OTHER CABINETS]
-  // ==========================================================================
   Widget _buildOtherCabinetsSection(
     BuildContext context,
     List<CabinetMinister> cabinets,
@@ -514,11 +517,11 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
             children: [
               Text(
                 'OTHER CABINATE',
-                style: TextStyle(
-                  fontSize: screenWidth * 0.033,
+                style: const TextStyle(
+                  fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: 0.6,
-                  color: const Color(0xFF1E1E1E),
+                  letterSpacing: 0.5,
+                  color: Color(0xFF1E1E1E),
                 ),
               ),
               SvgPicture.asset(
@@ -586,20 +589,20 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
                     minister.firstName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: screenWidth * 0.032,
+                    style: const TextStyle(
+                      fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1E1E1E),
+                      color: Color(0xFF1E1E1E),
                     ),
                   ),
                   Text(
                     minister.lastName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: screenWidth * 0.028,
+                    style: const TextStyle(
+                      fontSize: 13,
                       fontWeight: FontWeight.w400,
-                      color: const Color(0xFF666666),
+                      color: Color(0xFF666666),
                     ),
                   ),
                 ],
@@ -612,5 +615,3 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
   }
 }
 
-// Aliases for compatibility
-typedef CountryInfoTab = CountryInfoPage;

@@ -1,7 +1,3 @@
-// Country Profile Screen
-// Vertically scrollable civic information page with smooth DraggableScrollableSheet
-// matching the exact visual hierarchy and smooth scroll physics of PartyFetchedData.
-
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -13,7 +9,6 @@ import 'Country_model.dart';
 import 'Country_page_data.dart';
 import 'reusable_functions.dart';
 
-/// [SCREEN ENTRY POINT] Provides the CountryProfileBloc and triggers the load event.
 class CountryProfileScreen extends StatelessWidget {
   final int countryId;
   final String? countryName;
@@ -65,7 +60,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
   final ValueNotifier<double> _sheetProgress = ValueNotifier<double>(0.0);
   final ValueNotifier<bool> _showCountryDetails = ValueNotifier<bool>(true);
   bool _isUserScrolling = false;
-  Offset? _draggableFabPosition;
+  late final ValueNotifier<Offset?> _draggableFabPosition = ValueNotifier<Offset?>(null);
 
   @override
   void initState() {
@@ -90,6 +85,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
     _selectedTabIndex.dispose();
     _sheetProgress.dispose();
     _showCountryDetails.dispose();
+    _draggableFabPosition.dispose();
     super.dispose();
   }
 
@@ -126,8 +122,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
           }
         },
         builder: (context, state) {
-          // Loading State
-          if (state.status == CountryProfileStatus.loading &&
+                    if (state.status == CountryProfileStatus.loading &&
               state.country == null) {
             return Center(
               child: CircularProgressIndicator(
@@ -136,8 +131,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             );
           }
 
-          // Error State with fallback
-          if (state.status == CountryProfileStatus.failure &&
+                    if (state.status == CountryProfileStatus.failure &&
               state.country == null) {
             return Center(
               child: Padding(
@@ -196,13 +190,11 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             );
           }
 
-          // Loaded State
-          if (state.country != null) {
+                    if (state.country != null) {
             return _buildLoadedContent(state.country!, screenHeight);
           }
 
-          // Fallback if cached country is present during error
-          if (state.status == CountryProfileStatus.failure &&
+                    if (state.status == CountryProfileStatus.failure &&
               state.country != null) {
             return _buildLoadedContent(state.country!, screenHeight);
           }
@@ -212,10 +204,6 @@ class _CountryProfileViewState extends State<_CountryProfileView>
       ),
     );
   }
-
-  // ==========================================================================
-  // [BUILD METHOD: LOADED CONTENT - Matching Party Page scroll physics]
-  // ==========================================================================
   Widget _buildLoadedContent(CountryModel country, double screenHeight) {
     final double defaultSheetRatio = (screenHeight < 500)
         ? 0.45
@@ -236,9 +224,6 @@ class _CountryProfileViewState extends State<_CountryProfileView>
 
     return Stack(
       children: [
-        // ====================================================================
-        // [LAYER 1: FULL SCREEN BANNER WITH PROGRESSIVE BLUR]
-        // ====================================================================
         ValueListenableBuilder<double>(
           valueListenable: _sheetProgress,
           builder: (context, progress, child) {
@@ -249,26 +234,6 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             );
           },
         ),
-
-        // Back button on top left of banner
-        Positioned(
-          top: MediaQuery.of(context).padding.top + screenHeight * 0.01,
-          left: screenWidth * 0.03,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.35),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.maybePop(context),
-            ),
-          ),
-        ),
-
-        // ====================================================================
-        // [LAYER 2: DRAGGABLE SCROLLABLE SHEET - Exact Party Page physics]
-        // ====================================================================
         NotificationListener<DraggableScrollableNotification>(
           onNotification: (notification) {
             final progress = ((notification.extent - defaultSheetRatio) /
@@ -331,8 +296,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                     controller: scrollController,
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
-                      // Country Details Section (Collapsible Header with smooth AnimatedSize)
-                      SliverToBoxAdapter(
+                                            SliverToBoxAdapter(
                         child: ValueListenableBuilder<bool>(
                           valueListenable: _showCountryDetails,
                           builder: (context, showDetails, child) {
@@ -363,8 +327,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                         ),
                       ),
 
-                      // Pinned TabBar
-                      SliverPersistentHeader(
+                                            SliverPersistentHeader(
                         pinned: true,
                         delegate: SliverTabBarDelegate(
                           TabBar(
@@ -380,13 +343,13 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                               horizontal: screenWidth * 0.02,
                             ),
                             isScrollable: true,
-                            labelStyle: TextStyle(
-                              fontSize: screenWidth * 0.037,
+                            labelStyle: const TextStyle(
+                              fontSize: 14,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.25,
                             ),
-                            unselectedLabelStyle: TextStyle(
-                              fontSize: screenWidth * 0.037,
+                            unselectedLabelStyle: const TextStyle(
+                              fontSize: 14,
                               fontWeight: FontWeight.w400,
                               letterSpacing: 0.25,
                             ),
@@ -409,8 +372,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                         ),
                       ),
 
-                      // Tab Body Content Routed Through Model & Data File
-                      SliverToBoxAdapter(
+                                            SliverToBoxAdapter(
                         child: Container(
                           color: Colors.white,
                           child: ValueListenableBuilder<int>(
@@ -418,32 +380,28 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                             builder: (context, selectedIndex, child) {
                               return Stack(
                                 children: [
-                                  // Tab 0: INFO
-                                  Offstage(
+                                                                    Offstage(
                                     offstage: selectedIndex != 0,
                                     child: _buildTabContent(
                                       index: 0,
                                       country: country,
                                     ),
                                   ),
-                                  // Tab 1: FLAG / EMBLEM
-                                  Offstage(
+                                                                    Offstage(
                                     offstage: selectedIndex != 1,
                                     child: _buildTabContent(
                                       index: 1,
                                       country: country,
                                     ),
                                   ),
-                                  // Tab 2: GEOGRAPHIC
-                                  Offstage(
+                                                                    Offstage(
                                     offstage: selectedIndex != 2,
                                     child: _buildTabContent(
                                       index: 2,
                                       country: country,
                                     ),
                                   ),
-                                  // Tab 3: PLACES TO VISIT
-                                  Offstage(
+                                                                    Offstage(
                                     offstage: selectedIndex != 3,
                                     child: _buildTabContent(
                                       index: 3,
@@ -457,8 +415,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                         ),
                       ),
 
-                      // Bottom Spacing
-                      SliverToBoxAdapter(
+                                            SliverToBoxAdapter(
                         child: Container(
                           color: Colors.white,
                           height: MediaQuery.of(context).size.height * 0.06,
@@ -471,72 +428,66 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             },
           ),
         ),
+                ValueListenableBuilder<Offset?>(
+          valueListenable: _draggableFabPosition,
+          builder: (context, pos, child) {
+            if (pos == null) return const SizedBox.shrink();
+            return Positioned(
+              left: pos.dx,
+              top: pos.dy,
+              child: GestureDetector(
+                onPanUpdate: (details) {
+                  final double minX = screenWidth * 0.02;
+                  final double maxX = screenWidth - fabSize - screenWidth * 0.02;
+                  final double minY = MediaQuery.of(context).padding.top + screenHeight * 0.02;
+                  final double maxY = screenHeight - fabSize - MediaQuery.of(context).padding.bottom - screenHeight * 0.02;
 
-        // ====================================================================
-        // [GLOBAL DRAGGABLE ORANGE FAB]
-        // Accessible across all tabs (Info, Flag/Emblem, Geographic)
-        // Can be freely dragged anywhere on the screen by the user
-        // ====================================================================
-        Positioned(
-          left: _draggableFabPosition!.dx,
-          top: _draggableFabPosition!.dy,
-          child: GestureDetector(
-            onPanUpdate: (details) {
-              setState(() {
-                final double minX = screenWidth * 0.02;
-                final double maxX = screenWidth - fabSize - screenWidth * 0.02;
-                final double minY = MediaQuery.of(context).padding.top + screenHeight * 0.02;
-                final double maxY = screenHeight - fabSize - MediaQuery.of(context).padding.bottom - screenHeight * 0.02;
-
-                _draggableFabPosition = Offset(
-                  (_draggableFabPosition!.dx + details.delta.dx).clamp(minX, maxX),
-                  (_draggableFabPosition!.dy + details.delta.dy).clamp(minY, maxY),
-                );
-              });
-            },
-            onTap: () {
-              if (_tabController.index != 2) {
-                _tabController.animateTo(2); // Switches to GEOGRAPHIC tab
-              }
-            },
-            child: Container(
-              width: fabSize,
-              height: fabSize,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFFFE3A31),
-                    Color(0xFFFF6B4A),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFE3A31).withValues(alpha: 0.38),
-                    blurRadius: screenWidth * 0.035,
-                    offset: Offset(0, screenHeight * 0.006),
+                  _draggableFabPosition.value = Offset(
+                    (pos.dx + details.delta.dx).clamp(minX, maxX),
+                    (pos.dy + details.delta.dy).clamp(minY, maxY),
+                  );
+                },
+                onTap: () {
+                  if (_tabController.index != 2) {
+                    _tabController.animateTo(2);
+                  }
+                },
+                child: Container(
+                  width: fabSize,
+                  height: fabSize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFFE3A31),
+                        Color(0xFFFF6B4A),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFE3A31).withValues(alpha: 0.38),
+                        blurRadius: screenWidth * 0.035,
+                        offset: Offset(0, screenHeight * 0.006),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Center(
-                child: SvgPicture.asset(
-                  CountryPageData.orangeButtonLogo,
-                  width: fabSize * 0.52,
-                  height: fabSize * 0.52,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      CountryPageData.orangeButtonLogo,
+                      width: fabSize * 0.52,
+                      height: fabSize * 0.52,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ],
     );
   }
-
-  // ==========================================================================
-  // [TAB ROUTING HELPER - Routed via CountryPageData / Model exactly like Party]
-  // ==========================================================================
   Widget _buildTabContent({
     required int index,
     required CountryModel country,
@@ -547,8 +498,6 @@ class _CountryProfileViewState extends State<_CountryProfileView>
     );
   }
 }
-
-// ============================================================================
 // [COUNTRY BANNER SECTION]
 // ============================================================================
 class CountryBannerSection extends StatefulWidget {
@@ -584,8 +533,7 @@ class _CountryBannerSectionState extends State<CountryBannerSection> {
     final double screenHeight = MediaQuery.of(context).size.height;
     final double screenWidth = MediaQuery.of(context).size.width;
 
-    // Animation values matching party banner exactly
-    final double blur = progress * 8.0;
+        final double blur = progress * 8.0;
     final double darkOpacity = progress * 0.48;
     final double titleOpacity =
         ((progress - 0.15) / 0.45).clamp(0.0, 1.0);
@@ -596,8 +544,7 @@ class _CountryBannerSectionState extends State<CountryBannerSection> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Banner images with progressive blur
-          if (banners.isEmpty)
+                    if (banners.isEmpty)
             ColoredBox(
               color: const Color(0xFFF5F5F5),
               child: Center(
@@ -656,8 +603,6 @@ class _CountryBannerSectionState extends State<CountryBannerSection> {
                 },
               ),
             ),
-
-          // Darken the image as the sheet expands
           IgnorePointer(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 80),
@@ -665,7 +610,7 @@ class _CountryBannerSectionState extends State<CountryBannerSection> {
             ),
           ),
 
-          // Fixed back arrow
+          // Top bar back arrow
           Positioned(
             top: screenHeight * 0.04,
             left: screenWidth * 0.05,
@@ -694,8 +639,7 @@ class _CountryBannerSectionState extends State<CountryBannerSection> {
             ),
           ),
 
-          // Country Name in header bar (fades in as bottom sheet scrolls up)
-          Positioned(
+                    Positioned(
             top: screenHeight * 0.05,
             left: screenWidth * 0.05 + screenWidth * 0.13,
             right: screenWidth * 0.05,
@@ -720,8 +664,7 @@ class _CountryBannerSectionState extends State<CountryBannerSection> {
             ),
           ),
 
-          // Banner page indicator dots
-          if (banners.length > 1)
+                    if (banners.length > 1)
             Positioned(
               top: screenHeight * 0.68,
               left: 0,
@@ -762,8 +705,6 @@ class _CountryBannerSectionState extends State<CountryBannerSection> {
     );
   }
 }
-
-// ============================================================================
 // [COUNTRY DETAILS SECTION]
 // ============================================================================
 class CountryDetailsSection extends StatefulWidget {
@@ -888,7 +829,7 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                 child: Text(
                   countryTitle,
                   style: TextStyle(
-                    fontSize: w * 0.048,
+                    fontSize: (w * 0.052).clamp(18.0, 22.0),
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFF1E1E1E),
                     letterSpacing: 0.2,
@@ -920,10 +861,10 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
           SizedBox(height: h * 0.005),
           Text(
             "Capital City - $capitalText",
-            style: TextStyle(
-              fontSize: w * 0.033,
+            style: const TextStyle(
+              fontSize: 14,
               fontWeight: FontWeight.w400,
-              color: const Color(0xFF757575),
+              color: Color(0xFF666666),
               letterSpacing: 0.2,
             ),
           ),
@@ -940,20 +881,21 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                   children: [
                     Text(
                       'DISTRICTS',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: w * 0.026,
-                        letterSpacing: 0.5,
-                        color: const Color(0xFF757575),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 11,
+                        letterSpacing: 0.22,
+                        color: Color(0xFF666666),
                       ),
                     ),
                     SizedBox(height: h * 0.003),
                     Text(
                       statesValue,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.w800,
-                        fontSize: w * 0.055,
-                        color: const Color(0xFF1E1E1E),
+                        fontSize: 24,
+                        letterSpacing: 0.3,
+                        color: Color(0xFF333333),
                       ),
                     ),
                   ],
@@ -971,20 +913,21 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                   children: [
                     Text(
                       'STATE CODE',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: w * 0.026,
-                        letterSpacing: 0.5,
-                        color: const Color(0xFF757575),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 11,
+                        letterSpacing: 0.22,
+                        color: Color(0xFF666666),
                       ),
                     ),
                     SizedBox(height: h * 0.003),
                     Text(
                       stateCodeValue,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.w800,
-                        fontSize: w * 0.055,
-                        color: const Color(0xFF1E1E1E),
+                        fontSize: 24,
+                        letterSpacing: 0.3,
+                        color: Color(0xFF333333),
                       ),
                     ),
                   ],
@@ -1002,20 +945,21 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                   children: [
                     Text(
                       'REGISTRATION',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: w * 0.026,
-                        letterSpacing: 0.5,
-                        color: const Color(0xFF757575),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 11,
+                        letterSpacing: 0.22,
+                        color: Color(0xFF666666),
                       ),
                     ),
                     SizedBox(height: h * 0.003),
                     Text(
                       regCodeValue,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.w800,
-                        fontSize: w * 0.055,
-                        color: const Color(0xFF1E1E1E),
+                        fontSize: 24,
+                        letterSpacing: 0.3,
+                        color: Color(0xFF333333),
                       ),
                     ),
                   ],
@@ -1032,20 +976,21 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                   children: [
                     Text(
                       CountryPageData.states,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: w * 0.028,
-                        letterSpacing: 0.5,
-                        color: const Color(0xFF757575),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 11,
+                        letterSpacing: 0.22,
+                        color: Color(0xFF666666),
                       ),
                     ),
                     SizedBox(height: h * 0.003),
                     Text(
                       statesValue,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.w800,
-                        fontSize: w * 0.058,
-                        color: const Color(0xFF1E1E1E),
+                        fontSize: 24,
+                        letterSpacing: 0.3,
+                        color: Color(0xFF333333),
                       ),
                     ),
                   ],
@@ -1063,20 +1008,21 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                   children: [
                     Text(
                       CountryPageData.unionTerritories,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: w * 0.028,
-                        letterSpacing: 0.5,
-                        color: const Color(0xFF757575),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 11,
+                        letterSpacing: 0.22,
+                        color: Color(0xFF666666),
                       ),
                     ),
                     SizedBox(height: h * 0.003),
                     Text(
                       utValue,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.w800,
-                        fontSize: w * 0.058,
-                        color: const Color(0xFF1E1E1E),
+                        fontSize: 24,
+                        letterSpacing: 0.3,
+                        color: Color(0xFF333333),
                       ),
                     ),
                   ],
