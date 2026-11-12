@@ -1,13 +1,15 @@
 // Country Profile Screen
-// Complete, vertically scrollable mobile civic information page
-// matching the exact visual hierarchy of the provided reference screens.
+// Vertically scrollable civic information page with smooth DraggableScrollableSheet
+// matching the exact visual hierarchy and smooth scroll physics of PartyFetchedData.
 
-import 'dart:ui' show lerpDouble;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../Favourite/favourite_api.dart';
 import '../Reusable Functions/reusable_functions.dart';
+import 'Country_model.dart';
 import 'Country_page_data.dart';
 import 'reusable_functions.dart';
 
@@ -63,8 +65,6 @@ class _CountryProfileViewState extends State<_CountryProfileView>
   final ValueNotifier<double> _sheetProgress = ValueNotifier<double>(0.0);
   final ValueNotifier<bool> _showCountryDetails = ValueNotifier<bool>(true);
   bool _isUserScrolling = false;
-  bool _isInfoExpanded = false;
-  bool _isFlagExpanded = false;
   Offset? _draggableFabPosition;
 
   @override
@@ -99,70 +99,92 @@ class _CountryProfileViewState extends State<_CountryProfileView>
     final double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: BlocBuilder<CountryProfileBloc, CountryProfileState>(
+      backgroundColor: const Color(0xFFEBEBEB),
+      body: BlocConsumer<CountryProfileBloc, CountryProfileState>(
+        listener: (context, state) {
+          if (state is CountryProfileErrorState) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  state.message.isNotEmpty
+                      ? state.message
+                      : 'Unable to load profile data',
+                ),
+                backgroundColor: const Color(0xFFFE3A31),
+                duration: const Duration(seconds: 4),
+                action: SnackBarAction(
+                  label: 'RETRY',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    context.read<CountryProfileBloc>().add(
+                          FetchCountryProfileEvent(widget.countryId),
+                        );
+                  },
+                ),
+              ),
+            );
+          }
+        },
         builder: (context, state) {
-          if (state.status == CountryProfileStatus.loading) {
-            return const Center(
+          // Loading State
+          if (state is CountryProfileLoadingState) {
+            return Center(
               child: CircularProgressIndicator(
-                color: Color(0xFFFE3A31),
+                color: ColorScheme.of(context).onSurface,
               ),
             );
           }
 
-          if (state.status == CountryProfileStatus.failure) {
+          // Error State with fallback
+          if (state is CountryProfileErrorState && state.cachedCountry == null) {
             return Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.06,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SvgPicture.asset(
-                      "Assets/PartyPage/crossIcon.svg",
-                      width: screenWidth * 0.14,
-                      height: screenWidth * 0.14,
-                      colorFilter: const ColorFilter.mode(
-                        Color(0xFFFE3A31),
-                        BlendMode.srcIn,
-                      ),
+                    Icon(
+                      Icons.error_outline_rounded,
+                      size: screenWidth * 0.16,
+                      color: const Color(0xFFFE3A31),
                     ),
                     SizedBox(height: screenHeight * 0.02),
                     Text(
-                      state.errorMessage ?? 'Failed to load country profile',
+                      'Failed to load data',
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.045,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1E1E1E),
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.01),
+                    Text(
+                      state.message,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: screenWidth * 0.042,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF222222),
+                        fontSize: screenWidth * 0.032,
+                        color: const Color(0xFF757575),
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.025),
                     ElevatedButton(
                       onPressed: () {
-                        context
-                            .read<CountryProfileBloc>()
-                            .add(FetchCountryProfileEvent(widget.countryId));
+                        context.read<CountryProfileBloc>().add(
+                              FetchCountryProfileEvent(widget.countryId),
+                            );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFE3A31),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(screenWidth * 0.05),
+                          borderRadius: BorderRadius.circular(screenWidth * 0.03),
                         ),
                         padding: EdgeInsets.symmetric(
                           horizontal: screenWidth * 0.06,
-                          vertical: screenHeight * 0.015,
+                          vertical: screenHeight * 0.014,
                         ),
                       ),
-                      child: Text(
-                        'Try Again',
-                        style: TextStyle(
-                          fontSize: screenWidth * 0.038,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: const Text('RETRY'),
                     ),
                   ],
                 ),
@@ -170,27 +192,26 @@ class _CountryProfileViewState extends State<_CountryProfileView>
             );
           }
 
-          if (state.status == CountryProfileStatus.success &&
-              state.country != null) {
+          // Loaded State
+          if (state is CountryProfileLoadedState && state.country != null) {
             return _buildLoadedContent(state.country!, screenHeight);
           }
 
-          return const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFFFE3A31),
-            ),
-          );
+          // Fallback if cached country is present during error
+          if (state is CountryProfileErrorState && state.cachedCountry != null) {
+            return _buildLoadedContent(state.cachedCountry!, screenHeight);
+          }
+
+          return const SizedBox.shrink();
         },
       ),
     );
   }
 
   // ==========================================================================
-  // [BUILD METHOD: LOADED CONTENT]
+  // [BUILD METHOD: LOADED CONTENT - Matching Party Page scroll physics]
   // ==========================================================================
   Widget _buildLoadedContent(CountryModel country, double screenHeight) {
-    final List<String> banners = country.bannerImages;
-
     final double defaultSheetRatio = (screenHeight < 500)
         ? 0.45
         : (screenHeight < 800)
@@ -199,33 +220,50 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                 ? 0.247
                 : (218.0 / screenHeight).clamp(0.1, 0.85);
 
-    final String countryHeaderTitle = country.name.isNotEmpty
-        ? country.name
-        : '';
-
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double fabSize = screenWidth * 0.12;
+    final double fabSize = screenWidth * (62.0 / 375.0);
 
+    // Initialize FAB position to bottom right with safe area padding
     _draggableFabPosition ??= Offset(
       screenWidth - fabSize - screenWidth * 0.05,
-      screenHeight * 0.62,
+      screenHeight - fabSize - MediaQuery.of(context).padding.bottom - screenHeight * 0.06,
     );
 
     return Stack(
       children: [
-        // Background banner with progressive blur & darkening matching Party Page
+        // ====================================================================
+        // [LAYER 1: FULL SCREEN BANNER WITH PROGRESSIVE BLUR]
+        // ====================================================================
         ValueListenableBuilder<double>(
           valueListenable: _sheetProgress,
           builder: (context, progress, child) {
             return CountryBannerSection(
-              banners: banners,
-              countryName: countryHeaderTitle,
+              banners: country.bannerImages,
+              countryName: country.name,
               progress: progress,
             );
           },
         ),
 
-        // Draggable Scrollable Sheet matching Party Page scrolling behavior
+        // Back button on top left of banner
+        Positioned(
+          top: MediaQuery.of(context).padding.top + screenHeight * 0.01,
+          left: screenWidth * 0.03,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.35),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.maybePop(context),
+            ),
+          ),
+        ),
+
+        // ====================================================================
+        // [LAYER 2: DRAGGABLE SCROLLABLE SHEET - Exact Party Page physics]
+        // ====================================================================
         NotificationListener<DraggableScrollableNotification>(
           onNotification: (notification) {
             final progress = ((notification.extent - defaultSheetRatio) /
@@ -255,14 +293,12 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                     _isUserScrolling = false;
                   }
 
-                  if (notification is UserScrollNotification &&
-                      _isUserScrolling) {
+                  if (notification is UserScrollNotification && _isUserScrolling) {
                     if (notification.direction == ScrollDirection.reverse) {
                       if (_showCountryDetails.value) {
                         _showCountryDetails.value = false;
                       }
-                    } else if (notification.direction ==
-                        ScrollDirection.forward) {
+                    } else if (notification.direction == ScrollDirection.forward) {
                       if (!_showCountryDetails.value) {
                         _showCountryDetails.value = true;
                       }
@@ -278,12 +314,19 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(screenWidth * 0.06),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: screenWidth * 0.03,
+                        offset: Offset(0, -screenHeight * 0.005),
+                      ),
+                    ],
                   ),
                   child: CustomScrollView(
                     controller: scrollController,
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
-                      // Header Section (Country details) with animated collapse on scroll
+                      // Country Details Section (Collapsible Header with smooth AnimatedSize)
                       SliverToBoxAdapter(
                         child: ValueListenableBuilder<bool>(
                           valueListenable: _showCountryDetails,
@@ -304,12 +347,9 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              CountryDetailsSection(
-                                key: const ValueKey('country_details'),
-                                country: country,
-                              ),
+                              CountryDetailsSection(country: country),
                               Container(
-                                height: MediaQuery.of(context).size.width * (6.0 / 375.0),
+                                height: screenWidth * (6.0 / 375.0),
                                 width: double.infinity,
                                 color: const Color(0xFFEBEBEB),
                               ),
@@ -321,42 +361,38 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                       // Pinned TabBar
                       SliverPersistentHeader(
                         pinned: true,
-                        delegate: _SliverTabBarDelegate(
+                        delegate: SliverTabBarDelegate(
                           TabBar(
                             controller: _tabController,
                             onTap: (index) {
                               _selectedTabIndex.value = index;
                             },
-                            tabAlignment: TabAlignment.start,
-                            overlayColor:
-                                WidgetStateProperty.all(Colors.transparent),
-                            isScrollable: true,
-                            padding: EdgeInsets.only(
-                              left: MediaQuery.of(context).size.width * 0.02,
+                            tabAlignment: TabAlignment.center,
+                            overlayColor: WidgetStateProperty.all(
+                              Colors.transparent,
                             ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: screenWidth * 0.02,
+                            ),
+                            isScrollable: true,
                             labelStyle: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width * 0.033,
-                              fontWeight: FontWeight.w600,
+                              fontSize: screenWidth * 0.037,
+                              fontWeight: FontWeight.w700,
                               letterSpacing: 0.25,
                             ),
                             unselectedLabelStyle: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width * 0.033,
+                              fontSize: screenWidth * 0.037,
                               fontWeight: FontWeight.w400,
                               letterSpacing: 0.25,
                             ),
-                            labelColor: const Color(0xFF000000),
-                            unselectedLabelColor: const Color(0xFF666666),
-                            indicatorColor: Colors.transparent,
-                            indicatorSize: TabBarIndicatorSize.label,
+                            labelColor: const Color(0xFF1E1E1E),
+                            unselectedLabelColor: const Color(0xFF757575),
                             indicator: SmallTabIndicator(
-                              width: MediaQuery.of(context).size.width * 0.07,
-                              height: MediaQuery.of(context).size.width * 0.0075,
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(
-                                MediaQuery.of(context).size.width * 0.0035,
-                              ),
+                              color: const Color(0xFFFE3A31),
+                              width: screenWidth * 0.055,
+                              height: screenHeight * 0.0035,
+                              borderRadius: BorderRadius.circular(screenWidth * 0.01),
                             ),
-                            dividerColor: ColorScheme.of(context).onSurface.withValues(alpha: 0.2),
                             tabs: const [
                               Tab(text: CountryPageData.infoTab),
                               Tab(text: CountryPageData.flagEmblemTab),
@@ -368,7 +404,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                         ),
                       ),
 
-                      // Tab Body Content
+                      // Tab Body Content Routed Through Model & Data File
                       SliverToBoxAdapter(
                         child: Container(
                           color: Colors.white,
@@ -380,22 +416,34 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                                   // Tab 0: INFO
                                   Offstage(
                                     offstage: selectedIndex != 0,
-                                    child: _buildInfoTabContent(country),
+                                    child: _buildTabContent(
+                                      index: 0,
+                                      country: country,
+                                    ),
                                   ),
                                   // Tab 1: FLAG / EMBLEM
                                   Offstage(
                                     offstage: selectedIndex != 1,
-                                    child: _buildPlacesAndSymbolsTab(country),
+                                    child: _buildTabContent(
+                                      index: 1,
+                                      country: country,
+                                    ),
                                   ),
                                   // Tab 2: GEOGRAPHIC
                                   Offstage(
                                     offstage: selectedIndex != 2,
-                                    child: _buildGeographicTabContent(country),
+                                    child: _buildTabContent(
+                                      index: 2,
+                                      country: country,
+                                    ),
                                   ),
                                   // Tab 3: PLACES TO VISIT
                                   Offstage(
                                     offstage: selectedIndex != 3,
-                                    child: _buildPlacesToVisitTab(country),
+                                    child: _buildTabContent(
+                                      index: 3,
+                                      country: country,
+                                    ),
                                   ),
                                 ],
                               );
@@ -450,1393 +498,586 @@ class _CountryProfileViewState extends State<_CountryProfileView>
               width: fabSize,
               height: fabSize,
               decoration: BoxDecoration(
-                color: const Color(0xFFFE3A31),
                 shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFFFE3A31),
+                    Color(0xFFFF6B4A),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFE3A31).withValues(alpha: 0.4),
-                    blurRadius: screenWidth * 0.025,
-                    spreadRadius: 1.0,
-                    offset: Offset(0, screenHeight * 0.004),
+                    color: const Color(0xFFFE3A31).withValues(alpha: 0.38),
+                    blurRadius: screenWidth * 0.035,
+                    offset: Offset(0, screenHeight * 0.006),
                   ),
                 ],
               ),
               child: Center(
                 child: SvgPicture.asset(
                   CountryPageData.orangeButtonLogo,
-                  width: fabSize * 0.46,
-                  height: fabSize * 0.46,
+                  width: fabSize * 0.52,
+                  height: fabSize * 0.52,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ==========================================================================
+  // [TAB ROUTING HELPER - Routed via CountryPageData / Model exactly like Party]
+  // ==========================================================================
+  Widget _buildTabContent({
+    required int index,
+    required CountryModel country,
+  }) {
+    return CountryPageData.buildTabContent(
+      index: index,
+      country: country,
+    );
+  }
+}
+
+// ============================================================================
+// [COUNTRY BANNER SECTION]
+// ============================================================================
+class CountryBannerSection extends StatefulWidget {
+  final List<String> banners;
+  final String countryName;
+  final double progress;
+
+  const CountryBannerSection({
+    super.key,
+    required this.banners,
+    required this.countryName,
+    this.progress = 0.0,
+  });
+
+  @override
+  State<CountryBannerSection> createState() => _CountryBannerSectionState();
+}
+
+class _CountryBannerSectionState extends State<CountryBannerSection> {
+  final PageController _pageController = PageController();
+  int currentIndex = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<String> banners = widget.banners;
+    final double progress = widget.progress.clamp(0.0, 1.0);
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double screenWidth = MediaQuery.of(context).size.width;
+
+    // Animation values matching party banner exactly
+    final double blur = progress * 8.0;
+    final double darkOpacity = progress * 0.48;
+    final double titleOpacity =
+        ((progress - 0.15) / 0.45).clamp(0.0, 1.0);
+
+    return SizedBox(
+      height: screenHeight * 0.8,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Banner images with progressive blur
+          if (banners.isEmpty)
+            ColoredBox(
+              color: const Color(0xFFF5F5F5),
+              child: Center(
+                child: SvgPicture.asset(
+                  "Assets/PartyPage/photoIcon.svg",
+                  width: screenWidth * 0.12,
+                  height: screenWidth * 0.12,
                   colorFilter: const ColorFilter.mode(
-                    Colors.white,
+                    Color(0xFFBDBDBD),
                     BlendMode.srcIn,
                   ),
                 ),
               ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ==========================================================================
-  // [BUILD METHOD: INFO TAB] Full civic data with robust fallbacks
-  // ==========================================================================
-  Widget _buildInfoTabContent(CountryModel country) {
-    final String countryName = country.name;
-    final String descriptionText = country.info?.trim() ?? '';
-
-    // Setup leadership lists from backend data without hardcoded fallbacks
-    final List<NationalLeader> presidents = country.leaders
-        .where((l) => l.title.toUpperCase().contains('PRESIDENT'))
-        .toList();
-
-    final List<NationalLeader> primeMinisters = country.leaders
-        .where((l) => l.title.toUpperCase().contains('PRIME'))
-        .toList();
-
-    final List<NationalLeader> defenceMinisters = country.leaders
-        .where((l) => l.title.toUpperCase().contains('DEFENCE'))
-        .toList();
-
-    final List<NationalLeader> homeMinisters = country.leaders
-        .where((l) => l.title.toUpperCase().contains('HOME'))
-        .toList();
-
-    final List<CabinetMinister> cabinets = country.otherCabinets;
-
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: screenHeight * 0.016,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ==================================================================
-          // [OVERVIEW PARAGRAPH & READ MORE]
-          // ==================================================================
-          if (descriptionText.isNotEmpty) ...[
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RichText(
-                    maxLines: _isInfoExpanded ? null : 4,
-                    overflow:
-                        _isInfoExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-                    text: TextSpan(
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.034,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xFF333333),
-                        height: 1.5,
-                      ),
-                      children: [
-                        if (countryName.isNotEmpty)
-                          TextSpan(
-                            text: '$countryName, ',
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                        TextSpan(
-                          text: (countryName.isNotEmpty && descriptionText.startsWith(countryName))
-                              ? descriptionText.substring(countryName.length).trimLeft()
-                              : descriptionText,
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.008),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() => _isInfoExpanded = !_isInfoExpanded);
-                    },
-                    child: Text(
-                      _isInfoExpanded ? 'READ LESS' : 'READ MORE',
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.031,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFFFE3A31),
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.02),
-                ],
+            )
+          else
+            ImageFiltered(
+              imageFilter: ImageFilter.blur(
+                sigmaX: blur,
+                sigmaY: blur,
               ),
-            ),
-          ],
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: banners.length,
+                onPageChanged: (index) {
+                  if (mounted) {
+                    setState(() {
+                      currentIndex = index;
+                    });
+                  }
+                },
+                itemBuilder: (context, index) {
+                  final image = banners[index];
+                  final imageUrl =
+                      image.startsWith("/api/") ? "$api$image" : image;
 
-          // ==================================================================
-          // [6 KEY CIVIC DETAIL ROWS WITH ICONS]
-          // ==================================================================
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. CAPITAL
-                _buildCivicDetailRow(
-                  icon: SvgPicture.asset(
-                    CountryPageData.capitalIcon,
-                    width: screenWidth * 0.058,
-                    height: screenWidth * 0.058,
-                  ),
-                  label: CountryPageData.capital,
-                  value: country.capital?.trim().isNotEmpty == true
-                      ? country.capital!.trim()
-                      : '-',
-                ),
-
-                // 2. NATIONAL ANTHEM
-                _buildCivicDetailRow(
-                  icon: SvgPicture.asset(
-                    CountryPageData.nationalAnthemIcon,
-                    width: screenWidth * 0.058,
-                    height: screenWidth * 0.058,
-                  ),
-                  label: CountryPageData.nationalAnthem,
-                  value: country.nationalAnthem?.trim().isNotEmpty == true
-                      ? country.nationalAnthem!.trim()
-                      : '-',
-                ),
-
-                // 3. POPULATION
-                _buildCivicDetailRow(
-                  icon: SvgPicture.asset(
-                    CountryPageData.populationIcon,
-                    width: screenWidth * 0.058,
-                    height: screenWidth * 0.058,
-                  ),
-                  label: CountryPageData.population,
-                  value: country.population?.trim().isNotEmpty == true
-                      ? country.population!.trim()
-                      : '-',
-                ),
-
-                // 4. PRESIDENT
-                _buildCivicDetailRow(
-                  icon: SvgPicture.asset(
-                    CountryPageData.presidentIcon,
-                    width: screenWidth * 0.058,
-                    height: screenWidth * 0.058,
-                  ),
-                  label: CountryPageData.president,
-                  value: country.president?.trim().isNotEmpty == true
-                      ? country.president!.trim()
-                      : '-',
-                ),
-
-                // 5. PRIME MINISTER
-                _buildCivicDetailRow(
-                  icon: SvgPicture.asset(
-                    CountryPageData.primeMinisterIcon,
-                    width: screenWidth * 0.058,
-                    height: screenWidth * 0.058,
-                  ),
-                  label: CountryPageData.primeMinister,
-                  value: country.primeMinister?.trim().isNotEmpty == true
-                      ? country.primeMinister!.trim()
-                      : '-',
-                ),
-
-                // 6. DATE OF INDEPENDENCE
-                _buildCivicDetailRow(
-                  icon: SvgPicture.asset(
-                    CountryPageData.dateOfIndependenceIcon,
-                    width: screenWidth * 0.055,
-                    height: screenWidth * 0.055,
-                  ),
-                  label: CountryPageData.dateOfIndependence,
-                  value: country.independenceDay?.trim().isNotEmpty == true &&
-                          formatCountryDate(country.independenceDay) != '-'
-                      ? formatCountryDate(country.independenceDay)
-                      : '-',
-                ),
-              ],
-            ),
-          ),
-
-          // ==================================================================
-          // [LEADERSHIP SECTIONS - ONLY RENDERED IF BACKEND PROVIDES DATA]
-          // ==================================================================
-          if (presidents.isNotEmpty) ...[
-            buildSectionDivider(context),
-            _buildLeaderHorizontalSection(
-              title: 'PRESIDENT',
-              leaders: presidents,
-              showPartyLogo: false,
-            ),
-          ],
-
-          if (primeMinisters.isNotEmpty) ...[
-            buildSectionDivider(context),
-            _buildLeaderHorizontalSection(
-              title: 'PRIME MINISTER',
-              leaders: primeMinisters,
-              showPartyLogo: true,
-            ),
-          ],
-
-          if (defenceMinisters.isNotEmpty) ...[
-            buildSectionDivider(context),
-            _buildLeaderHorizontalSection(
-              title: 'DEFENCE MINISTER',
-              leaders: defenceMinisters,
-              showPartyLogo: true,
-            ),
-          ],
-
-          if (homeMinisters.isNotEmpty) ...[
-            buildSectionDivider(context),
-            _buildLeaderHorizontalSection(
-              title: 'HOME MINISTER',
-              leaders: homeMinisters,
-              showPartyLogo: true,
-            ),
-          ],
-
-          if (cabinets.isNotEmpty) ...[
-            buildSectionDivider(context),
-            _buildOtherCabinetsSection(cabinets),
-          ],
-
-          buildSectionDivider(context),
-        ],
-      ),
-    );
-  }
-
-  // ==========================================================================
-  // [CIVIC DETAIL ROW HELPER]
-  // ==========================================================================
-  Widget _buildCivicDetailRow({
-    required Widget icon,
-    required String label,
-    required String value,
-    Widget? trailing,
-  }) {
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: screenWidth * 0.075,
-            height: screenWidth * 0.075,
-            child: Center(child: icon),
-          ),
-          SizedBox(width: screenWidth * 0.035),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: screenWidth * 0.026,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.5,
-                    color: const Color(0xFF888888),
-                  ),
-                ),
-                SizedBox(height: screenHeight * 0.003),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: screenWidth * 0.035,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1E1E1E),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ?trailing,
-        ],
-      ),
-    );
-  }
-
-  // ==========================================================================
-  // [BUILD METHOD: LEADERSHIP HORIZONTAL SECTION]
-  // Sized strictly using MediaQuery without hardcoded dimensions.
-  // ==========================================================================
-  Widget _buildLeaderHorizontalSection({
-    required String title,
-    required List<NationalLeader> leaders,
-    bool showPartyLogo = true,
-  }) {
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
-
-    final double cardWidth = screenWidth * (280.0 / 375.0);
-    final double cardImageHeight = cardWidth * (339.0 / 280.0);
-    final double listHeight = cardWidth * (396.0 / 280.0);
-    final double cardRadius = cardWidth * (20.0 / 280.0);
-    final double cardMarginRight = screenWidth * (16.0 / 375.0);
-    final double spacingBelowImage = cardWidth * (10.0 / 280.0);
-    final double partyLogoSize = cardWidth * (28.0 / 280.0);
-    final double badgeBottom = cardImageHeight * (12.0 / 339.0);
-    final double badgeRight = cardWidth * (12.0 / 280.0);
-    final double badgeHorizontalPadding = cardWidth * (12.0 / 280.0);
-    final double badgeVerticalPadding = cardImageHeight * (5.0 / 339.0);
-    final double badgeRadius = cardWidth * (14.0 / 280.0);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: screenWidth * 0.034,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.6,
-              color: const Color(0xFF1E1E1E),
-            ),
-          ),
-        ),
-        SizedBox(height: screenHeight * 0.016),
-        SizedBox(
-          height: listHeight,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-            itemCount: leaders.length,
-            itemBuilder: (context, index) {
-              final leader = leaders[index];
-              return Container(
-                width: cardWidth,
-                margin: EdgeInsets.only(right: cardMarginRight),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Card Image with rounded corners and translucent pill badge
-                    Container(
-                      height: cardImageHeight,
-                      width: cardWidth,
-                      decoration: BoxDecoration(
+                  return Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) {
+                      return ColoredBox(
                         color: const Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(cardRadius),
-                      ),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(cardRadius),
-                            child: leader.imageUrl.isNotEmpty
-                                ? buildImageWidget(
-                                    leader.imageUrl,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Container(
-                                    color: const Color(0xFFF5F5F5),
-                                    child: Center(
-                                      child: SvgPicture.asset(
-                                        "Assets/PartyPage/personIcon.svg",
-                                        width: cardWidth * 0.25,
-                                        height: cardWidth * 0.25,
-                                        colorFilter: const ColorFilter.mode(
-                                          Color(0xFFBDBDBD),
-                                          BlendMode.srcIn,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                          ),
-                          if (leader.badge.isNotEmpty)
-                            Positioned(
-                              bottom: badgeBottom,
-                              right: badgeRight,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: badgeHorizontalPadding,
-                                  vertical: badgeVerticalPadding,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.65),
-                                  borderRadius: BorderRadius.circular(badgeRadius),
-                                ),
-                                child: Text(
-                                  leader.badge,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: cardWidth * (11.0 / 280.0),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: spacingBelowImage),
-                    // Below image: Party Logo (if applicable) and Name + Tenure
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        if (showPartyLogo &&
-                            leader.partyLogo != null &&
-                            leader.partyLogo!.isNotEmpty) ...[
-                          ClipOval(
-                            child: Container(
-                              width: partyLogoSize,
-                              height: partyLogoSize,
-                              color: Colors.white,
-                              child: buildImageWidget(
-                                leader.partyLogo!,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: cardWidth * (8.0 / 280.0)),
-                        ],
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                leader.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: cardWidth * (13.5 / 280.0),
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF1E1E1E),
-                                ),
-                              ),
-                              if (leader.tenure.isNotEmpty) ...[
-                                SizedBox(height: screenHeight * 0.003),
-                                Text(
-                                  leader.tenure,
-                                  style: TextStyle(
-                                    fontSize: cardWidth * (11.5 / 280.0),
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF4CAF50),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ==========================================================================
-  // [BUILD METHOD: OTHER CABINETS]
-  // ==========================================================================
-  Widget _buildOtherCabinetsSection(List<CabinetMinister> cabinets) {
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'OTHER CABINATE',
-                style: TextStyle(
-                  fontSize: screenWidth * 0.033,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.6,
-                  color: const Color(0xFF1E1E1E),
-                ),
-              ),
-              SvgPicture.asset(
-                CountryPageData.arrow,
-                width: screenWidth * 0.046,
-                height: screenWidth * 0.046,
-                colorFilter: const ColorFilter.mode(
-                  Color(0xFFFE3A31),
-                  BlendMode.srcIn,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: screenHeight * 0.003),
-          GridView.builder(
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: screenWidth * 0.026,
-              mainAxisSpacing: screenHeight * 0.016,
-              childAspectRatio: 0.68,
-            ),
-            itemCount: cabinets.length,
-            itemBuilder: (context, index) {
-              final minister = cabinets[index];
-              final double ministerRadius = screenWidth * 0.04;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: minister.backgroundColor,
-                        borderRadius: BorderRadius.circular(ministerRadius),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(ministerRadius),
-                        child: minister.imageUrl.isNotEmpty
-                            ? buildImageWidget(
-                                minister.imageUrl,
-                                fit: BoxFit.cover,
-                              )
-                            : Container(
-                                color: const Color(0xFFF5F5F5),
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    "Assets/PartyPage/personIcon.svg",
-                                    width: screenWidth * 0.1,
-                                    height: screenWidth * 0.1,
-                                    colorFilter: const ColorFilter.mode(
-                                      Color(0xFFBDBDBD),
-                                      BlendMode.srcIn,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.007),
-                  Text(
-                    minister.firstName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: screenWidth * 0.032,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1E1E1E),
-                    ),
-                  ),
-                  Text(
-                    minister.lastName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: screenWidth * 0.028,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xFF666666),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ==========================================================================
-  // [BUILD METHOD: FLAG / EMBLEM TAB]
-  // ==========================================================================
-  Widget _buildPlacesAndSymbolsTab(CountryModel country) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
-
-    // 1. Dynamic Backend Lookup
-    SymbolView? flagSymbol;
-    SymbolView? emblemSymbol;
-    for (final s in country.symbols) {
-      final kind = (s.kind ?? '').toUpperCase();
-      final label = (s.label ?? '').toLowerCase();
-      if ((kind.contains('FLAG') || label.contains('flag') || label.contains('tiranga')) && flagSymbol == null) {
-        flagSymbol = s;
-      } else if ((kind.contains('EMBLEM') || label.contains('emblem') || label.contains('capital') || label.contains('lion')) && emblemSymbol == null) {
-        emblemSymbol = s;
-      }
-    }
-    if (flagSymbol == null && country.symbols.isNotEmpty) {
-      flagSymbol = country.symbols.first;
-    }
-    if (emblemSymbol == null && country.symbols.length > 1) {
-      emblemSymbol = country.symbols[1];
-    }
-
-    // 2. Dynamic Description from Backend or fallback
-    final String? backendDesc = (flagSymbol?.description?.trim().isNotEmpty == true)
-        ? flagSymbol!.description
-        : ((emblemSymbol?.description?.trim().isNotEmpty == true)
-            ? emblemSymbol!.description
-            : (country.cultureAndTradition?.trim().isNotEmpty == true
-                ? country.cultureAndTradition
-                : (country.info?.trim().isNotEmpty == true ? country.info : null)));
-
-    final String flagDesc = backendDesc?.trim().isNotEmpty == true
-        ? backendDesc!.trim()
-        : '';
-
-    // 3. Dynamic Image URLs
-    final String flagUrl = flagSymbol?.urls.firstWhere(
-          (u) => u.trim().isNotEmpty,
-          orElse: () => '',
-        ) ?? '';
-    final String emblemUrl = emblemSymbol?.urls.firstWhere(
-          (u) => u.trim().isNotEmpty,
-          orElse: () => '',
-        ) ?? '';
-
-    // 4. Labels
-    final String flagLabel = (flagSymbol?.label?.trim().isNotEmpty == true)
-        ? flagSymbol!.label!
-        : (country.name.isNotEmpty ? '${country.name} Flag' : 'Flag');
-
-    final String emblemLabel = (emblemSymbol?.label?.trim().isNotEmpty == true)
-        ? emblemSymbol!.label!
-        : (country.name.isNotEmpty ? '${country.name} Emblem' : 'Emblem');
-
-    // 5. Proportional MediaQuery Dimensions (180x180 & 180x193 on 375w reference)
-    final double flagWidth = w * (180.0 / 375.0);
-    final double flagHeight = flagWidth * (180.0 / 180.0);
-
-    final double emblemWidth = w * (180.0 / 375.0);
-    final double emblemHeight = emblemWidth * (193.0 / 180.0);
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: h * 0.018,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: w * 0.05),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Description Paragraph with READ MORE / READ LESS toggle
-                RichText(
-                  maxLines: _isFlagExpanded ? null : 4,
-                  overflow:
-                      _isFlagExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-                  text: TextSpan(
-                    style: TextStyle(
-                      fontSize: w * 0.034,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xFF333333),
-                      height: 1.5,
-                    ),
-                    text: flagDesc,
-                  ),
-                ),
-                SizedBox(height: h * 0.008),
-                GestureDetector(
-                  onTap: () {
-                    setState(() => _isFlagExpanded = !_isFlagExpanded);
-                  },
-                  child: Text(
-                    _isFlagExpanded ? 'READ LESS' : 'READ MORE',
-                    style: TextStyle(
-                      fontSize: w * 0.031,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFFFE3A31),
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ),
-                SizedBox(height: h * 0.025),
-
-                // Centered Flag
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: flagWidth,
-                        height: flagHeight,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(flagWidth * (8.0 / 180.0)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: flagWidth * (8.0 / 180.0),
-                              offset: Offset(0, h * 0.002),
-                            ),
-                          ],
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        alignment: Alignment.center,
-                        child: _buildFlagImageWidget(flagUrl, flagWidth, flagHeight),
-                      ),
-                      SizedBox(height: h * 0.014),
-                      Text(
-                        flagLabel,
-                        style: TextStyle(
-                          fontSize: w * 0.03,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF333333),
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: h * 0.035),
-
-                // Centered Emblem
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: emblemWidth,
-                        height: emblemHeight,
                         child: Center(
-                          child: _buildEmblemImageWidget(emblemUrl, emblemWidth, emblemHeight),
-                        ),
-                      ),
-                      SizedBox(height: h * 0.014),
-                      Text(
-                        emblemLabel,
-                        style: TextStyle(
-                          fontSize: w * 0.03,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF333333),
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          SizedBox(height: h * 0.02),
-          buildSectionDivider(context),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFlagImageWidget(String rawUrl, double width, double height) {
-    final url = rawUrl.trim();
-    if (url.isNotEmpty) {
-      final fullUrl = (url.startsWith('http://') || url.startsWith('https://'))
-          ? url
-          : (url.startsWith('/') ? '$api$url' : '$api/$url');
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(width * (8.0 / 180.0)),
-        child: buildImageWidget(
-          fullUrl,
-          width: width,
-          height: height,
-          fit: BoxFit.contain,
-        ),
-      );
-    }
-    return Center(
-      child: Icon(
-        Icons.flag_rounded,
-        size: width * 0.45,
-        color: const Color(0xFFBDBDBD),
-      ),
-    );
-  }
-
-  Widget _buildEmblemImageWidget(String rawUrl, double width, double height) {
-    final url = rawUrl.trim();
-    if (url.isNotEmpty) {
-      final fullUrl = (url.startsWith('http://') || url.startsWith('https://'))
-          ? url
-          : (url.startsWith('/') ? '$api$url' : '$api/$url');
-      return buildImageWidget(
-        fullUrl,
-        width: width,
-        height: height,
-        fit: BoxFit.contain,
-      );
-    }
-    return Center(
-      child: Icon(
-        Icons.shield_rounded,
-        size: width * 0.45,
-        color: const Color(0xFFBDBDBD),
-      ),
-    );
-  }
-
-  // ==========================================================================
-  // [BUILD METHOD: PLACES TO VISIT TAB]
-  // Full-width image cards with place name and description
-  // ==========================================================================
-  Widget _buildPlacesToVisitTab(CountryModel country) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
-
-    final List<PlaceView> places = country.placesToVisit?.places ?? [];
-
-    // Header intro text — from backend description or generic copy
-    final String introText =
-        (country.placesToVisit?.description?.trim().isNotEmpty == true)
-            ? country.placesToVisit!.description!.trim()
-            : 'Here are a few iconic places you simply must experience.';
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: w * 0.045,
-        vertical: h * 0.022,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Intro text ──
-          Text(
-            introText,
-            style: TextStyle(
-              fontSize: w * 0.038,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF1E1E1E),
-              height: 1.45,
-            ),
-          ),
-          SizedBox(height: h * 0.022),
-
-          // ── Place cards ──
-          ...places.map((place) => _buildPlaceListCard(context, place, w, h)),
-
-          SizedBox(height: h * 0.02),
-        ],
-      ),
-    );
-  }
-
-  /// Full-width vertical card matching the reference UI:
-  /// clean image with pagination dots at bottom right, name in bold uppercase, description below.
-  Widget _buildPlaceListCard(
-    BuildContext context,
-    PlaceView place,
-    double w,
-    double h,
-  ) {
-    final double imageHeight = h * 0.22;
-    final double borderRadius = w * 0.04;
-
-    // Resolve full image URL
-    final String rawUrl = place.imageUrl?.trim() ?? '';
-    final String imageUrl =
-        rawUrl.isEmpty
-            ? ''
-            : (rawUrl.startsWith('http://') || rawUrl.startsWith('https://'))
-            ? rawUrl
-            : (rawUrl.startsWith('/') ? '$api$rawUrl' : '$api/$rawUrl');
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: h * 0.024),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Clean photo with pagination indicator dots at bottom right ──
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(borderRadius),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: imageHeight,
-                  child: imageUrl.isNotEmpty
-                      ? buildImageWidget(imageUrl, fit: BoxFit.cover)
-                      : Container(
-                          color: const Color(0xFFF0F0F0),
-                          child: Center(
-                            child: Icon(
-                              Icons.landscape_rounded,
-                              size: w * 0.12,
-                              color: const Color(0xFFBDBDBD),
+                          child: SvgPicture.asset(
+                            "Assets/PartyPage/photoIcon.svg",
+                            width: screenWidth * 0.12,
+                            height: screenWidth * 0.12,
+                            colorFilter: const ColorFilter.mode(
+                              Color(0xFFBDBDBD),
+                              BlendMode.srcIn,
                             ),
                           ),
-                        ),
-                ),
-              ),
-
-              // Pagination indicator dots at bottom right matching reference UI
-              Positioned(
-                bottom: h * 0.012,
-                right: w * 0.035,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: w * 0.018,
-                    vertical: h * 0.0035,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    borderRadius: BorderRadius.circular(w * 0.03),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(5, (dotIndex) {
-                      final bool isSelected = dotIndex == 2;
-                      return Container(
-                        margin: EdgeInsets.symmetric(horizontal: w * 0.005),
-                        width: isSelected ? w * 0.018 : w * 0.013,
-                        height: isSelected ? w * 0.018 : w * 0.013,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isSelected
-                              ? Colors.red
-                              : Colors.white.withValues(alpha: 0.8),
                         ),
                       );
-                    }),
+                    },
+                  );
+                },
+              ),
+            ),
+
+          // Darken the image as the sheet expands
+          IgnorePointer(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 80),
+              color: Colors.black.withValues(alpha: darkOpacity),
+            ),
+          ),
+
+          // Fixed back arrow
+          Positioned(
+            top: screenHeight * 0.04,
+            left: screenWidth * 0.05,
+            child: SizedBox(
+              width: screenWidth * 0.1,
+              height: screenWidth * 0.1,
+              child: InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                borderRadius: BorderRadius.circular(screenWidth * 0.05),
+                child: Center(
+                  child: Transform.rotate(
+                    angle: 3.141592653589793,
+                    child: SvgPicture.asset(
+                      CountryPageData.arrow,
+                      colorFilter: const ColorFilter.mode(
+                        Colors.white,
+                        BlendMode.srcIn,
+                      ),
+                      height: screenWidth * 0.035,
+                    ),
                   ),
                 ),
               ),
-            ],
-          ),
-
-          SizedBox(height: h * 0.014),
-
-          // ── Place name ──
-          Text(
-            place.name.toUpperCase(),
-            style: TextStyle(
-              fontSize: w * 0.042,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF1E1E1E),
-              letterSpacing: 0.3,
             ),
           ),
 
-          // ── Description ──
-          if (place.description != null && place.description!.isNotEmpty) ...[
-            SizedBox(height: h * 0.006),
-            Text(
-              place.description!,
-              style: TextStyle(
-                fontSize: w * 0.033,
-                fontWeight: FontWeight.w400,
-                color: const Color(0xFF555555),
-                height: 1.45,
+          // Country Name in header bar (fades in as bottom sheet scrolls up)
+          Positioned(
+            top: screenHeight * 0.05,
+            left: screenWidth * 0.05 + screenWidth * 0.13,
+            right: screenWidth * 0.05,
+            child: Opacity(
+              opacity: titleOpacity,
+              child: Transform.translate(
+                offset: Offset(
+                  0,
+                  screenHeight * 0.022 * (1 - titleOpacity),
+                ),
+                child: Text(
+                  widget.countryName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: screenWidth * 0.05,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
-          ],
+          ),
+
+          // Banner page indicator dots
+          if (banners.length > 1)
+            Positioned(
+              top: screenHeight * 0.68,
+              left: 0,
+              right: 0,
+              child: Opacity(
+                opacity: 1 - progress * 0.7,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    banners.length,
+                    (index) {
+                      final bool isSelected = currentIndex == index;
+
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.01),
+                        height: screenWidth * 0.024,
+                        width: screenWidth * 0.024,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: isSelected
+                              ? GradientColors.primaryGradient
+                              : null,
+                          color: isSelected ? null : Colors.transparent,
+                          border: Border.all(
+                            color: Colors.red,
+                            width: screenWidth * 0.0025,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
-
-  // ==========================================================================
-  // [BUILD METHOD: GEOGRAPHIC TAB]
-  // ==========================================================================
-  Widget _buildGeographicTabContent(CountryModel country) {
-    return GeographicTabSection(country: country);
-  }
-}
-
-/// Custom compact TabBar indicator decoration matching Party & Country reference
-class SmallTabIndicator extends Decoration {
-  final double width;
-  final double height;
-  final Color color;
-  final BorderRadiusGeometry borderRadius;
-
-  const SmallTabIndicator({
-    required this.width,
-    required this.height,
-    this.color = Colors.red,
-    this.borderRadius = const BorderRadius.all(Radius.circular(2)),
-  });
-
-  @override
-  Decoration? lerpFrom(Decoration? a, double t) {
-    if (a is SmallTabIndicator) {
-      return SmallTabIndicator(
-        width: lerpDouble(a.width, width, t) ?? width,
-        height: lerpDouble(a.height, height, t) ?? height,
-        color: Color.lerp(a.color, color, t) ?? color,
-        borderRadius: BorderRadiusGeometry.lerp(a.borderRadius, borderRadius, t) ?? borderRadius,
-      );
-    }
-    return super.lerpFrom(a, t);
-  }
-
-  @override
-  Decoration? lerpTo(Decoration? b, double t) {
-    if (b is SmallTabIndicator) {
-      return SmallTabIndicator(
-        width: lerpDouble(width, b.width, t) ?? width,
-        height: lerpDouble(height, b.height, t) ?? height,
-        color: Color.lerp(color, b.color, t) ?? b.color,
-        borderRadius: BorderRadiusGeometry.lerp(borderRadius, b.borderRadius, t) ?? b.borderRadius,
-      );
-    }
-    return super.lerpTo(b, t);
-  }
-
-  @override
-  BoxPainter createBoxPainter([VoidCallback? onChanged]) {
-    return _SmallTabIndicatorPainter(this, onChanged);
-  }
-}
-
-class _SmallTabIndicatorPainter extends BoxPainter {
-  final SmallTabIndicator decoration;
-
-  _SmallTabIndicatorPainter(this.decoration, VoidCallback? onChanged)
-      : super(onChanged);
-
-  @override
-  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
-    final Rect rect = offset & (configuration.size ?? Size.zero);
-    final double indicatorWidth = decoration.width;
-    final double left = rect.center.dx - (indicatorWidth / 2);
-    final double top = rect.bottom - decoration.height;
-    final Rect indicatorRect = Rect.fromLTWH(
-      left,
-      top,
-      indicatorWidth,
-      decoration.height,
-    );
-    final Paint paint = Paint()..color = decoration.color;
-    canvas.drawRRect(
-      decoration.borderRadius
-          .resolve(configuration.textDirection)
-          .toRRect(indicatorRect),
-      paint,
-    );
-  }
-}
-
-/// Sliver TabBar Delegate
-class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar tabBar;
-  final Color backgroundColor;
-  final double dividerHeight;
-
-  _SliverTabBarDelegate(
-    this.tabBar, {
-    this.dividerHeight = 0.0,
-  }) : backgroundColor = Colors.white;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Container(
-      color: backgroundColor,
-      child: tabBar,
-    );
-  }
-
-  @override
-  double get maxExtent => tabBar.preferredSize.height + dividerHeight;
-
-  @override
-  double get minExtent => tabBar.preferredSize.height;
-
-  @override
-  bool shouldRebuild(_SliverTabBarDelegate oldDelegate) {
-    return oldDelegate.tabBar != tabBar ||
-        oldDelegate.backgroundColor != backgroundColor ||
-        oldDelegate.dividerHeight != dividerHeight;
-  }
 }
 
 // ============================================================================
-// [GEOGRAPHIC TAB SECTION]
-// Responsive Geographic & Administrative Profile Section
-// Includes 3-Level Interactive Vector India Map (Country -> State -> District)
+// [COUNTRY DETAILS SECTION]
 // ============================================================================
-class GeographicTabSection extends StatefulWidget {
+class CountryDetailsSection extends StatefulWidget {
   final CountryModel country;
 
-  const GeographicTabSection({
+  const CountryDetailsSection({
     super.key,
     required this.country,
   });
 
   @override
-  State<GeographicTabSection> createState() => _GeographicTabSectionState();
+  State<CountryDetailsSection> createState() => _CountryDetailsSectionState();
 }
 
-class _GeographicTabSectionState extends State<GeographicTabSection> {
-  bool _isExpanded = true;
+class _CountryDetailsSectionState extends State<CountryDetailsSection> {
+  final FavouriteApi _favouriteApi = FavouriteApi();
+  bool favorite = false;
 
-  String _formatArea(String? area) {
-    if (area != null && area.trim().isNotEmpty) {
-      final a = area.trim();
-      if (a.toLowerCase().contains('km') || a.toLowerCase().contains('sq')) {
-        return a;
-      }
-      return '$a km2';
-    }
-    return '-';
+  @override
+  void initState() {
+    super.initState();
+    _loadFavouriteStatus();
   }
 
-  Widget _buildFormattedParagraph(String text, double fontSize, {EdgeInsetsGeometry? padding}) {
-    final spans = <TextSpan>[];
-    final regex = RegExp(r'\*\*(.*?)\*\*');
-    int lastMatchEnd = 0;
-
-    for (final match in regex.allMatches(text)) {
-      if (match.start > lastMatchEnd) {
-        spans.add(TextSpan(
-          text: text.substring(lastMatchEnd, match.start),
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w400,
-            color: const Color(0xFF333333),
-            height: 1.45,
-            letterSpacing: 0.1,
-          ),
-        ));
-      }
-      spans.add(TextSpan(
-        text: match.group(1),
-        style: TextStyle(
-          fontSize: fontSize,
-          fontWeight: FontWeight.w700,
-          color: const Color(0xFF1E1E1E),
-          height: 1.45,
-          letterSpacing: 0.1,
-        ),
-      ));
-      lastMatchEnd = match.end;
+  @override
+  void didUpdateWidget(covariant CountryDetailsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.country.id != widget.country.id) {
+      _loadFavouriteStatus();
     }
-
-    if (lastMatchEnd < text.length) {
-      spans.add(TextSpan(
-        text: text.substring(lastMatchEnd),
-        style: TextStyle(
-          fontSize: fontSize,
-          fontWeight: FontWeight.w400,
-          color: const Color(0xFF333333),
-          height: 1.45,
-          letterSpacing: 0.1,
-        ),
-      ));
-    }
-
-    final richText = RichText(
-      text: TextSpan(children: spans),
-    );
-
-    if (padding != null) {
-      return Padding(
-        padding: padding,
-        child: richText,
-      );
-    }
-    return richText;
   }
 
-  Widget _buildStatRow({
-    required BuildContext context,
-    required String iconAsset,
-    required String label,
-    required String value,
-    required double w,
-    required double h,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: w * 0.048,
-          height: w * 0.048,
-          child: Center(
-            child: SvgPicture.asset(
-              iconAsset,
-              width: w * 0.038,
-              height: w * 0.038,
-            ),
-          ),
-        ),
-        SizedBox(width: w * 0.035),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: w * 0.026,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF9E9E9E),
-                  letterSpacing: 0.5,
-                ),
-              ),
-              SizedBox(height: h * 0.002),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: w * 0.035,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1E1E1E),
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+  Future<void> _loadFavouriteStatus() async {
+    final int id = widget.country.id > 0 ? widget.country.id : 1;
+    try {
+      final favouriteIds =
+          await _favouriteApi.getFavouritePartyIds("COUNTRY");
+      if (mounted) {
+        setState(() {
+          favorite = favouriteIds.contains(id);
+        });
+      }
+    } catch (e) {
+      debugPrint("loadFavouriteStatus error: $e");
+    }
+  }
+
+  Future<void> _toggleFavourite() async {
+    final int id = widget.country.id > 0 ? widget.country.id : 1;
+
+    // Instant optimistic toggle matching Party & Leadership pages
+    final bool newFavorite = !favorite;
+    setState(() {
+      favorite = newFavorite;
+    });
+
+    try {
+      if (newFavorite) {
+        await _favouriteApi.postFavourite(id, "COUNTRY");
+      } else {
+        await _favouriteApi.deleteFavourite(id, "COUNTRY");
+      }
+    } catch (e) {
+      debugPrint("Toggle favourite error: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
     final h = MediaQuery.of(context).size.height;
-    // 1. Description: API first
-    final String rawDescription = widget.country.geographicDescription?.trim().isNotEmpty == true
-        ? widget.country.geographicDescription!.trim()
-        : (widget.country.info?.trim().isNotEmpty == true
-            ? widget.country.info!.trim()
-            : '');
+    final w = MediaQuery.of(context).size.width;
 
-    final List<String> allParagraphs = rawDescription
-        .split(RegExp(r'\n\s*\n'))
-        .where((p) => p.trim().isNotEmpty)
-        .toList();
+    final String countryTitle = widget.country.name.trim().isNotEmpty
+        ? widget.country.name.trim()
+        : 'Country';
 
-    final List<String> paragraphs = allParagraphs.isNotEmpty
-        ? allParagraphs
-        : rawDescription.split('\n').where((p) => p.trim().isNotEmpty).toList();
+    final String capitalText = widget.country.capital != null &&
+            widget.country.capital!.trim().isNotEmpty
+        ? widget.country.capital!.trim()
+        : '-';
 
-    final List<String> visibleParagraphs = _isExpanded
-        ? paragraphs
-        : (paragraphs.length > 2 ? paragraphs.sublist(0, 2) : paragraphs);
+    final bool isState = widget.country.registrationCode != null &&
+        widget.country.registrationCode!.trim().isNotEmpty &&
+        widget.country.registrationCode != 'IND' &&
+        widget.country.registrationCode != 'IN';
 
-    final bool canToggle = paragraphs.length > 2 || rawDescription.length > 250;
+    final String statesValue = widget.country.statesCount?.trim().isNotEmpty == true
+        ? widget.country.statesCount!.trim()
+        : '-';
 
-    // 2. Stats values from API
-    final String areaValue = _formatArea(widget.country.area);
+    final String utValue = widget.country.unionTerritories != null
+        ? widget.country.unionTerritories!.toString().padLeft(2, '0')
+        : '-';
+
+    final String stateCodeValue = widget.country.numericCode != null
+        ? widget.country.numericCode.toString()
+        : '-';
+
     final String regCodeValue = widget.country.registrationCode?.trim().isNotEmpty == true
         ? widget.country.registrationCode!.trim()
         : '-';
-    final String populationValue = widget.country.population?.trim().isNotEmpty == true
-        ? widget.country.population!.trim()
-        : '-';
 
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: w * 0.05,
-        vertical: h * 0.018,
+    return Container(
+      padding: EdgeInsets.only(
+        top: h * 0.015,
+        left: w * 0.05,
+        right: w * 0.05,
+        bottom: h * 0.015,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(w * 0.064)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Full-width description paragraphs
-          for (int i = 0; i < visibleParagraphs.length; i++) ...[
-            _buildFormattedParagraph(
-              visibleParagraphs[i],
-              w * 0.034,
-            ),
-            if (i < visibleParagraphs.length - 1)
-              SizedBox(height: h * 0.016),
-          ],
-
-          // SHOW LESS / SHOW MORE Toggle
-          if (canToggle) ...[
-            SizedBox(height: h * 0.012),
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isExpanded = !_isExpanded;
-                });
-              },
-              child: Text(
-                _isExpanded ? 'SHOW LESS' : 'SHOW MORE',
-                style: TextStyle(
-                  fontSize: w * 0.032,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFFFE3A31),
-                  letterSpacing: 0.5,
+          // Title row: Country name on the left, Favorite Heart on the right
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  countryTitle,
+                  style: TextStyle(
+                    fontSize: w * 0.048,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF1E1E1E),
+                    letterSpacing: 0.2,
+                  ),
                 ),
               ),
-            ),
-          ],
-
-          SizedBox(height: h * 0.025),
-
-          // Civic Stats (AREA, REGISTRATION CODE, POPULATION)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Stats 1: AREA
-              _buildStatRow(
-                context: context,
-                iconAsset: CountryPageData.geographicAreaIcon,
-                label: 'AREA',
-                value: areaValue,
-                w: w,
-                h: h,
-              ),
-
-              SizedBox(height: h * 0.016),
-
-              // Stats 2: REGISTRATION CODE
-              _buildStatRow(
-                context: context,
-                iconAsset: CountryPageData.geographicRegistrationCodeIcon,
-                label: 'REGISTRATION CODE',
-                value: regCodeValue,
-                w: w,
-                h: h,
-              ),
-
-              SizedBox(height: h * 0.016),
-
-              // Stats 3: POPULATION
-              _buildStatRow(
-                context: context,
-                iconAsset: CountryPageData.geographicPopulationIcon,
-                label: 'POPULATION',
-                value: populationValue,
-                w: w,
-                h: h,
+              InkWell(
+                onTap: _toggleFavourite,
+                borderRadius: BorderRadius.circular(w * 0.05),
+                child: Padding(
+                  padding: EdgeInsets.all(w * 0.01),
+                  child: SvgPicture.asset(
+                    CountryPageData.favoriteIcon,
+                    height: w * 0.06,
+                    colorFilter: favorite
+                        ? const ColorFilter.mode(
+                            Color(0xFFFF2164),
+                            BlendMode.srcIn,
+                          )
+                        : const ColorFilter.mode(
+                            Color(0xFF666666),
+                            BlendMode.srcIn,
+                          ),
+                  ),
+                ),
               ),
             ],
           ),
-
-          SizedBox(height: h * 0.025),
-
-          // ── INTERACTIVE INDIA MAP SECTION ──
-          IndiaMapWidget(
-            initialSelectedState: widget.country.registrationCode,
-            onStateSelected: (state) {
-              debugPrint('Selected State: ${state.name} (${state.code})');
-            },
-            onDistrictSelected: (district) {
-              debugPrint('Selected District: ${district.districtName} in ${district.stateName}');
-            },
+          SizedBox(height: h * 0.005),
+          Text(
+            "Capital City - $capitalText",
+            style: TextStyle(
+              fontSize: w * 0.033,
+              fontWeight: FontWeight.w400,
+              color: const Color(0xFF757575),
+              letterSpacing: 0.2,
+            ),
           ),
+          SizedBox(height: h * 0.018),
 
-          SizedBox(height: h * 0.02),
+          // Stats Row: DISTRICTS/STATES, STATE CODE/UT, REGISTRATION with vertical separators
+          if (isState)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Districts
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'DISTRICTS',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: w * 0.026,
+                        letterSpacing: 0.5,
+                        color: const Color(0xFF757575),
+                      ),
+                    ),
+                    SizedBox(height: h * 0.003),
+                    Text(
+                      statesValue,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: w * 0.055,
+                        color: const Color(0xFF1E1E1E),
+                      ),
+                    ),
+                  ],
+                ),
+                // Thin vertical divider line
+                Container(
+                  height: h * 0.045,
+                  width: w * 0.003,
+                  color: const Color(0xFFE0E0E0),
+                  margin: EdgeInsets.symmetric(horizontal: w * 0.05),
+                ),
+                // State Code
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'STATE CODE',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: w * 0.026,
+                        letterSpacing: 0.5,
+                        color: const Color(0xFF757575),
+                      ),
+                    ),
+                    SizedBox(height: h * 0.003),
+                    Text(
+                      stateCodeValue,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: w * 0.055,
+                        color: const Color(0xFF1E1E1E),
+                      ),
+                    ),
+                  ],
+                ),
+                // Thin vertical divider line
+                Container(
+                  height: h * 0.045,
+                  width: w * 0.003,
+                  color: const Color(0xFFE0E0E0),
+                  margin: EdgeInsets.symmetric(horizontal: w * 0.05),
+                ),
+                // Registration
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'REGISTRATION',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: w * 0.026,
+                        letterSpacing: 0.5,
+                        color: const Color(0xFF757575),
+                      ),
+                    ),
+                    SizedBox(height: h * 0.003),
+                    Text(
+                      regCodeValue,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: w * 0.055,
+                        color: const Color(0xFF1E1E1E),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // States
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      CountryPageData.states,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: w * 0.028,
+                        letterSpacing: 0.5,
+                        color: const Color(0xFF757575),
+                      ),
+                    ),
+                    SizedBox(height: h * 0.003),
+                    Text(
+                      statesValue,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: w * 0.058,
+                        color: const Color(0xFF1E1E1E),
+                      ),
+                    ),
+                  ],
+                ),
+                // Thin vertical divider line
+                Container(
+                  height: h * 0.052,
+                  width: w * 0.003,
+                  color: const Color(0xFFE0E0E0),
+                  margin: EdgeInsets.symmetric(horizontal: w * 0.07),
+                ),
+                // Union Territories
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      CountryPageData.unionTerritories,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: w * 0.028,
+                        letterSpacing: 0.5,
+                        color: const Color(0xFF757575),
+                      ),
+                    ),
+                    SizedBox(height: h * 0.003),
+                    Text(
+                      utValue,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: w * 0.058,
+                        color: const Color(0xFF1E1E1E),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
         ],
       ),
     );
