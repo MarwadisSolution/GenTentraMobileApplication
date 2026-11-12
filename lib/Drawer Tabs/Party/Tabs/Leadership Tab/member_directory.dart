@@ -3,9 +3,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_data.dart';
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/sliver_app_bar_reusable.dart';
 
-import '../../../Reusable Functions/reusable_functions.dart';
-import '../PoliticianProfile/politician_page_data.dart';
-import '../party_page_modal.dart';
+import '../../../../Reusable Functions/reusable_functions.dart';
+import '../../PoliticianProfile/politician_page_data.dart';
+import '../../party_page_modal.dart';
 
 
 class MemberDirectory extends StatefulWidget {

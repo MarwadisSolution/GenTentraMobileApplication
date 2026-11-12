@@ -5,7 +5,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_mod
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
 import '../../PoliticianProfile/politician_page_data.dart';
-import '../member_directory.dart';
+import 'member_directory.dart';
 
 class LeadershipTab extends StatefulWidget {
   final String? partyState;
@@ -352,7 +352,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                 ),
               ),
               subtitle: Text(
-                '',
+               widget.members.length.toString(),
                 style: TextStyle(
                   fontSize: w * 0.045,
                   fontWeight: FontWeight.w700,
@@ -363,7 +363,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                 height: h * 0.048,
                 child: Center(
                   child: SvgPicture.asset(
-                    "Assets/arrow.svg",
+                   PartyPageData.arrow,
                     color: const Color(0xFFFE3A31),
                     width: 18,
                     height: 18,
@@ -445,7 +445,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                     ),
                   ),
                   subtitle: Text(
-                    '',
+                    previewLeaders.length.toString(),
                     style: TextStyle(
                       fontSize: w * 0.045,
                       fontWeight: FontWeight.w700,
@@ -456,7 +456,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                     height: h * 0.048,
                     child: Center(
                       child: SvgPicture.asset(
-                        'Assets/arrow.svg',
+                       PartyPageData.arrow,
                         color: const Color(0xFFFE3A31),
                         width: 18,
                         height: 18,
