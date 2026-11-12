@@ -717,9 +717,9 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
             SizedBox(height: h * 0.015),
             Text(
               'Loading India Map...',
-              style: TextStyle(
-                fontSize: w * 0.032,
-                color: const Color(0xFF666666),
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF666666),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -739,7 +739,7 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
             SizedBox(height: h * 0.012),
             Text(
               'Could not load geographical map data',
-              style: TextStyle(fontSize: w * 0.034, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -830,19 +830,19 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
         children: [
           Text(
             'GEOGRAPHICAL MAP OF INDIA',
-            style: TextStyle(
-              fontSize: w * 0.033,
+            style: const TextStyle(
+              fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF1E1E1E),
+              color: Color(0xFF1E1E1E),
               letterSpacing: 0.4,
             ),
           ),
           Text(
             '36 States & UTs',
-            style: TextStyle(
-              fontSize: w * 0.027,
+            style: const TextStyle(
+              fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF888888),
+              color: Color(0xFF888888),
             ),
           ),
         ],
@@ -873,10 +873,10 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
                 SizedBox(width: w * 0.012),
                 Text(
                   'All India',
-                  style: TextStyle(
-                    fontSize: w * 0.029,
+                  style: const TextStyle(
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0D5C96),
+                    color: Color(0xFF0D5C96),
                   ),
                 ),
               ],
@@ -886,16 +886,16 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
         SizedBox(width: w * 0.02),
         Text(
           '/',
-          style: TextStyle(fontSize: w * 0.03, color: Colors.grey),
+          style: const TextStyle(fontSize: 14, color: Colors.grey),
         ),
         SizedBox(width: w * 0.02),
         Expanded(
           child: Text(
             _selectedState?.name ?? 'State',
-            style: TextStyle(
-              fontSize: w * 0.033,
+            style: const TextStyle(
+              fontSize: 15,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF1E1E1E),
+              color: Color(0xFF1E1E1E),
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -987,19 +987,19 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
               children: [
                 Text(
                   state.name,
-                  style: TextStyle(
-                    fontSize: w * 0.038,
+                  style: const TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1E1E1E),
+                    color: Color(0xFF1E1E1E),
                   ),
                 ),
                 SizedBox(height: h * 0.003),
                 Text(
                   '${state.districts.length} Districts  •  Code: ${state.code.isNotEmpty ? state.code : "-"}',
-                  style: TextStyle(
-                    fontSize: w * 0.028,
+                  style: const TextStyle(
+                    fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF757575),
+                    color: Color(0xFF757575),
                   ),
                 ),
               ],
@@ -1022,8 +1022,8 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
                 children: [
                   Text(
                     'Explore State',
-                    style: TextStyle(
-                      fontSize: w * 0.028,
+                    style: const TextStyle(
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
@@ -1055,9 +1055,9 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
           Expanded(
             child: Text(
               'Tap any of the ${state.districts.length} districts to view Level 3 details.',
-              style: TextStyle(
-                fontSize: w * 0.028,
-                color: const Color(0xFF555555),
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF555555),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1101,19 +1101,19 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
               children: [
                 Text(
                   district.districtName,
-                  style: TextStyle(
-                    fontSize: w * 0.038,
+                  style: const TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1E1E1E),
+                    color: Color(0xFF1E1E1E),
                   ),
                 ),
                 SizedBox(height: h * 0.003),
                 Text(
                   'District Code: ${district.districtCode.isNotEmpty ? district.districtCode : "-"}  •  ${district.stateName}',
-                  style: TextStyle(
-                    fontSize: w * 0.028,
+                  style: const TextStyle(
+                    fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF757575),
+                    color: Color(0xFF757575),
                   ),
                 ),
               ],
@@ -1131,7 +1131,7 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
             child: Text(
               'SELECTED',
               style: TextStyle(
-                fontSize: w * 0.024,
+                fontSize: 11,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
                 letterSpacing: 0.5,

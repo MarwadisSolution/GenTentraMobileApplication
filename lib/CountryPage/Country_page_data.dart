@@ -98,21 +98,9 @@ class CountryPageData {
   static const String primeMinisterIcon = "Assets/CountryPage/PrimeMinister.svg";
   static const String dateOfIndependenceIcon = "Assets/CountryPage/DateoFIndependence.svg";
   static const String orangeButtonLogo = "Assets/CountryPage/OrangeButtonLogo.svg";
-  static const String indianFlagSvg = "Assets/CountryPage/indian_flag.svg";
-  static const String indianEmblemPng = "Assets/CountryPage/indian_emblem.png";
-  static const String mapVectorIcon = "Assets/CountryPage/OrangeButtonLogo.svg";
-
   // Geographic Section SVGs
   static const String geographicAreaIcon = "Assets/CountryPage/Geographich_Area.svg";
   static const String geographicRegistrationCodeIcon = "Assets/CountryPage/Registration_code.svg";
   static const String geographicPopulationIcon = "Assets/CountryPage/geographic_population.svg";
-  static const String geographicMapFabIcon = "Assets/CountryPage/OrangeButtonLogo.svg";
-
-  // Legacy icons for compatibility
-  static const String calendarIcon = "Assets/CountryPage/DateoFIndependence.svg";
-  static const String anthemIcon = "Assets/CountryPage/NationalAnthem.svg";
-  static const String birthPlaceIcon = "Assets/LeadershipPage/Info/BirthPlace.svg";
 }
 
-// Aliases for compatibility
-typedef PoliticianPageData = CountryPageData;

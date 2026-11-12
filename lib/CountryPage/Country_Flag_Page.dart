@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../Reusable Functions/reusable_functions.dart';
 import 'Country_model.dart';
 import 'Country_page_data.dart';
@@ -104,10 +104,10 @@ class _CountryFlagPageState extends State<CountryFlagPage> {
                     overflow:
                         _isFlagExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
                     text: TextSpan(
-                      style: TextStyle(
-                        fontSize: w * 0.034,
+                      style: const TextStyle(
+                        fontSize: 14,
                         fontWeight: FontWeight.w400,
-                        color: const Color(0xFF333333),
+                        color: Color(0xFF333333),
                         height: 1.5,
                       ),
                       text: flagDesc,
@@ -120,10 +120,10 @@ class _CountryFlagPageState extends State<CountryFlagPage> {
                     },
                     child: Text(
                       _isFlagExpanded ? 'READ LESS' : 'READ MORE',
-                      style: TextStyle(
-                        fontSize: w * 0.031,
+                      style: const TextStyle(
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFFFE3A31),
+                        color: Color(0xFFFE3A31),
                         letterSpacing: 0.3,
                       ),
                     ),
@@ -158,10 +158,10 @@ class _CountryFlagPageState extends State<CountryFlagPage> {
                       SizedBox(height: h * 0.014),
                       Text(
                         flagLabel,
-                        style: TextStyle(
-                          fontSize: w * 0.03,
+                        style: const TextStyle(
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF333333),
+                          color: Color(0xFF333333),
                           letterSpacing: 0.2,
                         ),
                       ),
@@ -187,10 +187,10 @@ class _CountryFlagPageState extends State<CountryFlagPage> {
                       SizedBox(height: h * 0.014),
                       Text(
                         emblemLabel,
-                        style: TextStyle(
-                          fontSize: w * 0.03,
+                        style: const TextStyle(
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF333333),
+                          color: Color(0xFF333333),
                           letterSpacing: 0.2,
                         ),
                       ),
@@ -256,5 +256,3 @@ class _CountryFlagPageState extends State<CountryFlagPage> {
   }
 }
 
-// Aliases for compatibility
-typedef CountryFlagTab = CountryFlagPage;

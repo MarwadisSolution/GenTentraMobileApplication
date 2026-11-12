@@ -1,8 +1,3 @@
-// Country Profile Data Models
-// Defines all response data structures for the Country Profile screen
-// corresponding to backend endpoints under `/api/v1/civic/`.
-// Includes defensive parsers to handle string-encoded booleans/integers from API.
-
 import 'package:flutter/material.dart';
 
 /// [DEFENSIVE PARSER] Safely parses integers whether returned as `num` or `String`.
@@ -14,9 +9,6 @@ int? _parseInt(dynamic value) {
   return null;
 }
 
-/// [DEFENSIVE PARSER] Safely parses booleans.
-/// Handles `bool`, `num` (0 or 1), or `String` ("true", "false", "yes", "no", "y", "n").
-/// Resolves the runtime error: "type 'String' is not a subtype of type 'bool?' in type cast".
 bool _parseBool(dynamic value, {bool defaultValue = false}) {
   if (value == null) return defaultValue;
   if (value is bool) return value;
@@ -33,8 +25,6 @@ bool _parseBool(dynamic value, {bool defaultValue = false}) {
   return defaultValue;
 }
 
-/// [UI MODEL] Represents prominent national leadership cards (President, Prime Minister,
-/// Defence Minister, Home Minister) matching the vertical portrait cards in the reference design.
 class NationalLeader {
   final String title;
   final String name;
@@ -53,18 +43,64 @@ class NationalLeader {
   });
 
   factory NationalLeader.fromJson(Map<String, dynamic> json) {
+    String parseImg(dynamic raw) {
+      if (raw == null) return '';
+      if (raw is String) return raw.trim();
+      if (raw is Map) {
+        return (raw['url'] ?? raw['imageUrl'] ?? raw['photoUrl'] ?? raw['path'])?.toString().trim() ?? '';
+      }
+      return raw.toString().trim();
+    }
+
+    final rawImage = json['imageUrl'] ??
+        json['photoUrl'] ??
+        json['imagePath'] ??
+        json['mediaUrl'] ??
+        json['photo'] ??
+        json['image'] ??
+        json['picture'] ??
+        json['profileUrl'] ??
+        json['avatar'];
+
+    final String name = (json['name'] ??
+            json['leaderName'] ??
+            json['personName'] ??
+            json['fullName'] ??
+            json['ministerName'] ??
+            ((json['firstName'] != null)
+                ? "${json['firstName']} ${json['lastName'] ?? ''}".trim()
+                : ''))
+        .toString()
+        .trim();
+
+    final String title = (json['title'] ??
+            json['designation'] ??
+            json['role'] ??
+            json['position'] ??
+            json['category'] ??
+            json['type'] ??
+            '')
+        .toString()
+        .trim();
+
+    final String badge = (json['badge'] ??
+            json['tag'] ??
+            json['label'] ??
+            (title.isNotEmpty ? title : ''))
+        .toString()
+        .trim();
+
     return NationalLeader(
-      title: json['title']?.toString() ?? '',
-      name: (json['name'] ?? json['leaderName'])?.toString() ?? '',
-      tenure: json['tenure']?.toString() ?? '',
-      badge: json['badge']?.toString() ?? '',
-      imageUrl: (json['imageUrl'] ?? json['photoUrl'])?.toString() ?? '',
-      partyLogo: json['partyLogo']?.toString(),
+      title: title,
+      name: name,
+      tenure: (json['tenure'] ?? json['term'] ?? json['period'] ?? json['duration'] ?? '').toString().trim(),
+      badge: badge,
+      imageUrl: parseImg(rawImage),
+      partyLogo: (json['partyLogo'] ?? json['partyImage'] ?? json['partySymbol'])?.toString().trim(),
     );
   }
 }
 
-/// [UI MODEL] Represents horizontal cards under the "OTHER CABINETS" section
 /// with customized pastel card background colors.
 class CabinetMinister {
   final String firstName;
@@ -93,16 +129,42 @@ class CabinetMinister {
       return const Color(0xFFFF5252);
     }
 
+    String parseImg(dynamic raw) {
+      if (raw == null) return '';
+      if (raw is String) return raw.trim();
+      if (raw is Map) {
+        return (raw['url'] ?? raw['imageUrl'] ?? raw['photoUrl'] ?? raw['path'])?.toString().trim() ?? '';
+      }
+      return raw.toString().trim();
+    }
+
+    final rawImage = json['imageUrl'] ??
+        json['photoUrl'] ??
+        json['imagePath'] ??
+        json['mediaUrl'] ??
+        json['photo'] ??
+        json['image'] ??
+        json['picture'] ??
+        json['profileUrl'] ??
+        json['avatar'];
+
+    String first = (json['firstName'] ?? json['name'] ?? json['ministerName'] ?? '').toString().trim();
+    String last = (json['lastName'] ?? json['surname'] ?? '').toString().trim();
+    if (last.isEmpty && first.contains(' ')) {
+      final parts = first.split(' ');
+      first = parts.first;
+      last = parts.sublist(1).join(' ');
+    }
+
     return CabinetMinister(
-      firstName: json['firstName']?.toString() ?? '',
-      lastName: json['lastName']?.toString() ?? '',
-      imageUrl: (json['imageUrl'] ?? json['photoUrl'])?.toString() ?? '',
+      firstName: first,
+      lastName: last,
+      imageUrl: parseImg(rawImage),
       backgroundColor: parseColor(json['backgroundColor']),
     );
   }
 }
 
-/// [MODEL] PlaceView - Represents a tourist attraction, landmark, or historical place
 /// returned by `/api/v1/civic/places` or hydrated within `placesToVisit`.
 class PlaceView {
   final int id;
@@ -133,7 +195,6 @@ class PlaceView {
   }
 }
 
-/// [MODEL] PlacesToVisit - Wrapper for country places with display toggle and description.
 class PlacesToVisit {
   final String? description;
   final bool showDetails;
@@ -163,7 +224,6 @@ class PlacesToVisit {
   }
 }
 
-/// [MODEL] SymbolView - Represents civic and national symbols (Flag, Map, Emblem, Symbol, Logo)
 /// returned by `/api/v1/civic/symbols`.
 class SymbolView {
   final int id;
@@ -273,7 +333,6 @@ class SymbolView {
   }
 }
 
-/// [MODEL] CountryModel - Main Country Profile entity containing all overview data,
 /// leadership, places, symbols, and national metadata.
 class CountryModel {
   final int id;
@@ -288,6 +347,8 @@ class CountryModel {
   final String? geographicDescription;
   final String? president;
   final String? primeMinister;
+  final String? defenceMinister;
+  final String? homeMinister;
   final String? independenceDay;
   final String? nationalAnthem;
   final String? info;
@@ -312,6 +373,8 @@ class CountryModel {
     this.geographicDescription,
     this.president,
     this.primeMinister,
+    this.defenceMinister,
+    this.homeMinister,
     this.independenceDay,
     this.nationalAnthem,
     this.info,
@@ -451,6 +514,8 @@ class CountryModel {
           json['geographicInfo']?.toString(),
       president: parsedPresident,
       primeMinister: parsedPrimeMinister,
+      defenceMinister: parsedDefenceMinister,
+      homeMinister: parsedHomeMinister,
       independenceDay: json['independenceDay']?.toString(),
       nationalAnthem: json['nationalAnthem']?.toString(),
       info: json['info']?.toString(),
@@ -477,6 +542,8 @@ class CountryModel {
     String? geographicDescription,
     String? president,
     String? primeMinister,
+    String? defenceMinister,
+    String? homeMinister,
     String? independenceDay,
     String? nationalAnthem,
     String? info,
@@ -501,6 +568,8 @@ class CountryModel {
       geographicDescription: geographicDescription ?? this.geographicDescription,
       president: president ?? this.president,
       primeMinister: primeMinister ?? this.primeMinister,
+      defenceMinister: defenceMinister ?? this.defenceMinister,
+      homeMinister: homeMinister ?? this.homeMinister,
       independenceDay: independenceDay ?? this.independenceDay,
       nationalAnthem: nationalAnthem ?? this.nationalAnthem,
       info: info ?? this.info,

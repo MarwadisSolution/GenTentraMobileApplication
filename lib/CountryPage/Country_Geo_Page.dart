@@ -32,7 +32,7 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
     return '-';
   }
 
-  Widget _buildFormattedParagraph(String text, double fontSize, {EdgeInsetsGeometry? padding}) {
+  Widget _buildFormattedParagraph(String text, {double fontSize = 14, EdgeInsetsGeometry? padding}) {
     final spans = <TextSpan>[];
     final regex = RegExp(r'\*\*(.*?)\*\*');
     int lastMatchEnd = 0;
@@ -119,21 +119,21 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: w * 0.026,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF9E9E9E),
-                  letterSpacing: 0.5,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF666666),
+                  letterSpacing: 0.21,
                 ),
               ),
               SizedBox(height: h * 0.002),
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: w * 0.035,
-                  fontWeight: FontWeight.w800,
+                  fontSize: (w * 0.045).clamp(14.0, 16.0),
+                  fontWeight: FontWeight.w600,
                   color: const Color(0xFF1E1E1E),
-                  letterSpacing: 0.2,
+                  letterSpacing: 0.31,
                 ),
               ),
             ],
@@ -191,7 +191,6 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
           for (int i = 0; i < visibleParagraphs.length; i++) ...[
             _buildFormattedParagraph(
               visibleParagraphs[i],
-              w * 0.034,
             ),
             if (i < visibleParagraphs.length - 1)
               SizedBox(height: h * 0.016),
@@ -208,10 +207,10 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
               },
               child: Text(
                 _isExpanded ? 'SHOW LESS' : 'SHOW MORE',
-                style: TextStyle(
-                  fontSize: w * 0.032,
+                style: const TextStyle(
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFFFE3A31),
+                  color: Color(0xFFFE3A31),
                   letterSpacing: 0.5,
                 ),
               ),

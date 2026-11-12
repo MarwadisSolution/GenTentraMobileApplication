@@ -1,8 +1,4 @@
-// Country Profile API Repository
-// Manages networking for Country Profile, Places, and Symbols endpoints.
-// Endpoints relative to `/api/v1/civic/`.
-
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import '../Login Page/Refresh Token/refresh_token.dart';
 import '../Reusable Functions/reusable_functions.dart';
@@ -24,7 +20,7 @@ class CountryProfileRepository {
         options: Options(validateStatus: (status) => status != null && status < 500),
       );
 
-      // 404 means the ID doesn't exist — auto-discover via list
+      // 404 means the ID doesn't exist â€” auto-discover via list
       if (response.statusCode == 404 || response.statusCode == 400) {
         return await _fetchCountryBySearch();
       }
@@ -35,7 +31,7 @@ class CountryProfileRepository {
 
       throw Exception('Error: ${response.statusCode}');
     } on DioException catch (e) {
-      // Network error or timeout — try list fallback
+      // Network error or timeout â€” try list fallback
       if (e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout) {
@@ -104,6 +100,16 @@ class CountryProfileRepository {
         final fetchedSymbols = await fetchCountrySymbols(country.id);
         if (fetchedSymbols.isNotEmpty) {
           country = country.copyWith(symbols: fetchedSymbols);
+        }
+      } catch (_) {}
+    }
+
+    // Fetch leaders separately if not embedded in the country response
+    if (country.leaders.isEmpty) {
+      try {
+        final fetchedLeaders = await fetchCountryLeaders(country.id);
+        if (fetchedLeaders.isNotEmpty) {
+          country = country.copyWith(leaders: fetchedLeaders);
         }
       } catch (_) {}
     }
@@ -218,7 +224,45 @@ class CountryProfileRepository {
         .toList();
   }
 
-  /// [PLACES] `GET /api/v1/civic/places?category=COUNTRY&ownerId={id}`
+  /// [LEADERS] GET /api/v1/civic/leaders?ownerType=COUNTRY&ownerId={id}
+  /// Fetches national leaders (president, prime minister, etc.) for the country.
+  Future<List<NationalLeader>> fetchCountryLeaders(int countryId) async {
+    try {
+      final response = await _dio.get(
+        '$api/api/v1/civic/leaders',
+        queryParameters: {
+          'ownerType': 'COUNTRY',
+          'ownerId': countryId,
+        },
+      );
+      final leaders = _parseLeadersResponse(response.data);
+      if (leaders.isNotEmpty) return leaders;
+    } catch (_) {}
+
+    try {
+      final response = await _dio.get('$api/api/v1/civic/countries/$countryId/leaders');
+      final leaders = _parseLeadersResponse(response.data);
+      if (leaders.isNotEmpty) return leaders;
+    } catch (_) {}
+
+    return [];
+  }
+
+  List<NationalLeader> _parseLeadersResponse(dynamic responseData) {
+    if (responseData == null) return [];
+    final dynamic rawData = responseData is Map<String, dynamic>
+        ? (responseData['data'] ?? responseData)
+        : responseData;
+    List items = [];
+    if (rawData is List) {
+      items = rawData;
+    } else if (rawData is Map) {
+      items = (rawData['items'] ?? rawData['content'] ?? rawData['leaders'] ?? rawData['nationalLeaders'] ?? rawData['data'] ?? []) as List;
+    }
+    return items.whereType<Map>().map((e) => NationalLeader.fromJson(Map<String, dynamic>.from(e))).toList();
+  }
+
+    /// [PLACES] `GET /api/v1/civic/places?category=COUNTRY&ownerId={id}`
   Future<List<PlaceView>> fetchCountryPlaces(int countryId) async {
     try {
       final response = await _dio.get(
