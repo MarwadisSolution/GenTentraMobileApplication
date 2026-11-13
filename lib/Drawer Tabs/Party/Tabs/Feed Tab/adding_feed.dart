@@ -517,7 +517,7 @@ class _AddingFeedState extends State<AddingFeed> {
                                     SizedBox(width: w * 0.03),
                                     //-----Tag Peoples
                                     FeedQuoteTab(
-                                      title: PartyPageData.taggedPeople,
+                                      title: PartyPageData.tagPeople,
                                       isSelected: false,
                                       onTap: () async {
                                         if (taggedPeople.isEmpty) {
@@ -595,6 +595,10 @@ class _AddingFeedState extends State<AddingFeed> {
                                         maxLines: null,
                                         decoration: InputDecoration(
                                           hintText: "What's your view?",
+                                          hintStyle: TextStyle(
+                                              color: ColorScheme.of(context).onSurface.withOpacity(0.7),
+                                              fontSize: w*0.05
+                                          ),
                                           border: InputBorder.none,
                                           enabledBorder: InputBorder.none,
                                           focusedBorder: InputBorder.none,

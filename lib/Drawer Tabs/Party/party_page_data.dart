@@ -37,7 +37,7 @@ class PartyPageData {
   static final tagLeader = "Tag Leader";
   static final tagPeople = "Tag Peoples";
   static final tagPeopleIcon = "Assets/PartyPage/tagPeopleIcon.svg";
-
+  static final addVideosImages= "Add Videos & Image";
   static final searchBy = "Search by Name - OR - Unique ID";
   static final addIcon = "Assets/PartyPage/addIcon.svg";
   static final taggedPeople = "Tagged Peoples";

@@ -44,8 +44,8 @@ class AddingDevelopment extends StatefulWidget {
 class _AddingDevelopmentState extends State<AddingDevelopment> {
   final DevelopmentApis api = DevelopmentApis();
   late TaggedPeopleHandler taggedPeopleHandler;
-  final TextEditingController titleController =
-  TextEditingController();
+  final TextEditingController titleController =TextEditingController();
+
 
   final TextEditingController descriptionController =
   TextEditingController();
@@ -262,7 +262,7 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
   void initState() {
     super.initState();
 
-
+titleController.text="Not required";
     if (widget.isEditMode) {
       final development = widget.editDevelopment!;
 
@@ -522,14 +522,14 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
                                         FeedQuoteTab(
                                           title: isCompressingMedia
                                               ? "Preparing..."
-                                              : "Add Media",
+                                              :PartyPageData.addVideosImages,
                                           isSelected: false,
                                           onTap: isCompressingMedia
                                               ? () {}
                                               : _pickAndCompressMedia,
                                           iconName: PartyPageData.addImageIcon,
                                           height: h * 0.05,
-                                          width: w * 0.35,
+                                          width: w * 0.5,
                                         ),
 
                                         if (isCompressingMedia)
@@ -558,10 +558,12 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
                                     SizedBox(width: w * 0.03),
                                     //-----Tag Peoples
                                     FeedQuoteTab(
-                                        title: PartyPageData.taggedPeople,
+                                        title: PartyPageData.tagPeople,
                                         isSelected: false,
                                         onTap: _openTaggingPeople,
-                                      iconName: PartyPageData.quoteIcon,
+                                      iconName: PartyPageData.tagPeopleIcon,
+                                      height: h * 0.05,
+                                      width: w * 0.4,
                                     ),
 
                                     SizedBox(width: w * 0.03),
@@ -576,28 +578,33 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
                                     CrossAxisAlignment.start,
                                     children: [
                                       SizedBox(height: h * 0.035),
+                                      // TextFormField(
+                                      //   keyboardType: TextInputType.multiline,
+                                      //   controller: titleController,
+                                      //   minLines: 1,
+                                      //   maxLines: null,
+                                      //   decoration: InputDecoration(
+                                      //     hintText: "What's your title?",
+                                      //     border: InputBorder.none,
+                                      //     enabledBorder: InputBorder.none,
+                                      //     focusedBorder: InputBorder.none,
+                                      //     errorBorder: InputBorder.none,
+                                      //     focusedErrorBorder: InputBorder.none,
+                                      //   ),
+                                      // ),
                                       TextFormField(
-                                        keyboardType: TextInputType.multiline,
-                                        controller: titleController,
-                                        minLines: 1,
-                                        maxLines: null,
-                                        decoration: InputDecoration(
-                                          hintText: "What's your title?",
-                                          border: InputBorder.none,
-                                          enabledBorder: InputBorder.none,
-                                          focusedBorder: InputBorder.none,
-                                          errorBorder: InputBorder.none,
-                                          focusedErrorBorder: InputBorder.none,
-                                        ),
-                                      ),
-                                      const Divider(),
-                                      TextFormField(
+
                                         keyboardType: TextInputType.multiline,
                                         controller: descriptionController,
                                         minLines: 1,
                                         maxLines: null,
                                         decoration: InputDecoration(
+
                                           hintText: "What's your view?",
+                                          hintStyle: TextStyle(
+                                            color: ColorScheme.of(context).onSurface.withOpacity(0.7),
+                                            fontSize: w*0.05
+                                          ),
                                           border: InputBorder.none,
                                           enabledBorder: InputBorder.none,
                                           focusedBorder: InputBorder.none,
@@ -605,7 +612,9 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
                                           focusedErrorBorder: InputBorder.none,
                                         ),
                                       ),
-                                      const Divider(),
+
+                                      SizedBox(height: h * 0.035),
+
 
 // From year
                                       TextFormField(

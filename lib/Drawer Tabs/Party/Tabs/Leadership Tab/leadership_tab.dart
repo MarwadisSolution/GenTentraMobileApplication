@@ -119,8 +119,13 @@ class _LeadershipTabState extends State<LeadershipTab> {
             // separatorBuilder: (_, __) => SizedBox(width: w * 0.025),
             itemBuilder: (context, index) {
               final leader = leaders[index];
-              final imagePath = leader.imagePath;
+              String? imagePath = leader.imagePath;
+              final coverImage=leader.coverImage;
 
+              if(coverImage!.isNotEmpty || coverImage!=""){
+                print("CoverImage:- $coverImage");
+                imagePath=coverImage;
+              }
               return Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: w * 0.017,
@@ -159,7 +164,9 @@ class _LeadershipTabState extends State<LeadershipTab> {
                                     )
                                   : buildImageWidget(
                                       imagePath,
-                                      fit: BoxFit.cover,
+
+                                      fit: BoxFit.fill,
+
                                     ),
                             ),
                           ),
@@ -250,8 +257,12 @@ class _LeadershipTabState extends State<LeadershipTab> {
 
             // Your existing member card code starts here.
             final leader = secondLeaders[index];
-            final imagePath = leader.imagePath;
-
+            String? imagePath = leader.imagePath;
+            final coverImage=leader.coverImage;
+                if(coverImage!.isNotEmpty || coverImage!=""){
+                  print("CoverImage:- $coverImage");
+                  imagePath=coverImage;
+                }
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -280,7 +291,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
                                 ),
                               ),
                             )
-                          : buildImageWidget(imagePath, fit: BoxFit.fill),
+                          : buildImageWidget(imagePath,  fit: BoxFit.fill,),
                     ),
                   ),
                 ),
@@ -372,10 +383,27 @@ class _LeadershipTabState extends State<LeadershipTab> {
               ),
             ),
           ),
+        if (widget.members.isNotEmpty)
+        Container(
+          height: h * 0.008,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: ColorScheme.of(context).onSurface.withValues(alpha: 0.08),
+          ),
+        ),
         // Show all groups except group 1 and group 2.
         ...widget.leaders.skip(2).map((group) {
           if (group.leaders.isEmpty) {
             return const SizedBox.shrink();
+          }
+          else{
+            Container(
+              height: h * 0.008,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: ColorScheme.of(context).onSurface.withValues(alpha: 0.08),
+              ),
+            );
           }
 
           final previewLeaders = group.leaders.isNotEmpty
@@ -494,10 +522,19 @@ Widget buildMembersPreview(
       children: List.generate(previewMembers.length, (index) {
         final item = previewMembers[index];
         String imagePath = '';
+        String? coverImage='';
         if (item is MemberDirectoryModel) {
           imagePath = item.imagePath;
+          coverImage=item.coverImage;
+          if(coverImage!.isNotEmpty || coverImage!=""){
+            imagePath=coverImage;
+          }
         } else if (item is LeaderModel) {
           imagePath = item.imagePath ?? '';
+          coverImage=item.coverImage??'';
+          if(coverImage.isNotEmpty || coverImage!=""){
+            imagePath=coverImage;
+          }
         } else if (item is String) {
           imagePath = item;
         }
@@ -524,7 +561,7 @@ Widget buildMembersPreview(
                         imagePath,
                         width: size - 4,
                         height: size - 4,
-                        fit: BoxFit.cover,
+                        fit: BoxFit.fill,
                       )
                     : const Icon(
                         Icons.person,

@@ -255,7 +255,7 @@ Widget buildImageWidget(
     String imagePath, {
       double? width,
       double? height,
-      BoxFit fit = BoxFit.cover,
+      BoxFit fit = BoxFit.fill,
     }) {
   final path = imagePath.trim();
 

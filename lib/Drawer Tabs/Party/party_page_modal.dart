@@ -244,7 +244,7 @@ class LeaderModel{
   final String name;
   final String? surname;
   final String designation;
-
+  final String? coverImage;
   const LeaderModel({
     this.id,
     required this.politicianId,
@@ -252,6 +252,7 @@ class LeaderModel{
     required this.name,
     this.surname,
     required this.designation,
+    this.coverImage,
   });
   factory LeaderModel.fromJson(Map<String, dynamic> json){
     final rawImg = json["photoUrl"] ?? json["imageUrl"] ?? json["imagePath"] ?? json["mediaUrl"] ?? json["photo"] ?? json["image"];
@@ -262,6 +263,7 @@ class LeaderModel{
       name: json["name"] ?? "",
       surname: (json["surname"] ?? json["lastName"])?.toString(),
       designation: json["designation"] ?? "",
+      coverImage: (json["coverImage"]??"").toString(),
     );
   }
   LeaderModel copyWith({
@@ -270,6 +272,7 @@ class LeaderModel{
     String? name,
     String? surname,
     String? designation,
+    Object? coverImage=_noChange,
   }) {
     return LeaderModel(
       politicianId: politicianId ?? this.politicianId,
@@ -279,6 +282,7 @@ class LeaderModel{
       name: name ?? this.name,
       surname: surname ?? this.surname,
       designation: designation ?? this.designation,
+      coverImage: coverImage==_noChange?this.coverImage:coverImage as String?,
     );
   }
 
@@ -373,7 +377,7 @@ class MemberDirectoryModel {
   final int? partyId;
   final DateTime lastUpdated;
   final String status;
-
+  final String? coverImage;
   const MemberDirectoryModel({
     required this.politicianId,
     required this.uniqueId,
@@ -386,13 +390,14 @@ class MemberDirectoryModel {
     this.partyId,
     required this.lastUpdated,
     required this.status,
+    this.coverImage,
   });
   factory MemberDirectoryModel.fromJson(
     Map<String, dynamic> json, {
     String? defaultState,
   }) {
     final stateVal = (json["state"] ?? json["stateName"] ?? defaultState)?.toString();
-    final rawImg = json["photoUrl"] ?? json["imageUrl"] ?? json["imagePath"] ?? json["mediaUrl"] ?? json["photo"] ?? json["image"];
+    final rawImg = json["photoUrl"];
     DateTime parsedDate;
     try {
       parsedDate = json["lastUpdated"] != null
@@ -414,6 +419,7 @@ class MemberDirectoryModel {
       partyId: json["partyId"] != null ? (json["partyId"] as num).toInt() : null,
       lastUpdated: parsedDate,
       status: (json["status"] ?? "").toString(),
+      coverImage: (json["coverImage"]??"").toString(),
     );
   }
 
@@ -429,6 +435,7 @@ class MemberDirectoryModel {
     int?partyId,
     DateTime? lastUpdated,
     String? status,
+    String?coverImage,
   }) {
     return MemberDirectoryModel(
       politicianId: politicianId ?? this.politicianId,
@@ -442,6 +449,7 @@ class MemberDirectoryModel {
       partyId: partyId??this.partyId,
       lastUpdated: lastUpdated ?? this.lastUpdated,
       status: status ?? this.status,
+      coverImage: coverImage??this.coverImage,
     );
   }
 }
