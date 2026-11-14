@@ -18,7 +18,7 @@ String formatCountryDate(String? rawDate) {
   }
 }
 
-/// Full-width section divider matching Figma (#000000 at 20% opacity)
+/// Full-width prominent section divider matching the separator above the Info tab (#EBEBEB)
 Widget buildSectionDivider(
   BuildContext context, {
   double? topMargin,
@@ -28,12 +28,12 @@ Widget buildSectionDivider(
   final double screenHeight = MediaQuery.of(context).size.height;
   return Container(
     width: double.infinity,
-    height: screenWidth * (1.6 / 375.0),
+    height: screenWidth * (6.0 / 375.0),
     margin: EdgeInsets.only(
-      top: topMargin ?? screenHeight * 0.012,
-      bottom: bottomMargin ?? screenHeight * 0.018,
+      top: topMargin ?? screenHeight * 0.016,
+      bottom: bottomMargin ?? screenHeight * 0.016,
     ),
-    color: ColorScheme.of(context).onSurface.withValues(alpha: 0.2),
+    color: const Color(0xFFEBEBEB),
   );
 }
 
@@ -92,9 +92,8 @@ class _SmallTabIndicatorPainter extends BoxPainter {
   @override
   void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
     final Rect rect = offset & (configuration.size ?? Size.zero);
-    // Increase width by 10% and height by 5% per spec
-    final double indicatorWidth = decoration.width * 1.1;
-    final double indicatorHeight = decoration.height * 1.05;
+    final double indicatorWidth = decoration.width;
+    final double indicatorHeight = decoration.height;
     // Left-align indicator to start at left edge of tab text
     final double left = rect.left;
     final double top = rect.bottom - indicatorHeight;

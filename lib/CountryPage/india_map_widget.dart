@@ -148,6 +148,11 @@ class IndiaMapParser {
       final geom = feat['geometry'] as Map<String, dynamic>? ?? {};
 
       final stateName = props['st_nm']?.toString() ?? 'Unknown State';
+      if (stateName.toLowerCase().contains('andaman') ||
+          stateName.toLowerCase().contains('nicobar')) {
+        // Skip Andaman and Nicobar islands so the mainland map is clean, prominent, and free of stray dots
+        continue;
+      }
       final stateCode = props['st_code']?.toString() ?? '';
       final districtName = props['district']?.toString() ?? 'Unknown District';
       final districtCode = props['dt_code']?.toString() ?? '';
@@ -455,22 +460,26 @@ class _InteractiveMapPainter extends CustomPainter {
   }
 
   Path _buildScaledPath(List<Offset> ring, Size size) {
+    const double padding = 16.0;
+    final double availWidth = math.max(10.0, size.width - (padding * 2));
+    final double availHeight = math.max(10.0, size.height - (padding * 2));
+
     final double geoAspect = mapData.aspectRatio; // ~0.88 for India
-    final double canvasAspect = size.width / size.height;
+    final double canvasAspect = availWidth / availHeight;
 
     double scaleX, scaleY, offsetX, offsetY;
     if (canvasAspect > geoAspect) {
       // Canvas is wider than map: fit to height
-      scaleY = size.height;
-      scaleX = size.height * geoAspect;
-      offsetX = (size.width - scaleX) / 2;
-      offsetY = 0;
+      scaleY = availHeight;
+      scaleX = availHeight * geoAspect;
+      offsetX = padding + (availWidth - scaleX) / 2;
+      offsetY = padding;
     } else {
       // Canvas is taller than map: fit to width
-      scaleX = size.width;
-      scaleY = size.width / geoAspect;
-      offsetX = 0;
-      offsetY = (size.height - scaleY) / 2;
+      scaleX = availWidth;
+      scaleY = availWidth / geoAspect;
+      offsetX = padding;
+      offsetY = padding + (availHeight - scaleY) / 2;
     }
 
     final path = Path();
@@ -569,10 +578,6 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
   GeoState? _selectedState;
   GeoDistrict? _selectedDistrict;
 
-  // Transformation Controller for smooth pan & pinch-to-zoom
-  final TransformationController _transformationController =
-      TransformationController();
-
   Size _renderedCanvasSize = Size.zero;
 
   @override
@@ -583,7 +588,6 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
 
   @override
   void dispose() {
-    _transformationController.dispose();
     super.dispose();
   }
 
@@ -619,29 +623,9 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
     }
   }
 
-  void _resetZoom() {
-    _transformationController.value = Matrix4.identity();
-  }
-
-  void _zoomIn() {
-    final current = _transformationController.value.clone();
-    current.scaleByDouble(1.3, 1.3, 1.0, 1.0);
-    _transformationController.value = current;
-  }
-
-  void _zoomOut() {
-    final current = _transformationController.value.clone();
-    current.scaleByDouble(1 / 1.3, 1 / 1.3, 1.0, 1.0);
-    _transformationController.value = current;
-  }
-
   // Handle tap detection
   void _handleTap(TapUpDetails details) {
     if (_mapData == null || _renderedCanvasSize == Size.zero) return;
-
-    // Convert tap coordinate through transformation matrix
-    final Matrix4 inv = Matrix4.inverted(_transformationController.value);
-    final untransformed = MatrixUtils.transformPoint(inv, details.localPosition);
 
     final painter = _InteractiveMapPainter(
       mapData: _mapData!,
@@ -651,7 +635,7 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
     );
 
     if (_currentLevel == MapLevel.country) {
-      final hit = painter.hitTestState(untransformed, _renderedCanvasSize);
+      final hit = painter.hitTestState(details.localPosition, _renderedCanvasSize);
       setState(() {
         if (_selectedState == hit) {
           _selectedState = null; // Toggle selection off
@@ -665,7 +649,7 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
         widget.onStateSelected?.call(_selectedState!);
       }
     } else {
-      final hit = painter.hitTestDistrict(untransformed, _renderedCanvasSize);
+      final hit = painter.hitTestDistrict(details.localPosition, _renderedCanvasSize);
       setState(() {
         _selectedDistrict = hit;
       });
@@ -682,7 +666,6 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
       _selectedState = state;
       _selectedDistrict = null;
       _currentLevel = MapLevel.state;
-      _resetZoom();
     });
   }
 
@@ -690,7 +673,6 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
     setState(() {
       _currentLevel = MapLevel.country;
       _selectedDistrict = null;
-      _resetZoom();
     });
   }
 
@@ -746,9 +728,8 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
       );
     }
 
-    // Map container height responsive using MediaQuery
-    // Map container height matching Figma layout specs (616px width x 440px height)
-    final double mapContainerHeight = w * (440.0 / 616.0);
+    // Map container height responsive using MediaQuery, providing adequate vertical room for full map
+    final double mapContainerHeight = (w * 1.05).clamp(340.0, 480.0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -759,53 +740,33 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
           SizedBox(height: h * 0.012),
         ],
 
-        // ── Map Canvas (Seamless, Borderless) ─────────────────────────────────
+        // ── Map Canvas (Seamless, Borderless, full page scrollable) ───────────
         Container(
           width: w,
           height: mapContainerHeight,
           decoration: const BoxDecoration(
             color: Colors.transparent,
           ),
-          clipBehavior: Clip.antiAlias,
-          child: Stack(
-            children: [
-              // Interactive Vector Canvas
-              GestureDetector(
-                onTapUp: _handleTap,
-                child: InteractiveViewer(
-                  transformationController: _transformationController,
-                  minScale: 0.8,
-                  maxScale: 6.0,
-                  boundaryMargin: EdgeInsets.all(w * 0.1),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      _renderedCanvasSize = Size(
-                        constraints.maxWidth,
-                        constraints.maxHeight,
-                      );
-                      return CustomPaint(
-                        size: _renderedCanvasSize,
-                        painter: _InteractiveMapPainter(
-                          mapData: _mapData!,
-                          level: _currentLevel,
-                          selectedState: _selectedState,
-                          selectedDistrict: _selectedDistrict,
-                        ),
-                      );
-                    },
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapUp: _handleTap,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                _renderedCanvasSize = Size(
+                  constraints.maxWidth,
+                  constraints.maxHeight,
+                );
+                return CustomPaint(
+                  size: _renderedCanvasSize,
+                  painter: _InteractiveMapPainter(
+                    mapData: _mapData!,
+                    level: _currentLevel,
+                    selectedState: _selectedState,
+                    selectedDistrict: _selectedDistrict,
                   ),
-                ),
-              ),
-
-              // Zoom & Reset Controls on Top-Right
-              Positioned(
-                right: w * 0.03,
-                top: w * 0.03,
-                child: _buildZoomControls(w, h),
-              ),
-
-
-            ],
+                );
+              },
+            ),
           ),
         ),
 
@@ -830,19 +791,19 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
         children: [
           Text(
             'GEOGRAPHICAL MAP OF INDIA',
-            style: const TextStyle(
-              fontSize: 14,
+            style: TextStyle(
+              fontSize: (w * 0.038).clamp(13.0, 15.0),
               fontWeight: FontWeight.w800,
-              color: Color(0xFF1E1E1E),
+              color: const Color(0xFF1E1E1E),
               letterSpacing: 0.4,
             ),
           ),
           Text(
             '36 States & UTs',
-            style: const TextStyle(
-              fontSize: 12,
+            style: TextStyle(
+              fontSize: (w * 0.032).clamp(11.0, 13.0),
               fontWeight: FontWeight.w500,
-              color: Color(0xFF888888),
+              color: const Color(0xFF888888),
             ),
           ),
         ],
@@ -873,10 +834,10 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
                 SizedBox(width: w * 0.012),
                 Text(
                   'All India',
-                  style: const TextStyle(
-                    fontSize: 13,
+                  style: TextStyle(
+                    fontSize: (w * 0.035).clamp(12.0, 14.0),
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0D5C96),
+                    color: const Color(0xFF0D5C96),
                   ),
                 ),
               ],
@@ -886,67 +847,21 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
         SizedBox(width: w * 0.02),
         Text(
           '/',
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
+          style: TextStyle(fontSize: (w * 0.038).clamp(13.0, 15.0), color: Colors.grey),
         ),
         SizedBox(width: w * 0.02),
         Expanded(
           child: Text(
             _selectedState?.name ?? 'State',
-            style: const TextStyle(
-              fontSize: 15,
+            style: TextStyle(
+              fontSize: (w * 0.04).clamp(14.0, 16.0),
               fontWeight: FontWeight.w800,
-              color: Color(0xFF1E1E1E),
+              color: const Color(0xFF1E1E1E),
             ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
-    );
-  }
-
-  /// Floating Zoom & Reset buttons inside map card
-  Widget _buildZoomControls(double w, double h) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(w * 0.025),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: w * 0.015,
-            offset: Offset(0, h * 0.002),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          InkWell(
-            onTap: _zoomIn,
-            child: Padding(
-              padding: EdgeInsets.all(w * 0.012),
-              child: Icon(Icons.add, size: w * 0.038, color: const Color(0xFF333333)),
-            ),
-          ),
-          Divider(height: 1, thickness: 1, color: Colors.grey[200]),
-          InkWell(
-            onTap: _zoomOut,
-            child: Padding(
-              padding: EdgeInsets.all(w * 0.012),
-              child: Icon(Icons.remove, size: w * 0.038, color: const Color(0xFF333333)),
-            ),
-          ),
-          Divider(height: 1, thickness: 1, color: Colors.grey[200]),
-          InkWell(
-            onTap: _resetZoom,
-            child: Padding(
-              padding: EdgeInsets.all(w * 0.012),
-              child: Icon(Icons.refresh, size: w * 0.038, color: const Color(0xFF333333)),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -987,19 +902,19 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
               children: [
                 Text(
                   state.name,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: (w * 0.043).clamp(15.0, 18.0),
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF1E1E1E),
+                    color: const Color(0xFF1E1E1E),
                   ),
                 ),
                 SizedBox(height: h * 0.003),
                 Text(
                   '${state.districts.length} Districts  •  Code: ${state.code.isNotEmpty ? state.code : "-"}',
-                  style: const TextStyle(
-                    fontSize: 13,
+                  style: TextStyle(
+                    fontSize: (w * 0.035).clamp(12.0, 14.0),
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF757575),
+                    color: const Color(0xFF757575),
                   ),
                 ),
               ],
@@ -1022,8 +937,8 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
                 children: [
                   Text(
                     'Explore State',
-                    style: const TextStyle(
-                      fontSize: 13,
+                    style: TextStyle(
+                      fontSize: (w * 0.035).clamp(12.0, 14.0),
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
@@ -1055,9 +970,9 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
           Expanded(
             child: Text(
               'Tap any of the ${state.districts.length} districts to view Level 3 details.',
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF555555),
+              style: TextStyle(
+                fontSize: (w * 0.035).clamp(12.0, 14.0),
+                color: const Color(0xFF555555),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1101,19 +1016,19 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
               children: [
                 Text(
                   district.districtName,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: (w * 0.043).clamp(15.0, 17.0),
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF1E1E1E),
+                    color: const Color(0xFF1E1E1E),
                   ),
                 ),
                 SizedBox(height: h * 0.003),
                 Text(
                   'District Code: ${district.districtCode.isNotEmpty ? district.districtCode : "-"}  •  ${district.stateName}',
-                  style: const TextStyle(
-                    fontSize: 13,
+                  style: TextStyle(
+                    fontSize: (w * 0.035).clamp(12.0, 14.0),
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF757575),
+                    color: const Color(0xFF757575),
                   ),
                 ),
               ],
@@ -1131,7 +1046,7 @@ class _IndiaMapWidgetState extends State<IndiaMapWidget> {
             child: Text(
               'SELECTED',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: (w * 0.03).clamp(10.0, 12.0),
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
                 letterSpacing: 0.5,
