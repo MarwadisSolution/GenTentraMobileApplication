@@ -217,7 +217,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
     final double fabSize = screenWidth * (62.0 / 375.0);
 
     // Initialize FAB position to bottom right with safe area padding
-    _draggableFabPosition ??= Offset(
+    _draggableFabPosition.value ??= Offset(
       screenWidth - fabSize - screenWidth * 0.05,
       screenHeight - fabSize - MediaQuery.of(context).padding.bottom - screenHeight * 0.06,
     );
@@ -343,13 +343,13 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                               horizontal: screenWidth * 0.02,
                             ),
                             isScrollable: true,
-                            labelStyle: const TextStyle(
-                              fontSize: 14,
+                            labelStyle: TextStyle(
+                              fontSize: (screenWidth * (14.0 / 375.0)).clamp(13.0, 15.0),
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.25,
                             ),
-                            unselectedLabelStyle: const TextStyle(
-                              fontSize: 14,
+                            unselectedLabelStyle: TextStyle(
+                              fontSize: (screenWidth * (14.0 / 375.0)).clamp(13.0, 15.0),
                               fontWeight: FontWeight.w400,
                               letterSpacing: 0.25,
                             ),
@@ -357,10 +357,13 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                             unselectedLabelColor: const Color(0xFF757575),
                             indicator: SmallTabIndicator(
                               color: const Color(0xFFFE3A31),
-                              width: screenWidth * 0.055,
-                              height: screenHeight * 0.0035,
-                              borderRadius: BorderRadius.circular(screenWidth * 0.01),
+                              width: screenWidth * (42.0 / 375.0),
+                              height: screenHeight * (4.0 / 812.0),
+                              borderRadius: BorderRadius.circular(screenWidth * (2.0 / 375.0)),
                             ),
+                            dividerColor: ColorScheme.of(context)
+                                .onSurface
+                                .withValues(alpha: 0.2),
                             tabs: const [
                               Tab(text: CountryPageData.infoTab),
                               Tab(text: CountryPageData.flagEmblemTab),
@@ -861,10 +864,10 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
           SizedBox(height: h * 0.005),
           Text(
             "Capital City - $capitalText",
-            style: const TextStyle(
-              fontSize: 14,
+            style: TextStyle(
+              fontSize: (w * (14.0 / 375.0)).clamp(13.0, 15.0),
               fontWeight: FontWeight.w400,
-              color: Color(0xFF666666),
+              color: const Color(0xFF666666),
               letterSpacing: 0.2,
             ),
           ),
@@ -881,21 +884,21 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                   children: [
                     Text(
                       'DISTRICTS',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w400,
-                        fontSize: 11,
+                        fontSize: (w * (11.0 / 375.0)).clamp(10.0, 12.0),
                         letterSpacing: 0.22,
-                        color: Color(0xFF666666),
+                        color: const Color(0xFF666666),
                       ),
                     ),
                     SizedBox(height: h * 0.003),
                     Text(
                       statesValue,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        fontSize: 24,
+                        fontSize: (w * (24.0 / 375.0)).clamp(20.0, 26.0),
                         letterSpacing: 0.3,
-                        color: Color(0xFF333333),
+                        color: const Color(0xFF333333),
                       ),
                     ),
                   ],
@@ -913,21 +916,21 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                   children: [
                     Text(
                       'STATE CODE',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w400,
-                        fontSize: 11,
+                        fontSize: (w * (11.0 / 375.0)).clamp(10.0, 12.0),
                         letterSpacing: 0.22,
-                        color: Color(0xFF666666),
+                        color: const Color(0xFF666666),
                       ),
                     ),
                     SizedBox(height: h * 0.003),
                     Text(
                       stateCodeValue,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        fontSize: 24,
+                        fontSize: (w * (24.0 / 375.0)).clamp(20.0, 26.0),
                         letterSpacing: 0.3,
-                        color: Color(0xFF333333),
+                        color: const Color(0xFF333333),
                       ),
                     ),
                   ],
@@ -945,21 +948,21 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                   children: [
                     Text(
                       'REGISTRATION',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w400,
-                        fontSize: 11,
+                        fontSize: (w * (11.0 / 375.0)).clamp(10.0, 12.0),
                         letterSpacing: 0.22,
-                        color: Color(0xFF666666),
+                        color: const Color(0xFF666666),
                       ),
                     ),
                     SizedBox(height: h * 0.003),
                     Text(
                       regCodeValue,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        fontSize: 24,
+                        fontSize: (w * (24.0 / 375.0)).clamp(20.0, 26.0),
                         letterSpacing: 0.3,
-                        color: Color(0xFF333333),
+                        color: const Color(0xFF333333),
                       ),
                     ),
                   ],
@@ -976,21 +979,21 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                   children: [
                     Text(
                       CountryPageData.states,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w400,
-                        fontSize: 11,
+                        fontSize: (w * (11.0 / 375.0)).clamp(10.0, 12.0),
                         letterSpacing: 0.22,
-                        color: Color(0xFF666666),
+                        color: const Color(0xFF666666),
                       ),
                     ),
                     SizedBox(height: h * 0.003),
                     Text(
                       statesValue,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        fontSize: 24,
+                        fontSize: (w * (24.0 / 375.0)).clamp(20.0, 26.0),
                         letterSpacing: 0.3,
-                        color: Color(0xFF333333),
+                        color: const Color(0xFF333333),
                       ),
                     ),
                   ],
@@ -1008,21 +1011,21 @@ class _CountryDetailsSectionState extends State<CountryDetailsSection> {
                   children: [
                     Text(
                       CountryPageData.unionTerritories,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w400,
-                        fontSize: 11,
+                        fontSize: (w * (11.0 / 375.0)).clamp(10.0, 12.0),
                         letterSpacing: 0.22,
-                        color: Color(0xFF666666),
+                        color: const Color(0xFF666666),
                       ),
                     ),
                     SizedBox(height: h * 0.003),
                     Text(
                       utValue,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        fontSize: 24,
+                        fontSize: (w * (24.0 / 375.0)).clamp(20.0, 26.0),
                         letterSpacing: 0.3,
-                        color: Color(0xFF333333),
+                        color: const Color(0xFF333333),
                       ),
                     ),
                   ],

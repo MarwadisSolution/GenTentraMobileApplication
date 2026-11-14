@@ -32,7 +32,7 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
     return '-';
   }
 
-  Widget _buildFormattedParagraph(String text, {double fontSize = 14, EdgeInsetsGeometry? padding}) {
+  Widget _buildFormattedParagraph(String text, {double fontSize = 15, EdgeInsetsGeometry? padding}) {
     final spans = <TextSpan>[];
     final regex = RegExp(r'\*\*(.*?)\*\*');
     int lastMatchEnd = 0;
@@ -119,10 +119,10 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 13,
+                style: TextStyle(
+                  fontSize: (w * (13.0 / 375.0)).clamp(12.0, 14.0),
                   fontWeight: FontWeight.w400,
-                  color: Color(0xFF666666),
+                  color: const Color(0xFF666666),
                   letterSpacing: 0.21,
                 ),
               ),
@@ -191,6 +191,7 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
           for (int i = 0; i < visibleParagraphs.length; i++) ...[
             _buildFormattedParagraph(
               visibleParagraphs[i],
+              fontSize: (w * (15.0 / 375.0)).clamp(14.0, 16.0),
             ),
             if (i < visibleParagraphs.length - 1)
               SizedBox(height: h * 0.016),
@@ -207,10 +208,10 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
               },
               child: Text(
                 _isExpanded ? 'SHOW LESS' : 'SHOW MORE',
-                style: const TextStyle(
-                  fontSize: 13,
+                style: TextStyle(
+                  fontSize: (w * (13.0 / 375.0)).clamp(12.0, 14.0),
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFFFE3A31),
+                  color: const Color(0xFFFE3A31),
                   letterSpacing: 0.5,
                 ),
               ),

@@ -36,10 +36,10 @@ class CountryPlacesToVisitPage extends StatelessWidget {
           // ── Intro text ──
           Text(
             introText,
-            style: const TextStyle(
-              fontSize: 14,
+            style: TextStyle(
+              fontSize: (w * (15.0 / 375.0)).clamp(14.0, 16.0),
               fontWeight: FontWeight.w500,
-              color: Color(0xFF1E1E1E),
+              color: const Color(0xFF1E1E1E),
               height: 1.5,
             ),
           ),
@@ -142,10 +142,10 @@ class CountryPlacesToVisitPage extends StatelessWidget {
           // ── Place name ──
           Text(
             place.name.toUpperCase(),
-            style: const TextStyle(
-              fontSize: 16,
+            style: TextStyle(
+              fontSize: (w * (16.0 / 375.0)).clamp(15.0, 18.0),
               fontWeight: FontWeight.w800,
-              color: Color(0xFF1E1E1E),
+              color: const Color(0xFF1E1E1E),
               letterSpacing: 0.3,
             ),
           ),
@@ -155,10 +155,10 @@ class CountryPlacesToVisitPage extends StatelessWidget {
             SizedBox(height: h * 0.006),
             Text(
               place.description!,
-              style: const TextStyle(
-                fontSize: 14,
+              style: TextStyle(
+                fontSize: (w * (15.0 / 375.0)).clamp(14.0, 16.0),
                 fontWeight: FontWeight.w400,
-                color: Color(0xFF555555),
+                color: const Color(0xFF555555),
                 height: 1.45,
               ),
             ),

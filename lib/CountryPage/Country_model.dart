@@ -467,6 +467,8 @@ class CountryModel {
     final parsedName = json['name']?.toString() ?? '';
     final parsedPresident = parseLeader(json['president']);
     final parsedPrimeMinister = parseLeader(json['primeMinister']);
+    final parsedDefenceMinister = parseLeader(json['defenceMinister'] ?? json['defenseMinister']);
+    final parsedHomeMinister = parseLeader(json['homeMinister']);
 
     // Parse leaders if present in json
     List<NationalLeader> leadersList = [];
