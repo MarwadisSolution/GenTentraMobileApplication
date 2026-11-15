@@ -270,16 +270,16 @@ class _JourneyTabState extends State<JourneyTab> {
                     alignment: Alignment.center,
                     children: [
                       Container(
-                        height: size * 0.18,
-                        decoration: const BoxDecoration(
-                          color: Colors.black,
+                        height: size * 0.19,
+                        decoration:  BoxDecoration(
+                          color: ColorScheme.of(context).onSurface,
                           shape: BoxShape.circle,
                         ),
                         child: Align(
                           alignment: const Alignment(0, 0.65),
                           child: Container(
-                            width: 6,
-                            height: 6,
+                            width: size*0.025,
+                            height: size*0.02,
                             decoration: const BoxDecoration(
                               color: Color(0xFFFE3A31),
                               shape: BoxShape.circle,

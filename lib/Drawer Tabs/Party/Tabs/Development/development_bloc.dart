@@ -288,24 +288,22 @@ class DevelopmentBloc
     ));
 
     try {
-
-      // TODO:
-      // Connect your DELETE API here.
-      //
-      // Pass:
-      // event.id
-      // event.partyId
-      // event.fromWhichPage
-      // event.politicianId
+ final response=await developmentApis.deleteDevelopment(event.id);
+ final updatedList=state.developments.where((development)=>development.id!=event.id).toList();
 
       emit(state.copyWith(
+        developments: updatedList,
+        filteredDevelopments: _filterByYear(
+          updatedList,
+          state.selectedYear,
+        ),
         isDeleting: false,
         isSuccess: true,
-        successMessage: 'Delete Development API not connected yet.',
+        successMessage: response,
+        clearError: true,
       ));
 
     } catch (e) {
-
       emit(state.copyWith(
         isDeleting: false,
         isError: true,

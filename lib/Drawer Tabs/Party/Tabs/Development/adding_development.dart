@@ -578,28 +578,12 @@ titleController.text="Not required";
                                     CrossAxisAlignment.start,
                                     children: [
                                       SizedBox(height: h * 0.035),
-                                      // TextFormField(
-                                      //   keyboardType: TextInputType.multiline,
-                                      //   controller: titleController,
-                                      //   minLines: 1,
-                                      //   maxLines: null,
-                                      //   decoration: InputDecoration(
-                                      //     hintText: "What's your title?",
-                                      //     border: InputBorder.none,
-                                      //     enabledBorder: InputBorder.none,
-                                      //     focusedBorder: InputBorder.none,
-                                      //     errorBorder: InputBorder.none,
-                                      //     focusedErrorBorder: InputBorder.none,
-                                      //   ),
-                                      // ),
                                       TextFormField(
-
                                         keyboardType: TextInputType.multiline,
                                         controller: descriptionController,
                                         minLines: 1,
                                         maxLines: null,
                                         decoration: InputDecoration(
-
                                           hintText: "What's your view?",
                                           hintStyle: TextStyle(
                                             color: ColorScheme.of(context).onSurface.withOpacity(0.7),
@@ -613,31 +597,6 @@ titleController.text="Not required";
                                         ),
                                       ),
 
-                                      SizedBox(height: h * 0.035),
-
-
-// From year
-                                      TextFormField(
-                                        controller: fromController,
-                                        keyboardType: TextInputType.number,
-                                        decoration: const InputDecoration(
-                                          hintText: 'From year (e.g. 2007)',
-                                          border: InputBorder.none,
-                                        ),
-                                      ),
-
-// To year
-                                      TextFormField(
-                                        controller: toController,
-                                        keyboardType: TextInputType.number,
-                                        decoration: const InputDecoration(
-                                          hintText: 'To year (e.g. 2008)',
-                                          border: InputBorder.none,
-                                        ),
-                                      ),
-
-                                      const Divider(),
-                                      SizedBox(height: h * 0.035),
 
                                       SizedBox(height: h * 0.035),
                                       if (selectedImages.isNotEmpty ||
@@ -655,7 +614,6 @@ titleController.text="Not required";
 
                                           getMediaUrl: (media) => media.url,
                                           getMediaId: (media) => media.id,
-
                                           videoPlayerHelper: videoPlayerHelper,
                                           onPlayVideo: playVideo,
                                           onMediaChanged: () {
@@ -663,6 +621,26 @@ titleController.text="Not required";
                                           },
                                         ),
                                       ],
+// From year
+                                      TextFormField(
+                                        controller: fromController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: const InputDecoration(
+                                          hintText: 'From year (e.g. 2007)',
+                                          border: InputBorder.none,
+                                        ),
+                                      ),
+// To year
+                                      TextFormField(
+                                        controller: toController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: const InputDecoration(
+                                          hintText: 'To year (e.g. 2008)',
+                                          border: InputBorder.none,
+                                        ),
+                                      ),
+
+
                                       SizedBox(height: h * 0.035),
 
                                       ///--------------Publish button

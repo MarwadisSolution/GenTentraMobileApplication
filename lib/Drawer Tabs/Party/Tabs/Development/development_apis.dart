@@ -30,9 +30,6 @@ class DevelopmentApis {
       );
 
       final List data = response.data["data"]["items"];
-      print("------------------Data-----------------------------");
-      print(data);
-      print('------------------------Completed------------------');
       return data.map((e) => DevelopmentModel.fromJson(e)).toList();
     } on DioException catch (e) {
       throw Exception(e.response?.data ?? e.message);
@@ -67,9 +64,6 @@ class DevelopmentApis {
           ),
         );
       }
-      print("========== FINAL POST PAYLOAD ==========");
-      print(jsonEncode(development.toJson()));
-      print("=========================================");
 
       final response = await _dio.post(
         "$api/api/v1/developments",
@@ -96,5 +90,13 @@ class DevelopmentApis {
     final items=response.data["data"]["items"] as List;
     return items
         .map((e)=>LeaderModel.fromJson(e)).toList();
+  }
+  Future<String>deleteDevelopment(int? id)async{
+    final response=await _dio.delete("$api/api/v1/developments/$id"
+    );
+    if(response.statusCode==200 || response.statusCode==201){
+      if(response.data["success"]==true) return "Successfully post deleted";
+    }
+    return "Unable to delete post, try again";
   }
 }
