@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Tab/feed_model.dart';
 
+import '../Event Tab/event_modal.dart';
+
 abstract class FeedEvent extends Equatable {
   const FeedEvent();
 

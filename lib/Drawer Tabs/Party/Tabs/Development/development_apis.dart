@@ -7,6 +7,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Developme
 import '../../../../Login Page/Refresh Token/refresh_token.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../party_page_modal.dart';
+import '../tagging peoples/tagging_people_model.dart';
 
 class DevelopmentApis {
   final Dio _dio = apiClient;
@@ -124,18 +125,27 @@ class DevelopmentApis {
   }
   ///-----------------------Search bar for tagging politicians
 
-  Future<List<LeaderModel>>searchBarData(String? query,int? id)async{
-
-    final response=await _dio.get("$api/api/v1/profile/politicians?&",
-        queryParameters: {
-          "partyId":?id,
-          "q":?query,
-
-        }
+  Future<List<TaggingPersonModel>> searchBarData(
+      String? query,
+      ) async {
+    final response = await _dio.get(
+      "$api/api/v1/profile/politicians",
+      queryParameters: {
+        "q": query,
+      },
     );
-    final items=response.data["data"]["items"] as List;
+
+    print("POLITICIAN RESPONSE: ${response.data["data"]}");
+
+    final items = response.data["data"]["items"] as List;
+
     return items
-        .map((e)=>LeaderModel.fromJson(e)).toList();
+        .map(
+          (e) => TaggingPersonModel.fromJson(
+        e as Map<String, dynamic>,
+      ),
+    )
+        .toList();
   }
   Future<String>deleteDevelopment(int? id)async{
     final response=await _dio.delete("$api/api/v1/developments/$id"

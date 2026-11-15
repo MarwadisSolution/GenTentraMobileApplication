@@ -44,7 +44,7 @@ class AddingDevelopment extends StatefulWidget {
 
 class _AddingDevelopmentState extends State<AddingDevelopment> {
   final DevelopmentApis api = DevelopmentApis();
-  late TaggedPeopleHandler taggedPeopleHandler;
+  // late TaggedPeopleHandler taggedPeopleHandler;
   final TextEditingController titleController =TextEditingController();
 
 
@@ -69,52 +69,52 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
   List<int> deletedMediaIds = [];
   final ImagePicker imagePicker = ImagePicker();
   final VideoPlayerHelper videoPlayerHelper = VideoPlayerHelper();
-  Future<void> _openTaggingPeople() async {
-    final result = await Navigator.push<List<SelectedTaggingPersonModel>>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => TaggingPeopleReusable(
-          searchPeople: (String query) async {
-            final response = await api.searchBarData(query, null);
-
-            return response.map((person) {
-              return TaggingPersonModel(
-                id: person.id,
-                politicianId: person.politicianId,
-                imagePath: person.imagePath,
-                name: person.name,
-                surname: person.surname,
-                designation: person.designation,
-              );
-            }).toList();
-          },
-          initialSelectedPeople: taggedPeople.map((person) {
-            return SelectedTaggingPersonModel(
-              politicianId: person.id ?? 0,
-              type: person.type ?? 'POLITICIAN',
-              name: person.name ?? '',
-              imagePath: person.photoUrl,
-            );
-          }).toList(),
-        ),
-      ),
-    );
-
-    if (result == null || !mounted) return;
-
-    setState(() {
-      taggedPeople = result.map((person) {
-        return Tagged(
-          type: person.type,
-          id: person.politicianId,
-          name: person.name,
-          photoUrl: person.imagePath,
-        );
-      }).toList();
-    });
-    print("Selected Tagged People:");
-    print(taggedPeople.map((e) => e.id).toList());
-  }
+  // Future<void> _openTaggingPeople() async {
+  //   final result = await Navigator.push<List<SelectedTaggingPersonModel>>(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (_) => TaggingPeopleReusable(
+  //         searchPeople: (String query) async {
+  //           final response = await api.searchBarData(query);
+  //
+  //           return response.map((person) {
+  //             return TaggingPersonModel(
+  //               id: person.id,
+  //               politicianId: person.politicianId,
+  //               imagePath: person.imagePath,
+  //               name: person.name,
+  //               surname: person.surname,
+  //               designation: person.designation,
+  //              region: person.region,
+  //
+  //             );
+  //           }).toList();
+  //         },
+  //         initialSelectedPeople: taggedPeople.map((person) {
+  //           return SelectedTaggingPersonModel(
+  //             politicianId: person.id ?? 0,
+  //             type: person.type ?? 'POLITICIAN',
+  //             name: person.name ?? '',
+  //             imagePath: person.photoUrl,
+  //           );
+  //         }).toList(),
+  //       ),
+  //     ),
+  //   );
+  //
+  //   if (result == null || !mounted) return;
+  //
+  //   setState(() {
+  //     taggedPeople = result.map((person) {
+  //       return Tagged(
+  //         type: person.type,
+  //         id: person.politicianId,
+  //         name: person.name,
+  //         photoUrl: person.imagePath,
+  //       );
+  //     }).toList();
+  //   });
+  //  }
   Future<void> playVideo(int index, {required bool isExisting}) async {
     if (isExisting) {
       await videoPlayerHelper.playVideo(
@@ -565,13 +565,29 @@ titleController.text="Not required";
                                     ),
                                     SizedBox(width: w * 0.03),
                                     //-----Tag Peoples
-                                    FeedQuoteTab(
-                                        title: PartyPageData.tagPeople,
-                                        isSelected: false,
-                                        onTap: _openTaggingPeople,
-                                      iconName: PartyPageData.tagPeopleIcon,
-                                      height: h * 0.05,
-                                      width: w * 0.4,
+                                    TaggingPeoplePicker(
+                                      initialTaggedPeople: taggedPeople,
+
+                                      onChanged: (people) {
+                                        taggedPeople = people;
+
+                                        debugPrint(
+                                          'Tagged People IDs: ${taggedPeople.map((e) => e.id).toList()}',
+                                        );
+                                      },
+
+                                      builder: (context, selectedPeople, openTaggingPeople) {
+                                        return FeedQuoteTab(
+                                          title: selectedPeople.isEmpty
+                                              ? PartyPageData.tagPeople
+                                              : '${PartyPageData.tagPeople} (${selectedPeople.length})',
+                                          isSelected: false,
+                                          onTap: openTaggingPeople,
+                                          iconName: PartyPageData.tagPeopleIcon,
+                                          height: h * 0.05,
+                                          width: w * 0.4,
+                                        );
+                                      },
                                     ),
 
                                     SizedBox(width: w * 0.03),

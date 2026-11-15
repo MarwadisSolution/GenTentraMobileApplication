@@ -17,6 +17,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../Reusable Functions/image_video_compressor.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../party_page_data.dart';
+import '../Event Tab/event_modal.dart';
 import '../tagged_people_helper.dart';
 import 'feed_event.dart';
 
@@ -35,7 +36,6 @@ final String fromWhichPage;
 
 class _AddingFeedState extends State<AddingFeed> {
   final FeedApis api = FeedApis();
-  late TaggedPeopleHandler taggedPeopleHandler;
   TextEditingController descriptionController = TextEditingController();
   TextEditingController scheduleController = TextEditingController();
   bool isCompressingMedia = false;
@@ -236,10 +236,6 @@ class _AddingFeedState extends State<AddingFeed> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    taggedPeopleHandler = TaggedPeopleHandler(
-      context: context,
-      api: api,
-    );
     if (widget.editFeed != null) {
       final data = FeedHelper.initializeEditData("FEED", widget.editFeed!);
 
@@ -516,33 +512,27 @@ class _AddingFeedState extends State<AddingFeed> {
                                     ),
                                     SizedBox(width: w * 0.03),
                                     //-----Tag Peoples
-                                    FeedQuoteTab(
-                                      title: PartyPageData.tagPeople,
-                                      isSelected: false,
-                                      onTap: () async {
-                                        if (taggedPeople.isEmpty) {
-                                          await taggedPeopleHandler.addMoreTaggedPeople(
-                                            taggedPeople: taggedPeople,
-                                            onChanged: () {
-                                              if (mounted) {
-                                                setState(() {});
-                                              }
-                                            },
-                                          );
-                                        } else {
-                                          await taggedPeopleHandler.showTaggedPeopleDialog(
-                                            taggedPeople: taggedPeople,
-                                            onChanged: () {
-                                              if (mounted) {
-                                                setState(() {});
-                                              }
-                                            },
-                                          );
-                                        }
+                                    TaggingPeoplePicker(
+                                      initialTaggedPeople: taggedPeople,
+
+                                      onChanged: (people) {
+                                        // Update the parent variable without setState.
+                                        taggedPeople = people;
+
                                       },
-                                      iconName: PartyPageData.tagPeopleIcon,
-                                      height: h * 0.05,
-                                      width: w * 0.45,
+
+                                      builder: (context, selectedPeople, openTaggingPeople) {
+                                        return FeedQuoteTab(
+                                          title: selectedPeople.isEmpty
+                                              ? PartyPageData.tagPeople
+                                              : '${PartyPageData.tagPeople} (${selectedPeople.length})',
+                                          isSelected: false,
+                                          onTap: openTaggingPeople,
+                                          iconName: PartyPageData.tagPeopleIcon,
+                                          height: h * 0.05,
+                                          width: w * 0.45,
+                                        );
+                                      },
                                     ),
                                     SizedBox(width: w * 0.03),
 

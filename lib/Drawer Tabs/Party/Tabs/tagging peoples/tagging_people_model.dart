@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+
 class TaggingPersonModel {
   final int? id;
   final int politicianId;
@@ -5,7 +7,7 @@ class TaggingPersonModel {
   final String name;
   final String? surname;
   final String designation;
-
+  final String? region;
   const TaggingPersonModel({
     this.id,
     required this.politicianId,
@@ -13,9 +15,13 @@ class TaggingPersonModel {
     required this.name,
     this.surname,
     required this.designation,
+     this.region,
   });
 
   factory TaggingPersonModel.fromJson(Map<String, dynamic> json) {
+    debugPrint("TAGGING PERSON JSON: $json");
+    debugPrint("REGION VALUE: ${json['region']}");
+
     final rawImg = json["photoUrl"] ??
         json["imageUrl"] ??
         json["imagePath"] ??
@@ -27,9 +33,11 @@ class TaggingPersonModel {
       id: json['id'] as int?,
       politicianId: (json["politicianId"] ?? json["id"] ?? 0) as int,
       imagePath: rawImg?.toString(),
-      name: json["name"]?.toString() ?? "",
-      surname: (json["surname"] ?? json["lastName"])?.toString(),
+      name: json["fullName"]?.toString() ??
+          json["name"]?.toString() ?? "",
+      surname: json["surname"]?.toString(),
       designation: json["designation"]?.toString() ?? "",
+      region: json["region"]?.toString(),
     );
   }
 

@@ -7,7 +7,121 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_dat
 import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_functions.dart';
 
 import '../../Favourite/favourite_api.dart';
+import 'Tabs/Development/development_apis.dart';
+import 'Tabs/Event Tab/event_modal.dart';
+import 'Tabs/tagged_people_helper.dart';
+import 'Tabs/tagging peoples/tagging_people_model.dart';
+import 'Tabs/tagging peoples/tagging_people_reusable.dart';
 import 'following_party_caching.dart';
+///-----------Tagging Politicins--------------
+
+import 'package:flutter/material.dart';
+
+import 'package:gen_tentra_mobile_application/Drawer Tabs/Party/Tabs/tagging peoples/tagging_people_model.dart';
+import 'package:gen_tentra_mobile_application/Drawer Tabs/Party/Tabs/tagging peoples/tagging_people_reusable.dart';
+
+// Import the file containing Tagged.
+import 'package:gen_tentra_mobile_application/Drawer Tabs/Party/Tabs/development/development_model.dart';
+
+// Import DevelopmentApis.
+import 'package:gen_tentra_mobile_application/Drawer Tabs/Party/Tabs/development/development_apis.dart' hide DevelopmentApis;
+
+typedef TaggingPeoplePickerBuilder = Widget Function(
+    BuildContext context,
+    List<Tagged> taggedPeople,
+    VoidCallback openTaggingPeople,
+    );
+
+class TaggingPeoplePicker extends StatefulWidget {
+  final List<Tagged> initialTaggedPeople;
+  final ValueChanged<List<Tagged>>? onChanged;
+  final TaggingPeoplePickerBuilder builder;
+
+  const TaggingPeoplePicker({
+    super.key,
+    this.initialTaggedPeople = const [],
+    this.onChanged,
+    required this.builder,
+  });
+
+  @override
+  State<TaggingPeoplePicker> createState() =>
+      _TaggingPeoplePickerState();
+}
+
+class _TaggingPeoplePickerState extends State<TaggingPeoplePicker> {
+  late List<Tagged> taggedPeople;
+
+  final DevelopmentApis api = DevelopmentApis();
+
+  @override
+  void initState() {
+    super.initState();
+
+    taggedPeople = List<Tagged>.from(
+      widget.initialTaggedPeople,
+    );
+  }
+
+  Future<void> openTaggingPeople() async {
+    final result =
+    await Navigator.push<List<SelectedTaggingPersonModel>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TaggingPeopleReusable(
+          searchPeople: (String query) async {
+            final response = await api.searchBarData(query);
+
+            return response.map((person) {
+              return TaggingPersonModel(
+                id: person.id,
+                politicianId: person.politicianId,
+                imagePath: person.imagePath,
+                name: person.name,
+                surname: person.surname,
+                designation: person.designation,
+                region: person.region,
+              );
+            }).toList();
+          },
+          initialSelectedPeople: taggedPeople.map((person) {
+            return SelectedTaggingPersonModel(
+              politicianId: person.id ?? 0,
+              type: person.type ?? 'POLITICIAN',
+              name: person.name ?? '',
+              imagePath: person.photoUrl,
+            );
+          }).toList(),
+        ),
+      ),
+    );
+
+    if (!mounted || result == null) return;
+
+    setState(() {
+      taggedPeople = result.map((person) {
+        return Tagged(
+          type: person.type,
+          id: person.politicianId,
+          name: person.name,
+          photoUrl: person.imagePath,
+        );
+      }).toList();
+    });
+
+    widget.onChanged?.call(taggedPeople);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(
+      context,
+      taggedPeople,
+      openTaggingPeople,
+    );
+  }
+}
+
 ///--------------------Filter chips-----------------------------------------
 
 class ReusableFilterChip extends StatelessWidget {

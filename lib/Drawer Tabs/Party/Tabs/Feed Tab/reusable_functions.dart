@@ -11,6 +11,8 @@ import 'package:video_player/video_player.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
+import '../Event Tab/event_modal.dart';
+
 class PickedMedia {
   final List<XFile> images;
   final List<XFile> videos;

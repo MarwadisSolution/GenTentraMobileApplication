@@ -8,6 +8,7 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Feed%20Ta
 
 import '../../../Reusable Functions/reusable_functions.dart';
 import '../party_page_data.dart';
+import 'Event Tab/event_modal.dart';
 import 'Feed Tab/reusable_functions.dart';
 
 class TaggedPeopleHandler {

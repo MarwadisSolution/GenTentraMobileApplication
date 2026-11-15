@@ -1,3 +1,5 @@
+import '../Event Tab/event_modal.dart';
+
 class FeedModel {
 final int? id;
 final String?uuid;
@@ -230,43 +232,7 @@ class FeedMedia {
     "url": url,
   };
 }
-///-------Tagged
-class Tagged {
-  final String? type;
-  final int? id;
-  final String? name;
-  final String? photoUrl;
 
-  Tagged({
-    this.type,
-    this.id,
-    this.name,
-    this.photoUrl,
-  });
-
-  factory Tagged.fromJson(Map<String, dynamic> json) {
-    return Tagged(
-      type: json["type"],
-      id: json["id"],
-      name: json["name"],
-      photoUrl: json["photoUrl"],
-    );
-  }
-
-  /// Used while POST API
-  Map<String, dynamic> toPostJson() => {
-    "type": type,
-    "id": id,
-  };
-
-  /// Optional full JSON
-  Map<String, dynamic> toJson() => {
-    "type": type,
-    "id": id,
-    "name": name,
-    "photoUrl": photoUrl,
-  };
-}
 ///-------------------Of Search of politicians
 class LeaderModel {
   final int id;

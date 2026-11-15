@@ -1,4 +1,5 @@
 
+import '../Event Tab/event_modal.dart';
 import '../Feed Tab/feed_model.dart' show Tagged;
 
 class DevelopmentModel {

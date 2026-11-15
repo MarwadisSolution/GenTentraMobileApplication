@@ -11,6 +11,7 @@ import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../../../Reusable Functions/sliver_app_bar_reusable.dart';
 import '../../party_page_data.dart';
 import '../../reusable_functions.dart';
+import '../Event Tab/event_modal.dart';
 import '../tagged_people_helper.dart';
 import 'feed_bloc.dart';
 import 'feed_event.dart';
@@ -38,7 +39,6 @@ final String fromWhichPage;
 
 class _AddingQuoteState extends State<AddingQuote> {
   final FeedApis api = FeedApis();
-  late TaggedPeopleHandler taggedPeopleHandler;
   TextEditingController quoteController = TextEditingController();
   TextEditingController authorNameController = TextEditingController();
   TextEditingController scheduleController = TextEditingController();
@@ -104,10 +104,7 @@ class _AddingQuoteState extends State<AddingQuote> {
   @override
   void initState() {
     super.initState();
-    taggedPeopleHandler = TaggedPeopleHandler(
-      context: context,
-      api: api,
-    );
+
     if (widget.editQuote != null) {
       final data = FeedHelper.initializeEditData(
         "QUOTE",
@@ -342,33 +339,58 @@ class _AddingQuoteState extends State<AddingQuote> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       //-----Tag Peoples
-                                      FeedQuoteTab(
-                                        title: PartyPageData.taggedPeople,
-                                        isSelected: false,
-                                        onTap: () async {
-                                          if (taggedPeople.isEmpty) {
-                                            await taggedPeopleHandler.addMoreTaggedPeople(
-                                              taggedPeople: taggedPeople,
-                                              onChanged: () {
-                                                if (mounted) {
-                                                  setState(() {});
-                                                }
-                                              },
-                                            );
-                                          } else {
-                                            await taggedPeopleHandler.showTaggedPeopleDialog(
-                                              taggedPeople: taggedPeople,
-                                              onChanged: () {
-                                                if (mounted) {
-                                                  setState(() {});
-                                                }
-                                              },
-                                            );
-                                          }
+                                      TaggingPeoplePicker(
+                                        initialTaggedPeople: taggedPeople,
+
+                                        onChanged: (people) {
+                                          // Update the parent variable without setState.
+                                          taggedPeople = people;
+
+                                          debugPrint(
+                                            'Tagged People IDs: ${taggedPeople.map((e) => e.id).toList()}',
+                                          );
                                         },
-                                        iconName: PartyPageData.tagPeopleIcon,
-                                        height: h*0.05, width: w*0.45,
+
+                                        builder: (context, selectedPeople, openTaggingPeople) {
+                                          return FeedQuoteTab(
+                                            title: selectedPeople.isEmpty
+                                                ? PartyPageData.tagPeople
+                                                : '${PartyPageData.tagPeople} (${selectedPeople.length})',
+                                            isSelected: false,
+                                            onTap: openTaggingPeople,
+                                            iconName: PartyPageData.tagPeopleIcon,
+                                            height: h * 0.05,
+                                            width: w * 0.45,
+                                          );
+                                        },
                                       ),
+                                      // FeedQuoteTab(
+                                      //   title: PartyPageData.taggedPeople,
+                                      //   isSelected: false,
+                                      //   onTap: () async {
+                                      //     if (taggedPeople.isEmpty) {
+                                      //       await taggedPeopleHandler.addMoreTaggedPeople(
+                                      //         taggedPeople: taggedPeople,
+                                      //         onChanged: () {
+                                      //           if (mounted) {
+                                      //             setState(() {});
+                                      //           }
+                                      //         },
+                                      //       );
+                                      //     } else {
+                                      //       await taggedPeopleHandler.showTaggedPeopleDialog(
+                                      //         taggedPeople: taggedPeople,
+                                      //         onChanged: () {
+                                      //           if (mounted) {
+                                      //             setState(() {});
+                                      //           }
+                                      //         },
+                                      //       );
+                                      //     }
+                                      //   },
+                                      //   iconName: PartyPageData.tagPeopleIcon,
+                                      //   height: h*0.05, width: w*0.45,
+                                      // ),
                                       SizedBox(width: w*0.03,),
                                       ///-----Schedule
                                       FeedQuoteTab(

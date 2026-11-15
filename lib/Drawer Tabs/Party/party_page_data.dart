@@ -46,6 +46,8 @@ class PartyPageData {
   static final scheduleIcon = "Assets/PartyPage/scheduleIcon.svg";
   static final chooseDate =
       "Choose a date and time in the future when you want your post to be published.";
+  static final tickButtonUncolored="Assets/PartyPage/tickIconUncolored.svg";
+  static final tickButtonColored="Assets/PartyPage/tickIconColored.svg";
   static final date = "Date";
   static final time = "Time";
   static final setDateTime = "SET DATE & TIME";

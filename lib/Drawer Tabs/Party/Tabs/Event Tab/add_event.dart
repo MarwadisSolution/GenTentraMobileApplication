@@ -35,7 +35,7 @@ class _AddEventState extends State<AddEvent> {
   bool get isEditMode => widget.eventToEdit != null;
 
   int? get editingEventId => widget.eventToEdit?.id;
-
+  List<Tagged> taggedPeople = [];
   final FeedApis api = FeedApis();
   late EventTaggedPeopleHandler taggedPeopleHandler;
 
@@ -952,57 +952,81 @@ class _AddEventState extends State<AddEvent> {
                                   // ==========================================================
 // TAG PEOPLE
 // ==========================================================
+                                  TaggingPeoplePicker(
+                                    initialTaggedPeople: taggedPeople,
 
-                                  FeedQuoteTab(
-                                    title: PartyPageData.tagPeople,
-                                    textStyle: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.width * 0.035,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.black,
-                                    ),
-                                    isSelected: false,
-                                    onTap: () async {
-                                      final currentTaggedPeople =
-                                      List<Tagged>.from(state.taggedPeople);
+                                    onChanged: (people) {
+                                      // Update the parent variable without setState.
+                                      taggedPeople = people;
 
-                                      final result =
-                                      await taggedPeopleHandler.addMoreTaggedPeople(
-                                        taggedPeople: currentTaggedPeople,
-                                      );
-
-                                      if (!mounted || result == null) {
-                                        return;
-                                      }
-
-                                      final updatedTaggedPeople =
-                                      List<Tagged>.from(
-                                        result['taggedPeople'] as List<Tagged>,
-                                      );
-
-                                      final removedTags =
-                                      List<Tagged>.from(
-                                        result['removed'] as List<Tagged>,
-                                      );
-
-// Update currently visible tags.
-                                      context.read<EventsBloc>().add(
-                                        TaggedPeopleEvent(
-                                          updatedTaggedPeople,
-                                        ),
-                                      );
-
-// Store removed existing tags for PATCH.
-                                      context.read<EventsBloc>().add(
-                                        RemovedTaggedPeopleEvent(
-                                          removedTags,
-                                        ),
+                                      debugPrint(
+                                        'Tagged People IDs: ${taggedPeople.map((e) => e.id).toList()}',
                                       );
                                     },
-                                    iconName: PartyPageData.tagPeopleIcon,
-                                    iconHeight: w * 0.045,
-                                    height: h * 0.05,
-                                    width: w * 0.4,
+
+                                    builder: (context, selectedPeople, openTaggingPeople) {
+                                      return FeedQuoteTab(
+                                        title: selectedPeople.isEmpty
+                                            ? PartyPageData.tagPeople
+                                            : '${PartyPageData.tagPeople} (${selectedPeople.length})',
+                                        isSelected: false,
+                                        onTap: openTaggingPeople,
+                                        iconName: PartyPageData.tagPeopleIcon,
+                                        height: h * 0.05,
+                                        width: w * 0.45,
+                                      );
+                                    },
                                   ),
+//                                   FeedQuoteTab(
+//                                     title: PartyPageData.tagPeople,
+//                                     textStyle: TextStyle(
+//                                       fontSize: MediaQuery.of(context).size.width * 0.035,
+//                                       fontWeight: FontWeight.w400,
+//                                       color: Colors.black,
+//                                     ),
+//                                     isSelected: false,
+//                                     onTap: () async {
+//                                       final currentTaggedPeople =
+//                                       List<Tagged>.from(state.taggedPeople);
+//
+//                                       final result =
+//                                       await taggedPeopleHandler.addMoreTaggedPeople(
+//                                         taggedPeople: currentTaggedPeople,
+//                                       );
+//
+//                                       if (!mounted || result == null) {
+//                                         return;
+//                                       }
+//
+//                                       final updatedTaggedPeople =
+//                                       List<Tagged>.from(
+//                                         result['taggedPeople'] as List<Tagged>,
+//                                       );
+//
+//                                       final removedTags =
+//                                       List<Tagged>.from(
+//                                         result['removed'] as List<Tagged>,
+//                                       );
+//
+// // Update currently visible tags.
+//                                       context.read<EventsBloc>().add(
+//                                         TaggedPeopleEvent(
+//                                           updatedTaggedPeople,
+//                                         ),
+//                                       );
+//
+// // Store removed existing tags for PATCH.
+//                                       context.read<EventsBloc>().add(
+//                                         RemovedTaggedPeopleEvent(
+//                                           removedTags,
+//                                         ),
+//                                       );
+//                                     },
+//                                     iconName: PartyPageData.tagPeopleIcon,
+//                                     iconHeight: w * 0.045,
+//                                     height: h * 0.05,
+//                                     width: w * 0.4,
+//                                   ),
 
                                   SizedBox(height: h * 0.02),
 
