@@ -38,6 +38,7 @@ class DevelopmentApis {
 
 
   Future<DevelopmentModel> postTheDevelopment({
+
     required DevelopmentModel development,
     required List<File> mediaFiles,
   }) async {
@@ -78,6 +79,51 @@ class DevelopmentApis {
       throw Exception(e.response?.data ?? e.message);
     }
   }
+  ///------Patch api for editing of development
+  Future<DevelopmentModel> editTheDevelopment({
+    required int id,
+    required DevelopmentModel development,
+    required List<File> mediaFiles,
+  }) async {
+    try {
+      FormData formData = FormData();
+
+      // JSON Data
+      formData.fields.add(
+        MapEntry(
+          "data",
+          jsonEncode(development.toJson()),
+        ),
+      );
+
+      // Media Files
+      for (File file in mediaFiles) {
+        formData.files.add(
+          MapEntry(
+            "media",
+            await MultipartFile.fromFile(
+              file.path,
+              filename: file.path.split('/').last,
+            ),
+          ),
+        );
+      }
+
+      final response = await _dio.patch(
+        "$api/api/v1/developments/$id",
+        data: formData,
+      );
+    print(response.data);
+      return DevelopmentModel.fromJson(
+        Map<String, dynamic>.from(response.data["data"]),
+      );
+
+    } on DioException catch (e) {
+      throw Exception(e.response?.data ?? e.message);
+    }
+  }
+  ///-----------------------Search bar for tagging politicians
+
   Future<List<LeaderModel>>searchBarData(String? query,int? id)async{
 
     final response=await _dio.get("$api/api/v1/profile/politicians?&",
@@ -98,5 +144,26 @@ class DevelopmentApis {
       if(response.data["success"]==true) return "Successfully post deleted";
     }
     return "Unable to delete post, try again";
+  }
+  
+  ///--------------Get year in which development is done
+  Future<List<String>> getYears() async {
+    try {
+      final response = await _dio.get(
+        "$api/api/v1/developments/years",
+      );
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 201) {
+        final List<dynamic> data =
+            response.data["data"] ?? [];
+
+        return data.map((e) => e.toString()).toList();
+      }
+
+      return [];
+    } on DioException catch (e) {
+      throw Exception(e.response?.data ?? e.message);
+    }
   }
 }

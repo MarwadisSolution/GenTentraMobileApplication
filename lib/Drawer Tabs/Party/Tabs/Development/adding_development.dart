@@ -16,6 +16,7 @@ import '../../../../Reusable Functions/sliver_app_bar_reusable.dart';
 import '../../party_page_data.dart';
 import '../../reusable_functions.dart';
 import '../Event Tab/event_modal.dart';
+import '../Event Tab/reusable_functions.dart';
 import '../Feed Tab/reusable_functions.dart';
 import '../Feed Tab/reusable_media_grid.dart';
 import '../tagged_people_helper.dart';
@@ -280,9 +281,14 @@ titleController.text="Not required";
           .where((e) => e.mediaType?.toUpperCase() == 'VIDEO')
           .toList();
 
-      taggedPeople = List<Tagged>.from(
-        development.taggedPoliticians,
-      );
+      taggedPeople = development.taggedPoliticians.map((person) {
+        return Tagged(
+          id: person.id,
+          type: person.type,
+          name: person.name,
+          photoUrl: person.photoUrl,
+        );
+      }).toList();
     }
   }
 
@@ -411,7 +417,9 @@ titleController.text="Not required";
         .size
         .height;
     return BlocListener<DevelopmentBloc, DevelopmentState>(
+
       listener: (context, state) {
+
         if (state.isSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -621,24 +629,29 @@ titleController.text="Not required";
                                           },
                                         ),
                                       ],
+                                      SizedBox(width: w * 0.03),
 // From year
-                                      TextFormField(
-                                        controller: fromController,
-                                        keyboardType: TextInputType.number,
-                                        decoration: const InputDecoration(
-                                          hintText: 'From year (e.g. 2007)',
-                                          border: InputBorder.none,
-                                        ),
-                                      ),
+                                      CustomTextField(controller: fromController, labelText: "From year",isRequired: true,keyboardType: TextInputType.numberWithOptions(),),
+//                                       TextFormField(
+//                                         controller: fromController,
+//                                         keyboardType: TextInputType.number,
+//                                         decoration: const InputDecoration(
+//                                           hintText: 'From year (e.g. 2007)',
+//                                           border: InputBorder.none,
+//                                         ),
+//                                       ),
+
+                                      SizedBox(height: h * 0.035),
 // To year
-                                      TextFormField(
-                                        controller: toController,
-                                        keyboardType: TextInputType.number,
-                                        decoration: const InputDecoration(
-                                          hintText: 'To year (e.g. 2008)',
-                                          border: InputBorder.none,
-                                        ),
-                                      ),
+CustomTextField(controller: toController, labelText: "To year",isRequired: true, keyboardType: TextInputType.numberWithOptions(),),
+//                                       TextFormField(
+//                                         controller: toController,
+//                                         keyboardType: TextInputType.number,
+//                                         decoration: const InputDecoration(
+//                                           hintText: 'To year (e.g. 2008)',
+//                                           border: InputBorder.none,
+//                                         ),
+//                                       ),
 
 
                                       SizedBox(height: h * 0.035),
@@ -646,9 +659,11 @@ titleController.text="Not required";
                                       ///--------------Publish button
                                       BlocBuilder<DevelopmentBloc, DevelopmentState>(
                                         builder: (context, state) {
+                                          final bool isSubmitting =
+                                              state.isAdding || state.isUpdating;
                                           return Center(
                                             child: InkWell(
-                                              onTap: state.isAdding || isCompressingMedia
+                                              onTap: isSubmitting || isCompressingMedia
                                                   ? null
                                                   : () async {
                                                 await _publishDevelopment();
@@ -690,7 +705,7 @@ titleController.text="Not required";
                                                   ),
                                                 ),
                                                 child: Center(
-                                                  child: state.isAdding
+                                                  child: isSubmitting
                                                       ? const SizedBox(
                                                     height: 22,
                                                     width: 22,

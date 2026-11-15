@@ -99,6 +99,7 @@ class _DevelopmentTabState extends State<DevelopmentTab> {
       );
     }
   }
+
   @override
   void didUpdateWidget(covariant DevelopmentTab oldWidget) {
     // TODO: implement didUpdateWidget
@@ -113,6 +114,9 @@ class _DevelopmentTabState extends State<DevelopmentTab> {
     super.initState();
     isAdminChecking();
     checkPolitician();
+    context.read<DevelopmentBloc>().add(
+      const LoadDevelopmentYearsEvent(),
+    );
     if(widget.isVisible){
       WidgetsBinding.instance.addPostFrameCallback((_){
         if(mounted){
@@ -121,6 +125,7 @@ class _DevelopmentTabState extends State<DevelopmentTab> {
       });
     }
     widget.scrollController.addListener(_onScroll);
+
   }
   @override
   void dispose() {
@@ -128,8 +133,56 @@ class _DevelopmentTabState extends State<DevelopmentTab> {
     widget.scrollController.removeListener(_onScroll);
     super.dispose();
   }
+  Widget buildDevelopmentYearTabs(
+      BuildContext context,
+      DevelopmentState state,
+      ) {
+    final years = [
+      "All",
+      ...state.availableYears,
+    ];
+
+    final w = MediaQuery.of(context).size.width;
+
+    return SizedBox(
+      width: double.infinity,
+      height: w * 0.1,
+      child: state.isLoadingYears
+          ? const Center(
+        child: CircularProgressIndicator(),
+      )
+          : ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(
+          horizontal: w * 0.035,
+        ),
+        itemCount: years.length,
+        itemBuilder: (context, index) {
+          final year = years[index];
+
+          final isSelected = index == 0
+              ? state.selectedYear == null ||
+              state.selectedYear!.isEmpty
+              : state.selectedYear == year;
+
+          return ReusableFilterChip(
+            title: year,
+            isSelected: isSelected,
+            onTap: () {
+              context.read<DevelopmentBloc>().add(
+                YearWiseDevelopmentEvent(
+                  index == 0 ? "" : year,
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
   Future<void>shareDevelopment(dynamic development)async{
-    final String shareLink='$api/development/${development.uuid}';
+    final String shareLink='$api/development/${development.author.name}';
     await Share.share('Check out the development:\n$shareLink');
   }
   final Map<int, Timer> _viewTimer = {};
@@ -144,7 +197,7 @@ class _DevelopmentTabState extends State<DevelopmentTab> {
 
     ///-----------development is >=50% visible
     if(visibleFraction>=0.5){
-      //Timer already running.
+
       if(_viewTimer.containsKey(postId))return;
       _viewTimer[postId]=Timer(const Duration(seconds: 2), (){
         _viewTimer.remove(postId);
@@ -193,434 +246,363 @@ void _cancelViewTimer(int postId){
         if (state.isError) {
           return const SizedBox.shrink();
         }
-        if(state.developments.isEmpty){
-          return Padding(padding: EdgeInsets.all(h * 0.045),
-              child: Center(
-                child: Text(
-                  "No Development found",
-                  style: TextStyle(
-                    color: ColorScheme.of(context).onSurface,
-                    fontSize: w * 0.045,
+        final visibleDevelopments = state.filteredDevelopments;
+        if (visibleDevelopments.isEmpty) {
+          return Column(
+            children: [
+              SizedBox(height: h*0.01,),
+              buildDevelopmentYearTabs(context, state),
+
+              Padding(
+                padding: EdgeInsets.all(h * 0.045),
+                child: Center(
+                  child: Text(
+                    "No Development found",
+                    style: TextStyle(
+                      color: ColorScheme.of(context).onSurface,
+                      fontSize: w * 0.045,
+                    ),
                   ),
                 ),
               ),
+            ],
           );
         }
-        return ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.zero,
-            itemCount: state.developments.length + (state.isLoading?1:0),
-            itemBuilder:(context, index){
-              if(index>=state.developments.length){
-                return Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: ColorScheme.of(context).onSurface,
-                    ),
-                  ),
-                );
-              }
-              final developments=state.developments[index];
-              return VisibilityDetector(
-                  key: Key('development_visibility_${developments.id??index}'),
-                  onVisibilityChanged: (info){
-                    _onDevelopmentVisibilityChanged(developments.id, info.visibleFraction);
-                  },
-              child: Container(
-                key: ValueKey(developments.id),
-                margin: EdgeInsets.only(bottom: h * 0.012),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ListTile(
-                      leading: CircleAvatar(
-                        radius: w * 0.07,
-                        backgroundColor: Colors.white,
-                        child: ClipOval(
-                          child: SizedBox.expand(
-                            child: buildImageWidget(
-                              developments.author?.photoUrl ?? "",
-                              width: double.infinity,
-                              height: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+        return Column(
+          children: [
+            SizedBox(height: h*0.01,),
+            buildDevelopmentYearTabs(context, state),
+
+            ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemCount: visibleDevelopments.length +
+                    (state.isLoadingMore ? 1 : 0),
+                itemBuilder:(context, index){
+                  if(index>=visibleDevelopments.length){
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: ColorScheme.of(context).onSurface,
                         ),
                       ),
-                      title: Text(
-                        developments.author?.name??"-",
-                        maxLines: 2,
-                        style: TextStyle(
-                          fontSize: (w * 0.045),
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.31,
-                        ),
-                      ),
-                      subtitle: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            getTimeAgo(developments.timeStamp),
-                            style: TextStyle(
-                              fontSize: (w * 0.025).clamp(12.0, 15.0),
-                              fontWeight: FontWeight.w400,
-                              letterSpacing: 0.21,
-                              color: const Color(0xFF666666),
-                            ),
-                          ),
-                          SizedBox(width: w * 0.01),
-                          Text(
-                            "•",
-                            style: TextStyle(
-                              fontSize: (w * 0.025).clamp(12.0, 15.0),
-                              color: ColorScheme.of(context).error,
-                            ),
-                          ),
-                          SizedBox(width: w * 0.03),
-                          Padding(
-                            padding: EdgeInsets.only(top: h * 0.0027),
-                            child: SvgPicture.asset(
-                              PartyPageData.headquarterIcon,
-                              height: (h * 0.017),
-                            ),
-                          ),
-                          SizedBox(width: w * 0.01),
-                          Text(
-                            developments.author?.state ?? "-",
-                            style: TextStyle(
-                              fontSize: (w * 0.025).clamp(12.0, 15.0),
-                              fontWeight: FontWeight.w400,
-                              letterSpacing: 0.21,
-                              color: const Color(0xFF666666),
-                            ),
-                          ),
-                          SizedBox(width: w * 0.01),
-                          Text(
-                            developments.author?.country ?? "",
-                            style: TextStyle(
-                              fontSize: (w * 0.025).clamp(12.0, 15.0),
-                              fontWeight: FontWeight.w400,
-                              letterSpacing: 0.21,
-                              color: const Color(0xFF666666),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      ///----------------Need to be checked-------------------------
-                      trailing:
-                      isAdmin == true ||
-                          (isPolitician == true &&
-                              widget.fromWhichPage == "Politician")
-                          ? PopupMenuButton<String>(
-                        icon: Transform.translate(
-                          offset: const Offset(20, 0),
-                          child: SvgPicture.asset(
-                            PartyPageData.threeDots,
-                            height: h * 0.004,
-                          ),
-                        ),
-                        onSelected: (value) async {
-                          if (value == 'edit') {
-
-                          } else if (value == 'share') {
-                            shareDevelopment(developments);
-                          } else if (value == 'delete') {
-                            final shouldDelete =
-                            await showGeneralDialog<bool>(
-                              context: context,
-                              barrierDismissible: true,
-                              barrierLabel: 'Delete',
-                              barrierColor: Colors.black.withValues(
-                                alpha: 0.25,
-                              ),
-                              transitionDuration: const Duration(
-                                milliseconds: 250,
-                              ),
-                             pageBuilder: (dialogContext, _, _) {
-                                return popUpMessageForDeleteOrCancel(
-                                  dialogContext,
-                                 PartyPageData.addFeedIcon,
-                                  "Would you like to Delete?",
-                                  "Once deleted, this post will be permanently removed.",
-                                      () {},
-                                );
-                              },
-                              transitionBuilder:
-                                  (
-                                  context,
-                                  animation,
-                                  secondaryAnimation,
-                                  child,
-                                  ) {
-                                return SlideTransition(
-                                  position:
-                                  Tween<Offset>(
-                                    begin: const Offset(0, 1),
-                                    end: Offset.zero,
-                                  ).animate(
-                                    CurvedAnimation(
-                                      parent: animation,
-                                      curve:
-                                      Curves.easeOutCubic,
-                                    ),
-                                  ),
-                                  child: child,
-                                );
-                              },
-                            );
-
-                            if (shouldDelete == true && mounted) {
-                              context.read<DevelopmentBloc>().add(
-                                DeleteDevelopmentEvent(
-                                  developments.id,
-                                  widget.id,
-                                  fromWhichPage: widget.fromWhichPage,
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        itemBuilder: (BuildContext context) => [
-                          PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(
-                                  PartyPageData.editIcon,
-                                  width: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                const Text("Edit"),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'share',
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(
-                                  PartyPageData.share,
-                                  width: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                const Text("Share"),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(
-                                  PartyPageData.deleteIcon,
-                                  width: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                const Text("Delete"),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
-                          : null,
-                    ),
-                    ///------------------------Need to be checked--------------------------
-                    ShowingTaggedPersons(
-                      tagged: developments.taggedPoliticians,
-                    ),
-
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: h * 0.001,
-                        right: w * 0.044,
-                        left: w * 0.044,
-                      ),
-                      child: ReadMoreText(
-                        developments.description ?? "-",
-                        trimLines: 3,
-                        trimMode: TrimMode.Line,
-                        trimCollapsedText: "\nRead More",
-                        trimExpandedText: "\nShow Less",
-                        moreStyle: const TextStyle(
-                          color: Color(0xFFFE3A31),
-                          fontWeight: FontWeight.w600,
-                        ),
-                        lessStyle: const TextStyle(
-                          color: Color(0xFFFE3A31),
-                          fontWeight: FontWeight.w600,
-                        ),
-                        style: TextStyle(
-                          fontSize: (w * 0.042),
-                          color: Colors.black,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      )
-                    ),
-                    if(developments.media!=null && developments.media!.isNotEmpty)...[
-                      SizedBox(height: h * 0.012),
-                      FeedMediaWidget<DevelopmentMedia>(
-                        media: developments.media ?? [],
-                        getMediaUrl: (item) => item.url,
-                        getMediaType: (item) => item.mediaType,
-                      )
-                    ],
-                    Padding(   padding: EdgeInsets.only(
-                      top:  h * 0.012,
-                    ),
+                    );
+                  }
+                  final developments=visibleDevelopments[index];
+                  return VisibilityDetector(
+                      key: Key('development_visibility_${developments.id??index}'),
+                      onVisibilityChanged: (info){
+                        _onDevelopmentVisibilityChanged(developments.id, info.visibleFraction);
+                      },
+                  child: Container(
+                    key: ValueKey(developments.id),
+                    margin: EdgeInsets.only(bottom: h * 0.012),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: w * 0.034,
-                            left: w * 0.044,
+                        ListTile(
+                          leading: CircleAvatar(
+                            radius: w * 0.07,
+                            backgroundColor: Colors.white,
+                            child: ClipOval(
+                              child: SizedBox.expand(
+                                child: buildImageWidget(
+                                  developments.author?.photoUrl ?? "",
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
                           ),
-                          child: Row(
+                          title: Text(
+                            developments.author?.name??"-",
+                            maxLines: 2,
+                            style: TextStyle(
+                              fontSize: (w * 0.045),
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.31,
+                            ),
+                          ),
+                          subtitle: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                              "20",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: (w * 0.05),
-                                ),
-                              ),
-                              SizedBox(width: w * 0.03),
-                              Text(
-                                "Views",
+                                getTimeAgo(developments.timeStamp),
                                 style: TextStyle(
                                   fontSize: (w * 0.025).clamp(12.0, 15.0),
                                   fontWeight: FontWeight.w400,
-                                  color: ColorScheme.of(
-                                    context,
-                                  ).onSurface.withValues(alpha: 0.6),
+                                  letterSpacing: 0.21,
+                                  color: const Color(0xFF666666),
                                 ),
                               ),
-                              const Spacer(),
-                              // LikeButton(
-                              //   key: ValueKey('like_${developments.id}'),
-                              //   feedId: developments.id,
-                              // ),
-                              SizedBox(width: w * 0.08),
+                              SizedBox(width: w * 0.01),
+                              Text(
+                                "•",
+                                style: TextStyle(
+                                  fontSize: (w * 0.025).clamp(12.0, 15.0),
+                                  color: ColorScheme.of(context).error,
+                                ),
+                              ),
+                              SizedBox(width: w * 0.03),
                               Padding(
-                                padding: EdgeInsets.only(right: w * 0.015),
-                                child: InkWell(
-                                  onTap: () => shareDevelopment(developments),
-                                  child: SvgPicture.asset(
-                                    PartyPageData.share,
-                                  ),
+                                padding: EdgeInsets.only(top: h * 0.0027),
+                                child: SvgPicture.asset(
+                                  PartyPageData.headquarterIcon,
+                                  height: (h * 0.017),
+                                ),
+                              ),
+                              SizedBox(width: w * 0.01),
+                              Text(
+                                developments.author?.state ?? "-",
+                                style: TextStyle(
+                                  fontSize: (w * 0.025).clamp(12.0, 15.0),
+                                  fontWeight: FontWeight.w400,
+                                  letterSpacing: 0.21,
+                                  color: const Color(0xFF666666),
+                                ),
+                              ),
+                              SizedBox(width: w * 0.01),
+                              Text(
+                                developments.author?.country ?? "",
+                                style: TextStyle(
+                                  fontSize: (w * 0.025).clamp(12.0, 15.0),
+                                  fontWeight: FontWeight.w400,
+                                  letterSpacing: 0.21,
+                                  color: const Color(0xFF666666),
                                 ),
                               ),
                             ],
                           ),
+
+                          ///----------------Need to be checked-------------------------
+                          trailing:
+                          isAdmin == true ||
+                              (isPolitician == true &&
+                                  widget.fromWhichPage == "Politician")
+                              ? PopupMenuButton<String>(
+                            icon: Transform.translate(
+                              offset: const Offset(20, 0),
+                              child: SvgPicture.asset(
+                                PartyPageData.threeDots,
+                                height: h * 0.004,
+                              ),
+                            ),
+                            onSelected: (value) async {
+                              if (value == 'edit') {
+
+                              } else if (value == 'share') {
+                                shareDevelopment(developments);
+                              } else if (value == 'delete') {
+                                final shouldDelete =
+                                await showGeneralDialog<bool>(
+                                  context: context,
+                                  barrierDismissible: true,
+                                  barrierLabel: 'Delete',
+                                  barrierColor: Colors.black.withValues(
+                                    alpha: 0.25,
+                                  ),
+                                  transitionDuration: const Duration(
+                                    milliseconds: 250,
+                                  ),
+                                 pageBuilder: (dialogContext, _, _) {
+                                    return popUpMessageForDeleteOrCancel(
+                                      dialogContext,
+                                     PartyPageData.addFeedIcon,
+                                      "Would you like to Delete?",
+                                      "Once deleted, this post will be permanently removed.",
+                                          () {},
+                                    );
+                                  },
+                                  transitionBuilder:
+                                      (
+                                      context,
+                                      animation,
+                                      secondaryAnimation,
+                                      child,
+                                      ) {
+                                    return SlideTransition(
+                                      position:
+                                      Tween<Offset>(
+                                        begin: const Offset(0, 1),
+                                        end: Offset.zero,
+                                      ).animate(
+                                        CurvedAnimation(
+                                          parent: animation,
+                                          curve:
+                                          Curves.easeOutCubic,
+                                        ),
+                                      ),
+                                      child: child,
+                                    );
+                                  },
+                                );
+
+                                if (shouldDelete == true && mounted) {
+                                  context.read<DevelopmentBloc>().add(
+                                    DeleteDevelopmentEvent(
+                                      developments.id,
+                                      widget.id,
+                                      fromWhichPage: widget.fromWhichPage,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            itemBuilder: (BuildContext context) => [
+                              PopupMenuItem(
+                                value: 'edit',
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      PartyPageData.editIcon,
+                                      width: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text("Edit"),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'share',
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      PartyPageData.share,
+                                      width: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text("Share"),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      PartyPageData.deleteIcon,
+                                      width: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text("Delete"),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                              : null,
+                        ),
+                        ///------------------------Need to be checked--------------------------
+                        ShowingTaggedPersons(
+                          tagged: developments.taggedPoliticians,
+                        ),
+
+                        Padding(
+                          padding: EdgeInsets.only(
+                            top: h * 0.001,
+                            right: w * 0.044,
+                            left: w * 0.044,
+                          ),
+                          child: ReadMoreText(
+                            developments.description ?? "-",
+                            trimLines: 3,
+                            trimMode: TrimMode.Line,
+                            trimCollapsedText: "\nRead More",
+                            trimExpandedText: "\nShow Less",
+                            moreStyle: const TextStyle(
+                              color: Color(0xFFFE3A31),
+                              fontWeight: FontWeight.w600,
+                            ),
+                            lessStyle: const TextStyle(
+                              color: Color(0xFFFE3A31),
+                              fontWeight: FontWeight.w600,
+                            ),
+                            style: TextStyle(
+                              fontSize: (w * 0.042),
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          )
+                        ),
+                        if(developments.media!=null && developments.media!.isNotEmpty)...[
+                          SizedBox(height: h * 0.012),
+                          FeedMediaWidget<DevelopmentMedia>(
+                            media: developments.media ?? [],
+                            getMediaUrl: (item) => item.url,
+                            getMediaType: (item) => item.mediaType,
+                          )
+                        ],
+                        Padding(   padding: EdgeInsets.only(
+                          top:  h * 0.012,
+                        ),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(
+                                right: w * 0.034,
+                                left: w * 0.044,
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(
+                                  "20",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: (w * 0.05),
+                                    ),
+                                  ),
+                                  SizedBox(width: w * 0.03),
+                                  Text(
+                                    "Views",
+                                    style: TextStyle(
+                                      fontSize: (w * 0.025).clamp(12.0, 15.0),
+                                      fontWeight: FontWeight.w400,
+                                      color: ColorScheme.of(
+                                        context,
+                                      ).onSurface.withValues(alpha: 0.6),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  // LikeButton(
+                                  //   key: ValueKey('like_${developments.id}'),
+                                  //   feedId: developments.id,
+                                  // ),
+                                  SizedBox(width: w * 0.08),
+                                  Padding(
+                                    padding: EdgeInsets.only(right: w * 0.015),
+                                    child: InkWell(
+                                      onTap: () => shareDevelopment(developments),
+                                      child: SvgPicture.asset(
+                                        PartyPageData.share,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        ),
+                        SizedBox(height: h * 0.01),
+                        Container(
+                          color: const Color(0xFF000000).withValues(alpha: 0.08),
+                          width: w,
+                          height: h * 0.009,
                         ),
                       ],
-                    ),
-                    ),
-                    SizedBox(height: h * 0.01),
-                    Container(
-                      color: const Color(0xFF000000).withValues(alpha: 0.08),
-                      width: w,
-                      height: h * 0.009,
-                    ),
-                  ],
 
-                ),
-              ),
-              );
-            }
+                    ),
+                  ),
+                  );
+                }
 
+            ),
+          ],
         );
       }
     );
   }
 }
-//
-// class LikeButton extends StatefulWidget {
-//   final int? feedId;
-//   // final bool reacted;
-//
-//   const LikeButton({super.key, required this.feedId,
-//     //required this.reacted
-//   });
-//
-//   @override
-//   State<LikeButton> createState() => _LikeButtonState();
-// }
-//
-// class _LikeButtonState extends State<LikeButton> {
-//   final DevelopmentApis feedApis = DevelopmentApis();
-//   late bool isLiked;
-//   bool isLoading = false;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     // isLiked = widget.reacted;
-//   }
-//
-//   @override
-//   void didUpdateWidget(covariant LikeButton oldWidget) {
-//     super.didUpdateWidget(oldWidget);
-//     if (oldWidget.reacted != widget.reacted) {
-//       setState(() {
-//         isLiked = widget.reacted;
-//       });
-//     }
-//   }
-//
-//   Future<void> likePost() async {
-//     if (widget.feedId == null || isLoading) return;
-//
-//     final previousLikedState = isLiked;
-//
-//     setState(() {
-//       isLoading = true;
-//       isLiked = !previousLikedState;
-//     });
-//
-//     try {
-//       final success = await feedApis.likeThePost(widget.feedId!);
-//
-//       if (!mounted) return;
-//
-//       if (!success) {
-//         setState(() {
-//           isLiked = previousLikedState;
-//           isLoading = false;
-//         });
-//         return;
-//       }
-//
-//       setState(() {
-//         isLoading = false;
-//       });
-//     } catch (e) {
-//       debugPrint("Error liking/unliking post: $e");
-//
-//       if (!mounted) return;
-//
-//       setState(() {
-//         isLiked = previousLikedState;
-//         isLoading = false;
-//       });
-//     }
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return InkWell(
-//       onTap: likePost,
-//       child: Center(
-//         child: Icon(
-//           Icons.thumb_up,
-//           size: MediaQuery.of(context).size.height * 0.028,
-//           color: isLiked
-//               ? Color(0xFFFE3A31)
-//               : ColorScheme.of(context).onSurface.withValues(alpha: 0.22),
-//         ),
-//       ),
-//     );
-//   }
-// }

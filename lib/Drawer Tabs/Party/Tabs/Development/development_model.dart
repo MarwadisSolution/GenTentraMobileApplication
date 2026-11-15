@@ -3,6 +3,7 @@ import '../Feed Tab/feed_model.dart' show Tagged;
 
 class DevelopmentModel {
   final int id;
+  final String? uuid;
   final DevelopmentAuthor? author;
   final int? authorUserId;
   final int? authorPartyId;
@@ -20,6 +21,7 @@ class DevelopmentModel {
 
   DevelopmentModel({
    required this.id,
+     this.uuid,
     this.author,
     this.authorUserId,
     this.authorPartyId,
@@ -38,6 +40,7 @@ class DevelopmentModel {
   factory DevelopmentModel.fromJson(Map<String, dynamic> json){
     return DevelopmentModel(
       id: json['id']??0,
+      uuid: json["uuid"],
       author: json['author']!=null?
           DevelopmentAuthor.fromJson(json['author']):null,
       authorUserId: json['authorUserId'],

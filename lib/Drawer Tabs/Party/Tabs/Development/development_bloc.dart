@@ -17,6 +17,7 @@ class DevelopmentBloc
     on<LoadDevelopmentEvent>(_loadDevelopment);
 
     // YEAR WISE DEVELOPMENT
+    on<LoadDevelopmentYearsEvent>(_loadDevelopmentYears);
     on<YearWiseDevelopmentEvent>(_yearWiseDevelopment);
 
     // ADD DEVELOPMENT
@@ -124,26 +125,54 @@ class DevelopmentBloc
   // YEAR WISE DEVELOPMENT
   // ==================================================
 
+  Future<void> _loadDevelopmentYears(
+      LoadDevelopmentYearsEvent event,
+      Emitter<DevelopmentState> emit,
+      ) async {
+    if (state.isLoadingYears || state.availableYears.isNotEmpty) {
+      return;
+    }
+
+    emit(state.copyWith(
+      isLoadingYears: true,
+    ));
+
+    try {
+      final years = await developmentApis.getYears();
+
+      emit(state.copyWith(
+        availableYears: years,
+        isLoadingYears: false,
+        clearError: true,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        isLoadingYears: false,
+        isError: true,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
   Future<void> _yearWiseDevelopment(
       YearWiseDevelopmentEvent event,
       Emitter<DevelopmentState> emit,
       ) async {
-
     try {
+      final String? selectedYear =
+      event.year.isEmpty ? null : event.year;
 
       final filteredList = _filterByYear(
         state.developments,
-        event.year,
+        selectedYear,
       );
 
       emit(state.copyWith(
-        selectedYear: event.year,
+        selectedYear: selectedYear,
         filteredDevelopments: filteredList,
+        clearSelectedYear: selectedYear == null,
         clearError: true,
       ));
-
     } catch (e) {
-
       emit(state.copyWith(
         isError: true,
         errorMessage: e.toString(),

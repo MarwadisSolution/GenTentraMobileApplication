@@ -22,6 +22,8 @@ class DevelopmentState extends Equatable {
   final Set<int> viewedPostIds;
   final Set<int> reportingViewIds;
   // Year Filter
+  final List<String> availableYears;
+  final bool isLoadingYears;
   final String? selectedYear;
 
   // Status
@@ -47,6 +49,8 @@ class DevelopmentState extends Equatable {
     this.hasMore = true,
     this.viewedPostIds = const {},
     this.reportingViewIds = const {},
+    this.availableYears = const [],
+    this.isLoadingYears = false,
     this.selectedYear,
 
     this.isError = false,
@@ -73,6 +77,8 @@ class DevelopmentState extends Equatable {
     bool? hasMore,
     Set<int>? viewedPostIds,
     Set<int>? reportingViewIds,
+    List<String>? availableYears,
+    bool? isLoadingYears,
     String? selectedYear,
     bool clearSelectedYear = false,
 
@@ -103,6 +109,8 @@ class DevelopmentState extends Equatable {
       hasMore: hasMore ?? this.hasMore,
       viewedPostIds: viewedPostIds ?? this.viewedPostIds,
       reportingViewIds: reportingViewIds ?? this.reportingViewIds,
+      availableYears: availableYears ?? this.availableYears,
+      isLoadingYears: isLoadingYears ?? this.isLoadingYears,
       selectedYear: clearSelectedYear
           ? null
           : selectedYear ?? this.selectedYear,
@@ -134,6 +142,8 @@ class DevelopmentState extends Equatable {
     hasMore,
     viewedPostIds,
     reportingViewIds,
+    availableYears,
+    isLoadingYears,
     selectedYear,
     isError,
     errorMessage,

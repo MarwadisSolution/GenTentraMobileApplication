@@ -30,6 +30,10 @@ class LoadDevelopmentEvent extends DevelopmentEvent {
 }
 
 ///--------------Year wise filtering
+
+class LoadDevelopmentYearsEvent extends DevelopmentEvent {
+  const LoadDevelopmentYearsEvent();
+}
 class YearWiseDevelopmentEvent extends DevelopmentEvent {
   final String year;
 
