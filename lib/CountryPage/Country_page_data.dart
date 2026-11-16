@@ -55,6 +55,7 @@ class CountryPageData {
   static Widget buildTabContent({
     required int index,
     required CountryModel country,
+    bool isActive = true,
   }) {
     switch (index) {
       case 0:
@@ -64,7 +65,10 @@ class CountryPageData {
       case 2:
         return CountryGeoPage(country: country);
       case 3:
-        return CountryPlacesToVisitPage(country: country);
+        return CountryPlacesToVisitPage(
+          country: country,
+          isActive: isActive,
+        );
       default:
         return const SizedBox.shrink();
     }

@@ -498,6 +498,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
     return CountryPageData.buildTabContent(
       index: index,
       country: country,
+      isActive: _selectedTabIndex.value == index,
     );
   }
 }
