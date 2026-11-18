@@ -18,6 +18,7 @@ import '../../reusable_functions.dart';
 import '../Event Tab/event_modal.dart';
 import '../Feed Tab/functions.dart';
 import '../Feed Tab/reusable_functions.dart';
+import 'adding_development.dart';
 import 'development_model.dart';
 
 class DevelopmentTab extends StatefulWidget {
@@ -392,7 +393,29 @@ void _cancelViewTimer(int postId){
                             ),
                             onSelected: (value) async {
                               if (value == 'edit') {
+                                Navigator.push<bool>(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (routeContext) {
+                                      return BlocProvider.value(
+                                        value: context.read<DevelopmentBloc>(),
+                                        child: AddingDevelopment(
+                                          partyId: widget.fromWhichPage == "Party"
+                                              ? widget.id
+                                              : 0,
 
+                                          politicianId: widget.fromWhichPage == "Politician"
+                                              ? widget.id
+                                              : 0,
+
+                                          fromWhichPage: widget.fromWhichPage,
+
+                                          editDevelopment: developments,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
                               } else if (value == 'share') {
                                 shareDevelopment(developments);
                               } else if (value == 'delete') {

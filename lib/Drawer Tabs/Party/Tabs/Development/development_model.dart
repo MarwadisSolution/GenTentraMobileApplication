@@ -144,9 +144,11 @@ class DevelopmentMedia{
       url: json['url'],
     );
   }
-  Map<String, dynamic> toJson(){
+  Map<String, dynamic> toJson() {
     return {
-      'url':url,
+      'id': id,
+      'mediaType': mediaType,
+      'url': url,
     };
   }
 }

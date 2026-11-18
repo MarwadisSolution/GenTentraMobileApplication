@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../media_upload_api.dart';
 
 import 'development_apis.dart';
 import 'development_events.dart';
@@ -9,7 +11,7 @@ class DevelopmentBloc
     extends Bloc<DevelopmentEvent, DevelopmentState> {
 
   final DevelopmentApis developmentApis;
-
+  final MediaUploadApi mediaUploadApi = MediaUploadApi();
   DevelopmentBloc(this.developmentApis)
       : super(DevelopmentState()) {
 
@@ -23,8 +25,6 @@ class DevelopmentBloc
     // ADD DEVELOPMENT
     on<AddNewDevelopmentEvent>(_addDevelopment);
 
-    // EDIT DEVELOPMENT
-    on<EditDevelopmentEvent>(_editDevelopment);
 
     // DELETE DEVELOPMENT
     on<DeleteDevelopmentEvent>(_deleteDevelopment);
@@ -255,52 +255,6 @@ class DevelopmentBloc
     }
   }
 
-
-  // ==================================================
-  // EDIT DEVELOPMENT
-  // ==================================================
-
-  Future<void> _editDevelopment(
-      EditDevelopmentEvent event,
-      Emitter<DevelopmentState> emit,
-      ) async {
-
-    emit(state.copyWith(
-      isEditing: true,
-      clearError: true,
-      clearSuccess: true,
-    ));
-
-    try {
-
-      // TODO:
-      // Connect your PATCH API here.
-      //
-      // Pass:
-      // event.id
-      // event.partyId
-      // event.fromWhichPage
-      // event.politicianId
-      // event.development
-      // event.mediaFiles
-      // event.deletedMediaIds
-
-      emit(state.copyWith(
-        isEditing: false,
-        isSuccess: true,
-        successMessage: 'Edit Development API not connected yet.',
-      ));
-
-    } catch (e) {
-
-      emit(state.copyWith(
-        isEditing: false,
-        isError: true,
-        errorMessage: e.toString(),
-      ));
-    }
-  }
-
   // ==================================================
   // DELETE DEVELOPMENT
   // ==================================================
@@ -345,43 +299,88 @@ class DevelopmentBloc
   // UPDATE DEVELOPMENT
   // ==================================================
 
+
+
   Future<void> _updateDevelopment(
       UpdateDevelopmentEvent event,
       Emitter<DevelopmentState> emit,
       ) async {
-
-    emit(state.copyWith(
-      isUpdating: true,
-      clearError: true,
-      clearSuccess: true,
-    ));
-
     try {
+      emit(
+        state.copyWith(
+          isUpdating: true,
+          isSuccess: false,
+          isError: false,
+          clearError: true,
+        ),
+      );
 
-      // TODO:
-      // Connect your PATCH API here.
-      //
-      // Pass:
-      // event.development
-      // event.mediaFiles
-      // event.deletedMediaIds
-      // event.partyId
+      // STEP 1: Upload newly selected media files.
+      List<String> uploadedMediaUrls = [];
 
-      emit(state.copyWith(
-        isUpdating: false,
-        isSuccess: true,
-        successMessage: 'Update Development API not connected yet.',
-      ));
+      if (event.mediaFiles.isNotEmpty) {
+        uploadedMediaUrls = await mediaUploadApi.uploadMedia(
+          filePaths: event.mediaFiles
+              .map((file) => file.path)
+              .toList(),
 
+          // Confirm this category is supported by your backend.
+          category: 'development',
+        );
+      }
+
+      debugPrint('New Uploaded Media URLs: $uploadedMediaUrls');
+
+      // STEP 2: Call JSON PATCH API.
+      final updatedDevelopment =
+      await developmentApis.editTheDevelopment(
+        id: event.development.id,
+        development: event.development,
+        newMediaUrls: uploadedMediaUrls,
+        deletedMediaIds: event.deletedMediaIds,
+      );
+
+      // STEP 3: Replace the updated development in the existing list.
+      final updatedList = state.developments.map((item) {
+        if (item.id == updatedDevelopment.id) {
+          return updatedDevelopment;
+        }
+
+        return item;
+      }).toList();
+
+      final filteredList = _filterByYear(
+        updatedList,
+        state.selectedYear,
+      );
+
+      // STEP 4: Emit success.
+      emit(
+        state.copyWith(
+          developments: updatedList,
+          filteredDevelopments: filteredList,
+          isUpdating: false,
+          isSuccess: true,
+          isError: false,
+          successMessage: 'Development updated successfully.',
+          clearError: true,
+        ),
+      );
     } catch (e) {
+      debugPrint('Update Development BLoC Error: $e');
 
-      emit(state.copyWith(
-        isUpdating: false,
-        isError: true,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          isUpdating: false,
+          isSuccess: false,
+          isError: true,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
+
+
 
   // ==================================================
   // REPORT DEVELOPMENT VIEW

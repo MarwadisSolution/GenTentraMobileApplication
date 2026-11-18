@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Development/development_model.dart';
 
 import '../../../../Login Page/Refresh Token/refresh_token.dart';
@@ -81,48 +82,57 @@ class DevelopmentApis {
     }
   }
   ///------Patch api for editing of development
+
+
   Future<DevelopmentModel> editTheDevelopment({
     required int id,
     required DevelopmentModel development,
-    required List<File> mediaFiles,
+    required List<String> newMediaUrls,
+    required List<int> deletedMediaIds,
   }) async {
     try {
-      FormData formData = FormData();
+      final Map<String, dynamic> requestData =
+      development.toJson();
 
-      // JSON Data
-      formData.fields.add(
-        MapEntry(
-          "data",
-          jsonEncode(development.toJson()),
+      // Add IDs of media removed by the user.
+      requestData['deletedMediaIds'] = deletedMediaIds;
+
+      // Keep existing media and append newly uploaded media URLs.
+      final List<dynamic> allMedia = [
+        ...(requestData['media'] as List? ?? []),
+
+        ...newMediaUrls.map((url) => {
+          'url': url,
+        }),
+      ];
+
+      requestData['media'] = allMedia;
+
+      debugPrint('Development PATCH Request: $requestData');
+
+      final response = await _dio.patch(
+        '$api/api/v1/developments/$id',
+        data: requestData,
+        options: Options(
+          contentType: Headers.jsonContentType,
         ),
       );
 
-      // Media Files
-      for (File file in mediaFiles) {
-        formData.files.add(
-          MapEntry(
-            "media",
-            await MultipartFile.fromFile(
-              file.path,
-              filename: file.path.split('/').last,
-            ),
-          ),
+      if (response.statusCode == 200 ||
+          response.statusCode == 201) {
+        return DevelopmentModel.fromJson(
+          Map<String, dynamic>.from(response.data['data']),
         );
       }
 
-      final response = await _dio.patch(
-        "$api/api/v1/developments/$id",
-        data: formData,
-      );
-    print(response.data);
-      return DevelopmentModel.fromJson(
-        Map<String, dynamic>.from(response.data["data"]),
-      );
-
+      throw Exception('Failed to update development');
     } on DioException catch (e) {
-      throw Exception(e.response?.data ?? e.message);
+      debugPrint('Development Update API Error: ${e.response?.data}');
+      rethrow;
     }
   }
+
+
   ///-----------------------Search bar for tagging politicians
 
   Future<List<TaggingPersonModel>> searchBarData(

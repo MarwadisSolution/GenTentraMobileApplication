@@ -18,8 +18,10 @@ class CountryProfileRepository {
   }) async {
     try {
       final response = await  _dio.get(
-       fromWhichPage=="states"? '$api/api/v1/civic/countries/$countryId':'$api/api/v1/civic/countries/13/states',
-        options: Options(validateStatus: (status) => status != null && status < 500),
+      // fromWhichPage=="states"?
+       '$api/api/v1/civic/countries/$countryId'
+            //:'$api/api/v1/civic/countries/13/states',
+        ,options: Options(validateStatus: (status) => status != null && status < 500),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return await _parseAndEnrich(response.data);
