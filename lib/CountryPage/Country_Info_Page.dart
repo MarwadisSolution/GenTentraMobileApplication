@@ -7,7 +7,7 @@ import 'reusable_functions.dart';
 
 /// [INFO TAB PAGE] Renders civic information, key details, national leadership,
 /// and cabinet ministers for the country.
-class CountryInfoPage extends StatefulWidget {
+class CountryInfoPage extends StatelessWidget {
   final CountryModel country;
 
   const CountryInfoPage({
@@ -16,15 +16,7 @@ class CountryInfoPage extends StatefulWidget {
   });
 
   @override
-  State<CountryInfoPage> createState() => _CountryInfoPageState();
-}
-
-class _CountryInfoPageState extends State<CountryInfoPage> {
-  bool _isInfoExpanded = false;
-
-  @override
   Widget build(BuildContext context) {
-    final country = widget.country;
     final bool isIndia = country.name.toLowerCase().contains('india') ||
         country.name.isEmpty ||
         country.registrationCode == 'IND';
@@ -248,7 +240,13 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
 
-    return Padding(
+    // ValueNotifier replaces setState for READ MORE / READ LESS toggle
+    final expandedNotifier = ValueNotifier<bool>(false);
+
+    return ValueListenableBuilder<bool>(
+      valueListenable: expandedNotifier,
+      builder: (context, isInfoExpanded, _) {
+        return Padding(
       padding: EdgeInsets.symmetric(
         vertical: screenHeight * 0.016,
       ),
@@ -262,9 +260,9 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   RichText(
-                    maxLines: _isInfoExpanded ? null : 4,
+                    maxLines: isInfoExpanded ? null : 4,
                     overflow:
-                        _isInfoExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                        isInfoExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
                     text: TextSpan(
                       style: TextStyle(
                         fontSize: (screenWidth * (15.0 / 375.0)).clamp(14.0, 16.0),
@@ -289,10 +287,10 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
                   SizedBox(height: screenHeight * 0.008),
                   GestureDetector(
                     onTap: () {
-                      setState(() => _isInfoExpanded = !_isInfoExpanded);
+                      expandedNotifier.value = !expandedNotifier.value;
                     },
                     child: Text(
-                      _isInfoExpanded ? 'READ LESS' : 'READ MORE',
+                      isInfoExpanded ? 'READ LESS' : 'READ MORE',
                       style: TextStyle(
                         fontSize: (screenWidth * (13.0 / 375.0)).clamp(12.0, 14.0),
                         fontWeight: FontWeight.w800,
@@ -434,6 +432,8 @@ class _CountryInfoPageState extends State<CountryInfoPage> {
         ],
       ),
     );
+      }, // end ValueListenableBuilder builder
+    );   // end ValueListenableBuilder
   }
   Widget _buildCivicDetailRow(
     BuildContext context, {

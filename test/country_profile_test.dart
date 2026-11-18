@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gen_tentra_mobile_application/CountryPage/Country_model.dart';
 import 'package:gen_tentra_mobile_application/CountryPage/Country_event.dart';
 import 'package:gen_tentra_mobile_application/CountryPage/Country_state.dart';
+import 'package:gen_tentra_mobile_application/CountryPage/State_model.dart';
 
 void main() {
   group('Country Profile Model Tests', () {
@@ -183,6 +184,57 @@ void main() {
       expect(country.otherCabinets.length, 1);
       expect(country.otherCabinets.first.firstName, 'H. D.');
       expect(country.otherCabinets.first.lastName, 'Revana');
+    });
+
+    test('Parses StateModel from civic/states API response correctly', () {
+      final json = {
+        'id': 10,
+        'countryId': 13,
+        'code': 'KR',
+        'name': 'Karnataka',
+        'capital': 'Bengaluru',
+        'population': '61.095,297',
+        'chiefMinister': 'Thawar Chand Gehlot',
+        'governor': 'Jishnu Dev Varma',
+        'info': 'Karnataka is a state in southern India.',
+        'districtsCount': '30',
+        'spokenLanguage': 'Kannada (ಕನ್ನಡ)',
+        'rulingParty': 'INC',
+        'electoralFootprint': '110 Assembly',
+        'lastElection': '10 May 2023',
+        'nextElection': '2031',
+        'bannerImages': [
+          'https://example.com/banner1.jpg',
+          'https://example.com/banner2.jpg',
+        ],
+        'favouriteCount': 0,
+      };
+
+      final state = StateModel.fromJson(json);
+
+      expect(state.id, 10);
+      expect(state.countryId, 13);
+      expect(state.code, 'KR');
+      expect(state.name, 'Karnataka');
+      expect(state.capital, 'Bengaluru');
+      expect(state.population, '61.095,297');
+      expect(state.chiefMinister, 'Thawar Chand Gehlot');
+      expect(state.governor, 'Jishnu Dev Varma');
+      expect(state.districtsCount, '30');
+      expect(state.spokenLanguage, 'Kannada (ಕನ್ನಡ)');
+      expect(state.rulingParty, 'INC');
+      expect(state.electoralFootprint, '110 Assembly');
+      expect(state.lastElection, '10 May 2023');
+      expect(state.nextElection, '2031');
+      expect(state.bannerImages.length, 2);
+
+      // Conversion to country representation for shared widgets
+      final countryRep = state.toCountryModel();
+      expect(countryRep.id, 10);
+      expect(countryRep.name, 'Karnataka');
+      expect(countryRep.capital, 'Bengaluru');
+      expect(countryRep.president, 'Jishnu Dev Varma');
+      expect(countryRep.primeMinister, 'Thawar Chand Gehlot');
     });
   });
 }

@@ -7,6 +7,7 @@ import '../Favourite/favourite_api.dart';
 import '../Reusable Functions/reusable_functions.dart';
 import 'Country_model.dart';
 import 'Country_page_data.dart';
+import 'State_screen.dart';
 import 'reusable_functions.dart';
 
 class CountryProfileScreen extends StatelessWidget {
@@ -20,7 +21,7 @@ class CountryProfileScreen extends StatelessWidget {
     String? countryName,
     String? name,
     String? photoUrl,
-  })  : countryId = countryId ?? politicianId ?? 1,
+  })  : countryId = countryId ?? politicianId ?? 13,
         countryName = countryName ?? name;
 
   @override
@@ -451,9 +452,15 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                   );
                 },
                 onTap: () {
-                  if (_tabController.index != 2) {
-                    _tabController.animateTo(2);
-                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const StateProfileScreen(
+                        stateId: 10,
+                        stateName: 'Karnataka',
+                      ),
+                    ),
+                  );
                 },
                 child: Container(
                   width: fabSize,

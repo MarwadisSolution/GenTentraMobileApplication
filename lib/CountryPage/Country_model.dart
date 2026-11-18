@@ -126,7 +126,7 @@ class CabinetMinister {
           return Color(val);
         }
       }
-      return const Color(0xFFFF5252);
+      return Colors.transparent;
     }
 
     String parseImg(dynamic raw) {
@@ -429,31 +429,6 @@ class CountryModel {
       }
     }
 
-    // Direct flag / emblem fallback in json if symbols array wasn't provided
-    if (symbolsList.isEmpty) {
-      final flagUrl = (json['flagUrl'] ?? (json['flag'] is Map ? json['flag']['url'] : json['flag']))?.toString();
-      if (flagUrl != null && flagUrl.isNotEmpty) {
-        symbolsList.add(SymbolView(
-          id: 1,
-          kind: 'FLAG',
-          label: json['flagTitle']?.toString() ?? 'Flag',
-          urls: [flagUrl],
-          description: json['flagDescription']?.toString() ?? json['flagDesc']?.toString(),
-          downloadable: true,
-        ));
-      }
-      final emblemUrl = (json['emblemUrl'] ?? (json['emblem'] is Map ? json['emblem']['url'] : json['emblem']))?.toString();
-      if (emblemUrl != null && emblemUrl.isNotEmpty) {
-        symbolsList.add(SymbolView(
-          id: 2,
-          kind: 'EMBLEM',
-          label: json['emblemTitle']?.toString() ?? 'Emblem',
-          urls: [emblemUrl],
-          description: json['emblemDescription']?.toString() ?? json['emblemDesc']?.toString(),
-          downloadable: true,
-        ));
-      }
-    }
 
     // Safely extract leader names whether represented as String or Map
     String? parseLeader(dynamic val) {

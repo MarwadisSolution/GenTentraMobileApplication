@@ -8,6 +8,7 @@ import 'Country_Info_Page.dart';
 import 'Country_PlacesToVisit_Page.dart';
 import 'Country_model.dart';
 import 'Country_screen.dart';
+import 'State_screen.dart';
 
 // [BARREL EXPORTS] Allows external files to import all CountryPage components via this single file.
 export 'Country_api.dart';
@@ -22,9 +23,16 @@ export 'Country_Flag_Page.dart';
 export 'Country_Geo_Page.dart';
 export 'Country_PlacesToVisit_Page.dart';
 export 'reusable_functions.dart';
+export 'State_model.dart';
+export 'State_bloc.dart';
+export 'State_event.dart';
+export 'State_state.dart';
+export 'State_screen.dart';
+export 'State_Info_Page.dart';
 
 class CountryPageData {
   static const String routeName = '/country-profile';
+  static const String stateRouteName = '/state-profile';
 
   /// [NAVIGATION HELPER] Convenient method to open the CountryProfileScreen
   /// from anywhere in the app (e.g. from drawer, cards, search).
@@ -39,6 +47,23 @@ class CountryPageData {
         builder: (_) => CountryProfileScreen(
           countryId: countryId,
           countryName: name,
+        ),
+      ),
+    );
+  }
+
+  /// [NAVIGATION HELPER] Convenient method to open the StateProfileScreen.
+  static Future<T?> navigateToState<T>(
+    BuildContext context, {
+    required int stateId,
+    String? name,
+  }) {
+    return Navigator.push<T>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => StateProfileScreen(
+          stateId: stateId,
+          stateName: name,
         ),
       ),
     );

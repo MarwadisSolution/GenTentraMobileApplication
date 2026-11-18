@@ -1,8 +1,5 @@
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:sensors_plus/sensors_plus.dart';
 
 import '../Reusable Functions/reusable_functions.dart';
 import 'Country_model.dart';
@@ -10,7 +7,7 @@ import 'Country_model.dart';
 /// PLACES TO VISIT TAB PAGE
 /// Displays tourist attractions, landmarks,
 /// and places to visit for the country.
-class CountryPlacesToVisitPage extends StatefulWidget {
+class CountryPlacesToVisitPage extends StatelessWidget {
   final CountryModel country;
   final bool isActive;
 
@@ -21,115 +18,17 @@ class CountryPlacesToVisitPage extends StatefulWidget {
   });
 
   @override
-  State<CountryPlacesToVisitPage> createState() =>
-      _CountryPlacesToVisitPageState();
-}
-
-class _CountryPlacesToVisitPageState
-    extends State<CountryPlacesToVisitPage> {
-  StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
-
-  // Current smoothed image movement.
-  Offset _tiltOffset = Offset.zero;
-
-  // Maximum movement in pixels.
-  static const double _maxHorizontalMovement = 12.0;
-  static const double _maxVerticalMovement = 7.0;
-
-  // Smoothing factor: lower values create smoother movement.
-  static const double _smoothingFactor = 0.8;
-
-  @override
-  void initState() {
-    super.initState();
-
-    if (widget.isActive) {
-      _startAccelerometer();
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant CountryPlacesToVisitPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.isActive != widget.isActive) {
-      if (widget.isActive) {
-        _startAccelerometer();
-      } else {
-        _stopAccelerometer();
-      }
-    }
-  }
-
-  /// Starts listening to phone tilt.
-  void _startAccelerometer() {
-    if (_accelerometerSubscription != null) return;
-
-    _accelerometerSubscription = accelerometerEvents.listen(
-      _onAccelerometerEvent,
-      onError: (error) {
-        debugPrint('Accelerometer error: $error');
-      },
-    );
-  }
-
-  /// Stops listening when the Places tab is inactive.
-  void _stopAccelerometer() {
-    _accelerometerSubscription?.cancel();
-    _accelerometerSubscription = null;
-
-    if (mounted) {
-      setState(() {
-        _tiltOffset = Offset.zero;
-      });
-    }
-  }
-
-  /// Converts gravity readings into smooth image movement.
-  void _onAccelerometerEvent(AccelerometerEvent event) {
-    if (!mounted || !widget.isActive) return;
-
-    // Normalize gravity readings.
-    final double normalizedX = (event.x / 9.8).clamp(-1.0, 1.0);
-    final double normalizedY = (event.y / 9.8).clamp(-1.0, 1.0);
-
-    // Calculate target image movement.
-    final Offset targetOffset = Offset(
-      -normalizedX * _maxHorizontalMovement,
-      normalizedY * _maxVerticalMovement,
-    );
-
-    // Smooth the movement to prevent jitter.
-    final Offset smoothedOffset = Offset(
-      _tiltOffset.dx +
-          (targetOffset.dx - _tiltOffset.dx) * _smoothingFactor,
-      _tiltOffset.dy +
-          (targetOffset.dy - _tiltOffset.dy) * _smoothingFactor,
-    );
-
-    setState(() {
-      _tiltOffset = smoothedOffset;
-    });
-  }
-
-  @override
-  void dispose() {
-    _accelerometerSubscription?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final double w = MediaQuery.of(context).size.width;
     final double h = MediaQuery.of(context).size.height;
 
     final List<PlaceView> places =
-        widget.country.placesToVisit?.places ?? [];
+        country.placesToVisit?.places ?? [];
 
     final String introText =
-        (widget.country.placesToVisit?.description?.trim().isNotEmpty ==
+        (country.placesToVisit?.description?.trim().isNotEmpty ==
                 true)
-            ? widget.country.placesToVisit!.description!.trim()
+            ? country.placesToVisit!.description!.trim()
             : 'Here are a few iconic places you simply must experience.';
 
     return Padding(
@@ -186,14 +85,15 @@ class _CountryPlacesToVisitPageState
     );
   }
 
-  /// Builds an individual destination card with
-  /// vertical scroll parallax and phone tilt movement.
+  /// Builds an individual destination card
+  /// with vertical scrolling parallax.
   Widget _buildPlaceListCard(
     BuildContext context,
     PlaceView place,
     double w,
     double h,
   ) {
+    // Image height remains at the increased size.
     final double imageHeight = h * 0.27;
     final double borderRadius = w * 0.04;
 
@@ -215,38 +115,42 @@ class _CountryPlacesToVisitPageState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Destination image.
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(borderRadius),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: imageHeight,
-                  child: imageUrl.isEmpty
-                      ? _buildImagePlaceholder(w)
-                      : Builder(
-                          builder: (imageContext) {
-                            final scrollable =
-                                Scrollable.maybeOf(imageContext);
+          ClipRRect(
+            borderRadius: BorderRadius.circular(borderRadius),
+            child: SizedBox(
+              width: double.infinity,
+              height: imageHeight,
+              child: imageUrl.isEmpty
+                  ? _buildImagePlaceholder(w)
+                  : Builder(
+                      builder: (imageContext) {
+                        final scrollable =
+                            Scrollable.maybeOf(imageContext);
 
-                            if (scrollable == null) {
-                              return _buildTiltedImage(imageUrl);
-                            }
+                        // Fallback if no Scrollable is available.
+                        if (scrollable == null) {
+                          return buildImageWidget(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                          );
+                        }
 
-                            return Flow(
-                              delegate: _ParallaxFlowDelegate(
-                                scrollable: scrollable,
-                                listItemContext: imageContext,
-                              ),
-                              children: [
-                                _buildTiltedImage(imageUrl),
-                              ],
-                            );
-                          },
-                        ),
-                ),
-              ),
-            ],
+                        // Vertical scrolling parallax.
+                        return Flow(
+                          delegate: _ParallaxFlowDelegate(
+                            scrollable: scrollable,
+                            listItemContext: imageContext,
+                          ),
+                          children: [
+                            buildImageWidget(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+            ),
           ),
 
           SizedBox(height: h * 0.014),
@@ -283,18 +187,6 @@ class _CountryPlacesToVisitPageState
     );
   }
 
-  /// Applies phone tilt movement to the image.
-  /// The existing Flow delegate still handles vertical scroll parallax.
-  Widget _buildTiltedImage(String imageUrl) {
-    return Transform.translate(
-      offset: _tiltOffset,
-      child: buildImageWidget(
-        imageUrl,
-        fit: BoxFit.cover,
-      ),
-    );
-  }
-
   /// Placeholder for missing destination images.
   Widget _buildImagePlaceholder(double w) {
     return Container(
@@ -312,12 +204,13 @@ class _CountryPlacesToVisitPageState
 
 /// PARALLAX FLOW DELEGATE
 ///
-/// Preserves the existing vertical scroll parallax effect.
+/// Preserves the vertical scrolling parallax effect.
+/// Images move vertically as the user scrolls the page.
 class _ParallaxFlowDelegate extends FlowDelegate {
   final ScrollableState scrollable;
   final BuildContext listItemContext;
 
-  // Increase this value to increase vertical parallax movement.
+  // Controls vertical parallax intensity.
   static const double _imageHeightMultiplier = 1.6;
 
   _ParallaxFlowDelegate({
@@ -411,6 +304,7 @@ class _ParallaxFlowDelegate extends FlowDelegate {
         ),
       );
 
+      // Apply vertical parallax transformation.
       context.paintChild(
         0,
         transform: Matrix4.translationValues(
