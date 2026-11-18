@@ -1,4 +1,4 @@
-﻿
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'Country_api.dart';
 import 'Country_event.dart';
@@ -28,7 +28,8 @@ class CountryProfileBloc
     );
 
     try {
-      final country = await repository.fetchCountryProfile(event.countryId);
+      final country = await repository.fetchCountryProfile
+        (countryId: event.countryId, stateId: event.stateId, fromWhichPage:event.fromWhichPage);
       emit(
         state.copyWith(
           status: CountryProfileStatus.success,
@@ -52,7 +53,10 @@ class CountryProfileBloc
     Emitter<CountryProfileState> emit,
   ) async {
     try {
-      final country = await repository.fetchCountryProfile(event.countryId);
+      final country = await repository.fetchCountryProfile(
+          countryId:event.countryId,
+          stateId: event.stateId,
+          fromWhichPage: event.fromWhichPage);
       emit(
         state.copyWith(
           status: CountryProfileStatus.success,

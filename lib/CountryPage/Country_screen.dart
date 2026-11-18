@@ -7,6 +7,7 @@ import '../Favourite/favourite_api.dart';
 import '../Reusable Functions/reusable_functions.dart';
 import 'Country_model.dart';
 import 'Country_page_data.dart';
+import 'State_screen.dart';
 import 'reusable_functions.dart';
 
 class CountryProfileScreen extends StatelessWidget {
@@ -20,7 +21,7 @@ class CountryProfileScreen extends StatelessWidget {
     String? countryName,
     String? name,
     String? photoUrl,
-  })  : countryId = countryId ?? politicianId ?? 1,
+  })  : countryId = countryId ?? politicianId ?? 13,
         countryName = countryName ?? name;
 
   @override
@@ -28,7 +29,7 @@ class CountryProfileScreen extends StatelessWidget {
     return BlocProvider<CountryProfileBloc>(
       create: (context) => CountryProfileBloc(
         repository: CountryProfileRepository(),
-      )..add(FetchCountryProfileEvent(countryId)),
+      )..add(FetchCountryProfileEvent(countryId,0,"Country")),///----State is zero because I want to have country details
       child: _CountryProfileView(
         countryId: countryId,
         initialName: countryName,
@@ -113,7 +114,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                   textColor: Colors.white,
                   onPressed: () {
                     context.read<CountryProfileBloc>().add(
-                          FetchCountryProfileEvent(widget.countryId),
+                          FetchCountryProfileEvent(widget.countryId,0,"Country"),
                         );
                   },
                 ),
@@ -168,7 +169,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                     ElevatedButton(
                       onPressed: () {
                         context.read<CountryProfileBloc>().add(
-                              FetchCountryProfileEvent(widget.countryId),
+                              FetchCountryProfileEvent(widget.countryId,0,"country"),
                             );
                       },
                       style: ElevatedButton.styleFrom(
@@ -451,9 +452,16 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                   );
                 },
                 onTap: () {
-                  if (_tabController.index != 2) {
-                    _tabController.animateTo(2);
-                  }
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const StateProfileScreen(
+                        stateId: 10,
+                        stateName: 'Karnataka',
+                      ),
+                    ),
+                  );
                 },
                 child: Container(
                   width: fabSize,
@@ -498,6 +506,7 @@ class _CountryProfileViewState extends State<_CountryProfileView>
     return CountryPageData.buildTabContent(
       index: index,
       country: country,
+      isActive: _selectedTabIndex.value == index,
     );
   }
 }

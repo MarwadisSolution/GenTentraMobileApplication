@@ -5,7 +5,7 @@ import 'reusable_functions.dart';
 
 /// [FLAG & EMBLEM TAB PAGE] Displays the National Flag and National Emblem,
 /// along with their descriptions and download options.
-class CountryFlagPage extends StatefulWidget {
+class CountryFlagPage extends StatelessWidget {
   final CountryModel country;
 
   const CountryFlagPage({
@@ -14,15 +14,7 @@ class CountryFlagPage extends StatefulWidget {
   });
 
   @override
-  State<CountryFlagPage> createState() => _CountryFlagPageState();
-}
-
-class _CountryFlagPageState extends State<CountryFlagPage> {
-  bool _isFlagExpanded = false;
-
-  @override
   Widget build(BuildContext context) {
-    final country = widget.country;
     final w = MediaQuery.of(context).size.width;
     final h = MediaQuery.of(context).size.height;
 
@@ -79,12 +71,18 @@ class _CountryFlagPageState extends State<CountryFlagPage> {
 
     // 5. Proportional MediaQuery Dimensions (180x180 & 180x193 on 375w reference)
     final double flagWidth = w * (180.0 / 375.0);
-    final double flagHeight = flagWidth * (180.0 / 180.0);
+    final double flagHeight = flagWidth; // 1:1 ratio
 
     final double emblemWidth = w * (180.0 / 375.0);
     final double emblemHeight = emblemWidth * (193.0 / 180.0);
 
-    return Padding(
+    // ValueNotifier replaces setState for READ MORE / READ LESS toggle
+    final expandedNotifier = ValueNotifier<bool>(false);
+
+    return ValueListenableBuilder<bool>(
+      valueListenable: expandedNotifier,
+      builder: (context, isFlagExpanded, _) {
+        return Padding(
       padding: EdgeInsets.symmetric(
         vertical: h * 0.018,
       ),
@@ -99,9 +97,9 @@ class _CountryFlagPageState extends State<CountryFlagPage> {
                 // Description Paragraph with READ MORE / READ LESS toggle
                 if (flagDesc.isNotEmpty) ...[
                   RichText(
-                    maxLines: _isFlagExpanded ? null : 4,
+                    maxLines: isFlagExpanded ? null : 4,
                     overflow:
-                        _isFlagExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                        isFlagExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
                     text: TextSpan(
                       style: TextStyle(
                         fontSize: (w * (15.0 / 375.0)).clamp(14.0, 16.0),
@@ -115,10 +113,10 @@ class _CountryFlagPageState extends State<CountryFlagPage> {
                   SizedBox(height: h * 0.008),
                   GestureDetector(
                     onTap: () {
-                      setState(() => _isFlagExpanded = !_isFlagExpanded);
+                      expandedNotifier.value = !expandedNotifier.value;
                     },
                     child: Text(
-                      _isFlagExpanded ? 'READ LESS' : 'READ MORE',
+                      isFlagExpanded ? 'READ LESS' : 'READ MORE',
                       style: TextStyle(
                         fontSize: (w * (13.0 / 375.0)).clamp(12.0, 14.0),
                         fontWeight: FontWeight.w800,
@@ -202,6 +200,8 @@ class _CountryFlagPageState extends State<CountryFlagPage> {
         ],
       ),
     );
+      }, // end ValueListenableBuilder builder
+    );   // end ValueListenableBuilder
   }
 
   Widget _buildFlagImageWidget(String rawUrl, double width, double height) {

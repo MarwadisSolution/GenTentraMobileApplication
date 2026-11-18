@@ -6,20 +6,13 @@ import 'india_map_widget.dart';
 
 /// [GEOGRAPHIC TAB PAGE] Responsive Geographic & Administrative Profile Section.
 /// Includes interactive Vector India Map, administrative stats, and geographic overview.
-class CountryGeoPage extends StatefulWidget {
+class CountryGeoPage extends StatelessWidget {
   final CountryModel country;
 
   const CountryGeoPage({
     super.key,
     required this.country,
   });
-
-  @override
-  State<CountryGeoPage> createState() => _CountryGeoPageState();
-}
-
-class _CountryGeoPageState extends State<CountryGeoPage> {
-  bool _isExpanded = true;
 
   String _formatArea(String? area) {
     if (area != null && area.trim().isNotEmpty) {
@@ -149,10 +142,10 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
     final h = MediaQuery.of(context).size.height;
 
     // 1. Description: API first
-    final String rawDescription = widget.country.geographicDescription?.trim().isNotEmpty == true
-        ? widget.country.geographicDescription!.trim()
-        : (widget.country.info?.trim().isNotEmpty == true
-            ? widget.country.info!.trim()
+    final String rawDescription = country.geographicDescription?.trim().isNotEmpty == true
+        ? country.geographicDescription!.trim()
+        : (country.info?.trim().isNotEmpty == true
+            ? country.info!.trim()
             : '');
 
     final List<String> allParagraphs = rawDescription
@@ -164,22 +157,28 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
         ? allParagraphs
         : rawDescription.split('\n').where((p) => p.trim().isNotEmpty).toList();
 
-    final List<String> visibleParagraphs = _isExpanded
-        ? paragraphs
-        : (paragraphs.length > 2 ? paragraphs.sublist(0, 2) : paragraphs);
-
     final bool canToggle = paragraphs.length > 2 || rawDescription.length > 250;
 
     // 2. Stats values from API
-    final String areaValue = _formatArea(widget.country.area);
-    final String regCodeValue = widget.country.registrationCode?.trim().isNotEmpty == true
-        ? widget.country.registrationCode!.trim()
+    final String areaValue = _formatArea(country.area);
+    final String regCodeValue = country.registrationCode?.trim().isNotEmpty == true
+        ? country.registrationCode!.trim()
         : '-';
-    final String populationValue = widget.country.population?.trim().isNotEmpty == true
-        ? widget.country.population!.trim()
+    final String populationValue = country.population?.trim().isNotEmpty == true
+        ? country.population!.trim()
         : '-';
 
-    return Padding(
+    // ValueNotifier replaces setState for expand/collapse toggle
+    final expandedNotifier = ValueNotifier<bool>(true);
+
+    return ValueListenableBuilder<bool>(
+      valueListenable: expandedNotifier,
+      builder: (context, isExpanded, _) {
+        final List<String> visibleParagraphs = isExpanded
+            ? paragraphs
+            : (paragraphs.length > 2 ? paragraphs.sublist(0, 2) : paragraphs);
+
+        return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: w * 0.05,
         vertical: h * 0.018,
@@ -202,12 +201,10 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
             SizedBox(height: h * 0.012),
             GestureDetector(
               onTap: () {
-                setState(() {
-                  _isExpanded = !_isExpanded;
-                });
+                expandedNotifier.value = !expandedNotifier.value;
               },
               child: Text(
-                _isExpanded ? 'SHOW LESS' : 'SHOW MORE',
+                isExpanded ? 'SHOW LESS' : 'SHOW MORE',
                 style: TextStyle(
                   fontSize: (w * (13.0 / 375.0)).clamp(12.0, 14.0),
                   fontWeight: FontWeight.w700,
@@ -264,7 +261,7 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
 
           // ── INTERACTIVE INDIA MAP SECTION ──
           IndiaMapWidget(
-            initialSelectedState: widget.country.registrationCode,
+            initialSelectedState: country.registrationCode,
             onStateSelected: (state) {
               debugPrint('Selected State: ${state.name} (${state.code})');
             },
@@ -277,6 +274,8 @@ class _CountryGeoPageState extends State<CountryGeoPage> {
         ],
       ),
     );
+      }, // end ValueListenableBuilder builder
+    );   // end ValueListenableBuilder
   }
 }
 
