@@ -123,7 +123,7 @@ class _LeadershipTabState extends State<LeadershipTab> {
               final coverImage=leader.coverImage;
 
               if(coverImage!.isNotEmpty || coverImage!=""){
-                print("CoverImage:- $coverImage");
+
                 imagePath=coverImage;
               }
               return Padding(
@@ -260,7 +260,6 @@ class _LeadershipTabState extends State<LeadershipTab> {
             String? imagePath = leader.imagePath;
             final coverImage=leader.coverImage;
                 if(coverImage!.isNotEmpty || coverImage!=""){
-                  print("CoverImage:- $coverImage");
                   imagePath=coverImage;
                 }
             return Column(

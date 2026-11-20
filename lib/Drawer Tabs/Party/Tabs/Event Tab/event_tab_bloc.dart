@@ -37,6 +37,7 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
     on<RemoveExistingMediaEvent>(_removeExistingMedia);
     on<ClearJoinMessageEvent>(_clearJoinMessage);
     on<ClearDeleteMessageEvent>(_clearDeleteMessage);
+    on<ClearEventDateTime>(_clearEventDateTime);
   }
 
   // ==========================================================
@@ -1015,6 +1016,19 @@ import 'event_tab_event.dart';class EventsBloc extends Bloc<EventsEvent, EventTa
     emit(
       state.copyWith(
         isEventDeleted: false,
+      ),
+    );
+  }
+  void _clearEventDateTime(
+      ClearEventDateTime event,
+      Emitter<EventTabState> emit,
+      ) {
+    emit(
+      state.copyWith(
+        fromDate: null,
+        toDate: null,
+        fromTime: null,
+        toTime: null,
       ),
     );
   }

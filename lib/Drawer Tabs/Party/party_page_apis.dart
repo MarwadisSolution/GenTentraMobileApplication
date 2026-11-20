@@ -7,22 +7,25 @@ import '../../Reusable Functions/reusable_functions.dart';
 
 class PartyPageApis{
   final Dio _dio = apiClient;
-  Future<List<dynamic>> fetchPartiesAlreadyFormed() async {
-
+  Future<List<dynamic>> fetchPartiesAlreadyFormed({
+    required int page,
+    int size = 20,
+  }) async {
     try {
       final response = await _dio.get(
         "$api/api/v1/profile/parties",
+        queryParameters: {
+          "page": page,
+          "size": size,
+        },
       );
 
       if (response.statusCode == 200) {
         final items = response.data['data']['items'] as List;
-
         return items.toList();
       }
 
-      throw Exception(
-        "Error : ${response.statusCode}",
-      );
+      throw Exception("Error: ${response.statusCode}");
     } on DioException catch (e) {
       throw Exception(e.message);
     }

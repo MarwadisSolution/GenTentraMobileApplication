@@ -83,14 +83,14 @@ class ChangeTabEvent extends EventsEvent{
 }
 //5. -------From date to to date
 class DateEvent extends EventsEvent{
-  final DateTime fromDate;
-  final DateTime toDate;
+  final DateTime? fromDate;
+  final DateTime? toDate;
   DateEvent(this.fromDate, this.toDate);
 }
 //6. -----Time From to to
 class TimeEvent extends EventsEvent{
-  final TimeOfDay fromTime;
-  final TimeOfDay toTime;
+  final TimeOfDay? fromTime;
+  final TimeOfDay? toTime;
   TimeEvent(this.fromTime, this.toTime);
 }
 //7. Address
@@ -154,15 +154,6 @@ class joinUnJoinButtonEvent extends EventsEvent{
 }
 class ResetEventForm extends EventsEvent {}
 
-
-// ============================================================
-// ATTENDANCE
-// ============================================================
-
-// ============================================================
-// GET ATTENDANCE PAGE
-// ============================================================
-
 class GetAttendanceEvent extends EventsEvent {
   final int eventId;
   final int page;
@@ -203,3 +194,4 @@ class RemoveExistingMediaEvent extends EventsEvent {
 
 class ClearJoinMessageEvent extends EventsEvent {}
 class ClearDeleteMessageEvent extends EventsEvent {}
+class ClearEventDateTime extends EventsEvent {}

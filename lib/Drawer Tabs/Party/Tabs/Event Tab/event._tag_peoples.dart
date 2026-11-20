@@ -109,7 +109,6 @@ print(taggedPeople);
                 },
                 itemBuilder: (context, index) {
                   final person = taggedPeople[index];
-                    print("Person-> ${person.partyInitial}");
                   return _TaggedPersonTile(
                     person: person,
                   );
@@ -176,15 +175,21 @@ class _TaggedPersonTile extends StatelessWidget {
         vertical: 4,
       ),
 
-      leading: CircleAvatar(
-        radius: 22,
-        backgroundImage:
-        imageUrl != null && imageUrl.isNotEmpty
-            ? NetworkImage("$api$imageUrl")
-            : null,
-        child: imageUrl == null || imageUrl.isEmpty
-            ? Icon(Icons.person,color: Colors.black,):null,
+      leading:  SizedBox(
+      width: MediaQuery.of(context).size.width*0.14,
+      height: MediaQuery.of(context).size.width*0.14,
+      child: ClipOval(
+        child: imageUrl != null && imageUrl.isNotEmpty
+            ? buildImageWidget(imageUrl)
+            : Container(
+          color: Colors.grey.shade200,
+          child: const Icon(
+            Icons.person,
+            color: Colors.black,
+          ),
+        ),
       ),
+    ),
 
       title: Text(
         person.name ?? 'Unknown',

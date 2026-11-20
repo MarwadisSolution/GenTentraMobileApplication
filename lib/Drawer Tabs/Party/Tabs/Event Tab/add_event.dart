@@ -18,7 +18,7 @@ import '../Feed Tab/reusable_functions.dart';
 import 'event_modal.dart';
 import 'event_tagged_people_helper.dart';
 import 'full_event_desc.dart';
-
+import 'package:intl/intl.dart';
 class AddEvent extends StatefulWidget {
   final int partyId;
   final EventModel? eventToEdit;
@@ -197,7 +197,7 @@ class _AddEventState extends State<AddEvent> {
   @override
   void initState() {
     super.initState();
-
+    context.read<EventsBloc>().add(ClearEventDateTime());
     taggedPeopleHandler = EventTaggedPeopleHandler(
       api: api,
       context: context,
@@ -210,11 +210,10 @@ class _AddEventState extends State<AddEvent> {
     titleController.dispose();
     aboutEventController.dispose();
     dateController.dispose();
-    timeController.dispose();
+
     addressController.dispose();
     locationLinkController.dispose();
     scheduleController.dispose();
-
     super.dispose();
   }
 
@@ -287,11 +286,7 @@ class _AddEventState extends State<AddEvent> {
   void _publishEvent() {
 
     final eventState = context.read<EventsBloc>().state;
-    debugPrint(
-      "========== EVENT KIND ==========\n"
-          "selectedTab: ${eventState.selectedTab}\n"
-          "kind: ${getEventKind(eventState.selectedTab)}",
-    );
+
     final event = EventModel(
       id: widget.eventToEdit?.id,
       uuid: widget.eventToEdit?.uuid,
@@ -384,10 +379,7 @@ class _AddEventState extends State<AddEvent> {
         // CREATE SUCCESS
         if (state.status == EventStatus.success &&
             state.isEventCreated) {
-          debugPrint(
-            "UPDATE SUCCESSer -> kind=${state.event?.kind}, "
-                "isEventUpdated=${state.isEventUpdated}",
-          );
+
           titleController.clear();
           aboutEventController.clear();
           dateController.clear();
@@ -407,7 +399,6 @@ class _AddEventState extends State<AddEvent> {
               ),
             ),
           );
-
           Navigator.pop(context,true);
         }
 
@@ -415,10 +406,6 @@ class _AddEventState extends State<AddEvent> {
         if (state.status == EventStatus.success &&
             state.isEventUpdated &&
             isEditMode) {
-          debugPrint(
-            "UPDATE SUCCESS -> kind=${state.event?.kind}, "
-                "isEventUpdated=${state.isEventUpdated}",
-          );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: Colors.green,
@@ -430,7 +417,6 @@ class _AddEventState extends State<AddEvent> {
               ),
             ),
           );
-
           Navigator.pop(context,true);
         }
 
@@ -640,39 +626,136 @@ class _AddEventState extends State<AddEvent> {
                                   ),
                                   SizedBox(height: h*0.04,),
                                   ///------- Add From Date To Date
-                                  EventRangePicker(
-                                    type: EventRangePickerType.date,
-                                    label: "Date",
-                                    isRequired: true,
+                                  // EventRangePicker(
+                                  //   type: EventRangePickerType.date,
+                                  //   label: "Date",
+                                  //   isRequired: true,
+                                  //
+                                  //   fromDate: state.fromDate,
+                                  //   toDate: state.toDate,
+                                  //
+                                  //   onDateRangeSelected: (range) {
+                                  //     context.read<EventsBloc>().add(
+                                  //       DateEvent(
+                                  //         range.start,
+                                  //         range.end,
+                                  //       ),
+                                  //     );
+                                  //   },
+                                  // ),
 
+
+
+                                  EventDateRangeField(
                                     fromDate: state.fromDate,
                                     toDate: state.toDate,
 
-                                    onDateRangeSelected: (range) {
+                                    onFromDateSelected: (date) {
+                                      DateTime? updatedToDate = state.toDate;
+
+                                      // If the new start date is after the existing end date,
+                                      // clear the end date.
+                                      if (updatedToDate != null &&
+                                          updatedToDate.isBefore(date)) {
+                                        updatedToDate = null;
+                                      }
+
                                       context.read<EventsBloc>().add(
-                                        DateEvent(
-                                          range.start,
-                                          range.end,
-                                        ),
+                                        DateEvent(date, updatedToDate),
+                                      );
+                                    },
+
+                                    onToDateSelected: (date) {
+                                      if (state.fromDate == null) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Please select the start date first.'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      if (date.isBefore(state.fromDate!)) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('End date cannot be before start date.'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      context.read<EventsBloc>().add(
+                                        DateEvent(state.fromDate, date),
                                       );
                                     },
                                   ),
-                              SizedBox(height: h*0.04,),
-                                  ///------- Add From Time To Time
-                                  EventRangePicker(
-                                    type: EventRangePickerType.time,
-                                    label: "Time",
-                                    isRequired: true,
 
+
+
+                                  SizedBox(height: h*0.04,),
+                                  ///------- Add From Time To Time
+                                  // EventRangePicker(
+                                  //   type: EventRangePickerType.time,
+                                  //   label: "Time",
+                                  //   isRequired: true,
+                                  //
+                                  //   fromTime: state.fromTime,
+                                  //   toTime: state.toTime,
+                                  //
+                                  //   onTimeRangeSelected: (range) {
+                                  //     context.read<EventsBloc>().add(
+                                  //       TimeEvent(
+                                  //         range.start,
+                                  //         range.end,
+                                  //       ),
+                                  //     );
+                                  //   },
+                                  // ),
+                                  EventTimeRangeField(
                                     fromTime: state.fromTime,
                                     toTime: state.toTime,
 
-                                    onTimeRangeSelected: (range) {
+                                    onFromTimeSelected: (time) {
+                                      TimeOfDay? updatedToTime = state.toTime;
+
+                                      // Clear end time if it is earlier than the new start time.
+                                      if (updatedToTime != null &&
+                                          (updatedToTime.hour * 60 + updatedToTime.minute) <=
+                                              (time.hour * 60 + time.minute)) {
+                                        updatedToTime = null;
+                                      }
+
                                       context.read<EventsBloc>().add(
-                                        TimeEvent(
-                                          range.start,
-                                          range.end,
-                                        ),
+                                        TimeEvent(time, updatedToTime),
+                                      );
+                                    },
+
+                                    onToTimeSelected: (time) {
+                                      if (state.fromTime == null) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Please select the start time first.'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      final fromMinutes =
+                                          state.fromTime!.hour * 60 + state.fromTime!.minute;
+
+                                      final toMinutes = time.hour * 60 + time.minute;
+
+                                      if (toMinutes <= fromMinutes) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('End time must be later than start time.'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      context.read<EventsBloc>().add(
+                                        TimeEvent(state.fromTime, time),
                                       );
                                     },
                                   ),
@@ -743,10 +826,6 @@ class _AddEventState extends State<AddEvent> {
                                     ),
                                   SizedBox(height: h*0.04,),
 
-// ==========================================================
-// BACKGROUND IMAGE
-// ==========================================================
-
                                   Row(
                                     crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
@@ -791,16 +870,8 @@ class _AddEventState extends State<AddEvent> {
                                     ],
                                   ),
                                   SizedBox(height: h*0.04,),
-// ==========================================================
-// ONE BACKGROUND IMAGE ONLY
-// ==========================================================
 
                                   if (state.hasBackgroundImage) ...[
-                                    // SizedBox(height: h * 0.02),
-
-                                    // --------------------------------------------------------
-                                    // EXISTING SERVER BACKGROUND
-                                    // --------------------------------------------------------
 
                                     if (state.existingBgImage != null &&
                                         state.existingBgImage!.isNotEmpty &&
@@ -878,9 +949,6 @@ class _AddEventState extends State<AddEvent> {
                                         },
                                       )
 
-                                    // --------------------------------------------------------
-                                    // EMPTY BACKGROUND PICKER
-                                    // --------------------------------------------------------
 
                                     else
                                       ReusableImagePicker(
@@ -949,18 +1017,36 @@ class _AddEventState extends State<AddEvent> {
                                     ],
                                   ),
 
-                                  // ==========================================================
-// TAG PEOPLE
-// ==========================================================
                                   TaggingPeoplePicker(
-                                    initialTaggedPeople: taggedPeople,
+                                    initialTaggedPeople: state.taggedPeople,
 
                                     onChanged: (people) {
-                                      // Update the parent variable without setState.
-                                      taggedPeople = people;
+                                      // Keep a local copy if needed.
+                                      taggedPeople = List<Tagged>.from(people);
 
-                                      debugPrint(
-                                        'Tagged People IDs: ${taggedPeople.map((e) => e.id).toList()}',
+                                      // Update BLoC with currently selected people.
+                                      context.read<EventsBloc>().add(
+                                        TaggedPeopleEvent(
+                                          List<Tagged>.from(people),
+                                        ),
+                                      );
+
+                                      // Find previously existing tags that have been removed.
+                                      final originalTags = widget.eventToEdit?.tags ?? [];
+
+                                      final removedTags = originalTags.where((oldTag) {
+                                        return !people.any(
+                                              (newTag) =>
+                                          newTag.id == oldTag.id &&
+                                              newTag.type == oldTag.type,
+                                        );
+                                      }).toList();
+
+                                      // Update removed tags for PATCH API.
+                                      context.read<EventsBloc>().add(
+                                        RemovedTaggedPeopleEvent(
+                                          List<Tagged>.from(removedTags),
+                                        ),
                                       );
                                     },
 

@@ -37,7 +37,7 @@ class EventApis{
     required String fromWhichPage,
   }) async {
     print("========== postTheEvent() HIT ==========");
-
+print(event.tags);
     try {
       final FormData formData = FormData();
 
