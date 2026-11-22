@@ -33,7 +33,7 @@ class _JourneyTabState extends State<JourneyTab> {
 
     _pageController = PageController(
       initialPage: selectedIndex,
-      viewportFraction: 0.85,
+      viewportFraction: 0.98,
     );
 
     _timelineController = PageController(
@@ -160,44 +160,125 @@ class _JourneyTabState extends State<JourneyTab> {
                   width: size,
                   color: Colors.white,
                 ),
-                SizedBox(
-                  height: availableHeight * 0.6,
+                // SizedBox(
+                //   height: availableHeight * 0.6,
+                //   child: PageView.builder(
+                //     controller: _pageController,
+                //     itemCount: journeys.length,
+                //     onPageChanged: _onYearChanged,
+                //     itemBuilder: (context, index) {
+                //       final item = journeys[index];
+                //       return AnimatedContainer(
+                //         duration: const Duration(milliseconds: 300),
+                //         margin: EdgeInsets.symmetric(
+                //           horizontal: 5,
+                //           vertical: selectedIndex == index ? 0 : 16,
+                //         ),
+                //         decoration: BoxDecoration(
+                //           borderRadius: BorderRadius.circular(size*0.04),
+                //         ),
+                //         clipBehavior: Clip.antiAlias,
+                //         child: Image.network(
+                //           item.imagePath == null
+                //               ? ""
+                //               : item.imagePath!.startsWith("/api/")
+                //               ? "$api${item.imagePath}"
+                //               : item.imagePath!,
+                //           fit: BoxFit.fill,
+                //           errorBuilder: (_, __, ___) =>
+                //           const Center(child: Icon(Icons.image)),
+                //         ),
+                //       );
+                //     },
+                //   ),
+                // ),
+
+                Container(
+                  height: availableHeight*0.6,
+width: size,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    //color: Colors.red,
+                    borderRadius: BorderRadius.circular(50),
+                  ),
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount: journeys.length,
                     onPageChanged: _onYearChanged,
                     itemBuilder: (context, index) {
                       final item = journeys[index];
-                      final isSelected=selectedIndex==index;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: selectedIndex == index ? 0 : 16,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(size * 0.04),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                          opacity: isSelected?1.0:0.3,
-                          child: Image.network(
-                            item.imagePath == null
-                                ? ""
-                                : item.imagePath!.startsWith("/api/")
-                                ? "$api${item.imagePath}"
-                                : item.imagePath!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) =>
-                                const Center(child: Icon(Icons.image)),
-                          ),
-                        ),
+
+                      return Image.network(
+                        item.imagePath??"-",
+                        width: double.infinity,
+                        fit: BoxFit.contain,
+                        alignment: Alignment.topCenter,
                       );
                     },
                   ),
                 ),
+                // SizedBox(
+                //   height: availableHeight*0.6,
+                //   child: PageView.builder(
+                //       controller: _pageController,
+                //       itemCount: journeys.length,
+                //       onPageChanged: _onYearChanged,
+                //       itemBuilder: (context,index){
+                //         final item=journeys[index];
+                //         return Card(
+                //           elevation: 0,
+                //           margin: EdgeInsets.symmetric(horizontal: size * 0.015),
+                //           shape: RoundedRectangleBorder(
+                //             borderRadius: BorderRadius.circular(20),
+                //           ),
+                //          // color: Colors.red,
+                //           clipBehavior: Clip.antiAlias,
+                //           child: Center(
+                //             child: SizedBox(
+                //               //width: size*0.7,
+                //
+                //               //height: availableHeight * 0.5,
+                //               child: buildImageWidget(
+                //                 item.imagePath ?? "-",
+                //                 fit: BoxFit.fill
+                //               ),
+                //             ),
+                //           ),
+                //         );
+                //       }
+                //
+                //   ),
+                // ),
+                  //
+                  //  SizedBox(
+                  //   height: availableHeight * 0.6,
+                  //   child: ClipRRect(
+                  //
+                  //     child: PageView.builder(
+                  //
+                  //       controller: _pageController,
+                  //       itemCount: journeys.length,
+                  //       onPageChanged: _onYearChanged,
+                  //       itemBuilder: (context, index) {
+                  //         final item = journeys[index];
+                  //         return Padding(
+                  //           padding:  EdgeInsets.symmetric(horizontal: size*0.015),
+                  //           child: Image.network(
+                  //             item.imagePath == null
+                  //                 ? ""
+                  //                 : item.imagePath!.startsWith("/api/")
+                  //                 ? "$api${item.imagePath}"
+                  //                 : item.imagePath!,
+                  //             fit: BoxFit.cover,
+                  //             errorBuilder: (_, _, _) =>
+                  //                 const Center(child: Icon(Icons.person)),
+                  //           ),
+                  //         );
+                  //       },
+                  //     ),
+                  //   ),
+                  // ),
+
 
                 /// 2. TEXT CONTENT PAGEVIEW
                 SizedBox(height: height * 0.02),

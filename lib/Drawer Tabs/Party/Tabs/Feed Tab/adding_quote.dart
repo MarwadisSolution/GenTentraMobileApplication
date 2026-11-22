@@ -12,7 +12,6 @@ import '../../../../Reusable Functions/sliver_app_bar_reusable.dart';
 import '../../party_page_data.dart';
 import '../../reusable_functions.dart';
 import '../Event Tab/event_modal.dart';
-import '../tagged_people_helper.dart';
 import 'feed_bloc.dart';
 import 'feed_event.dart';
 import 'feed_model.dart';

@@ -18,7 +18,6 @@ import '../../../../Reusable Functions/image_video_compressor.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../party_page_data.dart';
 import '../Event Tab/event_modal.dart';
-import '../tagged_people_helper.dart';
 import 'feed_event.dart';
 
 class AddingFeed extends StatefulWidget {

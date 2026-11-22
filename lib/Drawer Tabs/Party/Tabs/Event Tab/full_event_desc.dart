@@ -10,7 +10,6 @@ import '../../../../Reusable Functions/reusable_functions.dart';
 import '../../reusable_functions.dart';
 import '../Feed Tab/apis.dart';
 import '../Feed Tab/reusable_functions.dart';
-import '../tagged_people_helper.dart';
 import 'add_event.dart';
 import 'apis.dart';
 import 'event._tag_peoples.dart';
@@ -34,17 +33,7 @@ class FullEventDesc extends StatefulWidget {
 class _FullEventDescState extends State<FullEventDesc> {
   final FeedApis api = FeedApis();
   List<Tagged> taggedPeople = [];
-  late TaggedPeopleHandler taggedPeopleHandler;
 
-@override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    taggedPeopleHandler = TaggedPeopleHandler(
-      context: context,
-      api: api,
-    );
-  }
   bool _hasEventStarted(EventModel event) {
     if (event.eventFrom == null || event.timeFrom == null) {
       return false;

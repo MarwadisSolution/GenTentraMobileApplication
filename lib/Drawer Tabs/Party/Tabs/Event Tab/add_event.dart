@@ -485,8 +485,8 @@ class _AddEventState extends State<AddEvent> {
                         Navigator.pop(context);
                       },
                       child: SizedBox(
-                        width: 48,
-                        height: 48,
+                        width: w*0.15,
+                        height: w*0.15,
                         child: Center(
                           child: SvgPicture.asset(
                             PartyPageData.crossIcon,
@@ -542,7 +542,7 @@ class _AddEventState extends State<AddEvent> {
                                             fontSize:   MediaQuery.of(context).size.width * 0.04,
                                             letterSpacing: 0.37,
                                             fontWeight: FontWeight.w400,
-                                            color: Colors.white,
+                                            color: state.selectedTab == 0?ColorScheme.of(context).surface:ColorScheme.of(context).onSurface,
                                           ),
                                           isSelected: state.selectedTab == 0,
                                           onTap: (){
@@ -551,7 +551,7 @@ class _AddEventState extends State<AddEvent> {
                                             );
                                           },
                                           iconName: PartyPageData.globalIcon,
-                                          iconColor: Colors.white,
+                                          iconColor: state.selectedTab == 0?ColorScheme.of(context).surface:ColorScheme.of(context).onSurface,
                                           height: h * 0.05,
                                           width: w * 0.35,
                                         ),
@@ -562,7 +562,7 @@ class _AddEventState extends State<AddEvent> {
                                           textStyle: TextStyle(
                                             fontSize:   MediaQuery.of(context).size.width * 0.04,
                                             fontWeight: FontWeight.w400,
-                                            color: Colors.white,
+                                            color:state.selectedTab == 1?ColorScheme.of(context).surface:ColorScheme.of(context).onSurface,
                                           ),
                                           isSelected:  state.selectedTab == 1,
                                           onTap: (){
@@ -571,6 +571,7 @@ class _AddEventState extends State<AddEvent> {
                                             );
                                           },
                                           iconName: PartyPageData.lockIcon,
+                                          iconColor: state.selectedTab == 1?ColorScheme.of(context).surface:ColorScheme.of(context).onSurface,
                                           height: h * 0.05,
                                           width: w * 0.35,
                                         ),
@@ -581,7 +582,7 @@ class _AddEventState extends State<AddEvent> {
                                           textStyle: TextStyle(
                                             fontSize:   MediaQuery.of(context).size.width * 0.04,
                                             fontWeight: FontWeight.w400,
-                                            color: Colors.white,
+                                            color: state.selectedTab == 2?ColorScheme.of(context).surface:ColorScheme.of(context).onSurface,
                                           ),
                                           isSelected:  state.selectedTab == 2,
                                           onTap: (){
@@ -590,7 +591,7 @@ class _AddEventState extends State<AddEvent> {
                                             );
                                           },
                                           iconName: PartyPageData.tagPeopleIcon,
-                                          iconColor: Colors.white,
+                                          iconColor: state.selectedTab == 2?ColorScheme.of(context).surface:ColorScheme.of(context).onSurface,
                                           iconHeight: w*0.04,
                                           height: h * 0.05,
                                           width: w * 0.35,
@@ -626,23 +627,6 @@ class _AddEventState extends State<AddEvent> {
                                   ),
                                   SizedBox(height: h*0.04,),
                                   ///------- Add From Date To Date
-                                  // EventRangePicker(
-                                  //   type: EventRangePickerType.date,
-                                  //   label: "Date",
-                                  //   isRequired: true,
-                                  //
-                                  //   fromDate: state.fromDate,
-                                  //   toDate: state.toDate,
-                                  //
-                                  //   onDateRangeSelected: (range) {
-                                  //     context.read<EventsBloc>().add(
-                                  //       DateEvent(
-                                  //         range.start,
-                                  //         range.end,
-                                  //       ),
-                                  //     );
-                                  //   },
-                                  // ),
 
 
 
@@ -653,8 +637,6 @@ class _AddEventState extends State<AddEvent> {
                                     onFromDateSelected: (date) {
                                       DateTime? updatedToDate = state.toDate;
 
-                                      // If the new start date is after the existing end date,
-                                      // clear the end date.
                                       if (updatedToDate != null &&
                                           updatedToDate.isBefore(date)) {
                                         updatedToDate = null;
@@ -694,23 +676,7 @@ class _AddEventState extends State<AddEvent> {
 
                                   SizedBox(height: h*0.04,),
                                   ///------- Add From Time To Time
-                                  // EventRangePicker(
-                                  //   type: EventRangePickerType.time,
-                                  //   label: "Time",
-                                  //   isRequired: true,
-                                  //
-                                  //   fromTime: state.fromTime,
-                                  //   toTime: state.toTime,
-                                  //
-                                  //   onTimeRangeSelected: (range) {
-                                  //     context.read<EventsBloc>().add(
-                                  //       TimeEvent(
-                                  //         range.start,
-                                  //         range.end,
-                                  //       ),
-                                  //     );
-                                  //   },
-                                  // ),
+
                                   EventTimeRangeField(
                                     fromTime: state.fromTime,
                                     toTime: state.toTime,
@@ -869,7 +835,7 @@ class _AddEventState extends State<AddEvent> {
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: h*0.04,),
+
 
                                   if (state.hasBackgroundImage) ...[
 
@@ -878,6 +844,7 @@ class _AddEventState extends State<AddEvent> {
                                         state.bgImageUrl == null)
                                       Stack(
                                         children: [
+                                          SizedBox(height: h*0.04,),
                                           ClipRRect(
                                             borderRadius: BorderRadius.circular(16),
                                             child: buildImageWidget(
@@ -925,8 +892,6 @@ class _AddEventState extends State<AddEvent> {
                                           state.bgImageUrl!,
                                         ],
 
-                                        // IMPORTANT:
-                                        // Only ONE background can exist.
                                         onAddMedia: () async {
                                           final PickedMedia pickedMedia =
                                           await ReusableMediaPicker.pickMedia(context);
@@ -1063,62 +1028,9 @@ class _AddEventState extends State<AddEvent> {
                                       );
                                     },
                                   ),
-//                                   FeedQuoteTab(
-//                                     title: PartyPageData.tagPeople,
-//                                     textStyle: TextStyle(
-//                                       fontSize: MediaQuery.of(context).size.width * 0.035,
-//                                       fontWeight: FontWeight.w400,
-//                                       color: Colors.black,
-//                                     ),
-//                                     isSelected: false,
-//                                     onTap: () async {
-//                                       final currentTaggedPeople =
-//                                       List<Tagged>.from(state.taggedPeople);
-//
-//                                       final result =
-//                                       await taggedPeopleHandler.addMoreTaggedPeople(
-//                                         taggedPeople: currentTaggedPeople,
-//                                       );
-//
-//                                       if (!mounted || result == null) {
-//                                         return;
-//                                       }
-//
-//                                       final updatedTaggedPeople =
-//                                       List<Tagged>.from(
-//                                         result['taggedPeople'] as List<Tagged>,
-//                                       );
-//
-//                                       final removedTags =
-//                                       List<Tagged>.from(
-//                                         result['removed'] as List<Tagged>,
-//                                       );
-//
-// // Update currently visible tags.
-//                                       context.read<EventsBloc>().add(
-//                                         TaggedPeopleEvent(
-//                                           updatedTaggedPeople,
-//                                         ),
-//                                       );
-//
-// // Store removed existing tags for PATCH.
-//                                       context.read<EventsBloc>().add(
-//                                         RemovedTaggedPeopleEvent(
-//                                           removedTags,
-//                                         ),
-//                                       );
-//                                     },
-//                                     iconName: PartyPageData.tagPeopleIcon,
-//                                     iconHeight: w * 0.045,
-//                                     height: h * 0.05,
-//                                     width: w * 0.4,
-//                                   ),
 
                                   SizedBox(height: h * 0.02),
 
-// ==========================================================
-// EXISTING EVENT MEDIA — EDIT MODE
-// ==========================================================
 
                                   if (state.existingMedia.isNotEmpty) ...[
                                     ExistingEventMediaGrid(
@@ -1133,15 +1045,9 @@ class _AddEventState extends State<AddEvent> {
                                     SizedBox(height: h * 0.02),
                                   ],
 
-// ==========================================================
-// NEW EVENT MEDIA — MANY
-// ==========================================================
-
                                   ReusableImagePicker(
                                     height: h * 0.18,
 
-                                    // IMPORTANT:
-                                    // This is ONLY normal event media.
                                     mediaFiles: state.images,
 
                                     onAddMedia: () async {

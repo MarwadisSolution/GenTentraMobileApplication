@@ -9,7 +9,6 @@ import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_func
 import '../../Favourite/favourite_api.dart';
 import 'Tabs/Development/development_apis.dart';
 import 'Tabs/Event Tab/event_modal.dart';
-import 'Tabs/tagged_people_helper.dart';
 import 'Tabs/tagging peoples/tagging_people_model.dart';
 import 'Tabs/tagging peoples/tagging_people_reusable.dart';
 import 'following_party_caching.dart';

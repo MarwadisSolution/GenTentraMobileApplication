@@ -19,9 +19,6 @@ import '../Event Tab/event_modal.dart';
 import '../Event Tab/reusable_functions.dart';
 import '../Feed Tab/reusable_functions.dart';
 import '../Feed Tab/reusable_media_grid.dart';
-import '../tagged_people_helper.dart';
-import '../tagging peoples/tagging_people_model.dart';
-import '../tagging peoples/tagging_people_reusable.dart';
 import 'development_apis.dart';
 import 'development_events.dart';
 
@@ -69,52 +66,6 @@ class _AddingDevelopmentState extends State<AddingDevelopment> {
   List<int> deletedMediaIds = [];
   final ImagePicker imagePicker = ImagePicker();
   final VideoPlayerHelper videoPlayerHelper = VideoPlayerHelper();
-  // Future<void> _openTaggingPeople() async {
-  //   final result = await Navigator.push<List<SelectedTaggingPersonModel>>(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (_) => TaggingPeopleReusable(
-  //         searchPeople: (String query) async {
-  //           final response = await api.searchBarData(query);
-  //
-  //           return response.map((person) {
-  //             return TaggingPersonModel(
-  //               id: person.id,
-  //               politicianId: person.politicianId,
-  //               imagePath: person.imagePath,
-  //               name: person.name,
-  //               surname: person.surname,
-  //               designation: person.designation,
-  //              region: person.region,
-  //
-  //             );
-  //           }).toList();
-  //         },
-  //         initialSelectedPeople: taggedPeople.map((person) {
-  //           return SelectedTaggingPersonModel(
-  //             politicianId: person.id ?? 0,
-  //             type: person.type ?? 'POLITICIAN',
-  //             name: person.name ?? '',
-  //             imagePath: person.photoUrl,
-  //           );
-  //         }).toList(),
-  //       ),
-  //     ),
-  //   );
-  //
-  //   if (result == null || !mounted) return;
-  //
-  //   setState(() {
-  //     taggedPeople = result.map((person) {
-  //       return Tagged(
-  //         type: person.type,
-  //         id: person.politicianId,
-  //         name: person.name,
-  //         photoUrl: person.imagePath,
-  //       );
-  //     }).toList();
-  //   });
-  //  }
   Future<void> playVideo(int index, {required bool isExisting}) async {
     if (isExisting) {
       await videoPlayerHelper.playVideo(
@@ -571,9 +522,6 @@ titleController.text="Not required";
                                       onChanged: (people) {
                                         taggedPeople = people;
 
-                                        debugPrint(
-                                          'Tagged People IDs: ${taggedPeople.map((e) => e.id).toList()}',
-                                        );
                                       },
 
                                       builder: (context, selectedPeople, openTaggingPeople) {

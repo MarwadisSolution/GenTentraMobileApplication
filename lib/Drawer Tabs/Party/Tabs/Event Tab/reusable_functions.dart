@@ -459,35 +459,111 @@ class EventDateRangeField extends StatelessWidget {
     required this.onToDateSelected,
   });
 
+
   Future<void> _selectDate(
       BuildContext context, {
         required bool isFromDate,
       }) async {
-    final DateTime initialDate = isFromDate
+    final DateTime minDate = isFromDate
+        ? DateTime.now()
+        : fromDate ?? DateTime.now();
+
+    final DateTime maxDate = isFromDate
+        ? (toDate != null && !toDate!.isBefore(minDate)
+        ? toDate!
+        : DateTime(2100))
+        : DateTime(2100);
+
+    DateTime initialDate = isFromDate
         ? fromDate ?? DateTime.now()
         : toDate ?? fromDate ?? DateTime.now();
 
-    final DateTime firstDate = isFromDate
-        ? DateTime(2000)
-        : fromDate ?? DateTime(2000);
+    // Keep initial date within the allowed range.
+    if (initialDate.isBefore(minDate)) {
+      initialDate = minDate;
+    } else if (initialDate.isAfter(maxDate)) {
+      initialDate = maxDate;
+    }
 
-    final DateTime? selectedDate = await showDatePicker(
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    DateTime tempDate = initialDate;
+
+    final DateTime? selectedDate = await showCupertinoModalPopup<DateTime>(
       context: context,
-      initialDate: initialDate.isBefore(firstDate)
-          ? firstDate
-          : initialDate,
-      firstDate: firstDate,
-      lastDate: DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            datePickerTheme: DatePickerThemeData(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.width*0.7,
+          decoration:  BoxDecoration(
+            color: ColorScheme.of(context).surface,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(MediaQuery.of(context).size.width*0.04),
             ),
           ),
-          child: child!,
+          child: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                // Picker toolbar
+                Padding(
+                  padding:  EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width*0.06,
+                    vertical: MediaQuery.of(context).size.width*0.01,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child:  Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: ColorScheme.of(context).onSurface.withOpacity(0.6),
+                            fontSize: MediaQuery.of(context).size.width*0.05,
+                          ),
+                        ),
+                      ),
+
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          Navigator.pop(context, tempDate);
+                        },
+                        child:  Text(
+                          'Done',
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width*0.05,
+                            fontWeight: FontWeight.w600,
+                            color: CupertinoColors.activeBlue,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Divider(height: 1),
+
+                // iOS wheel date picker
+                Expanded(
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.date,
+                    initialDateTime: initialDate,
+                    minimumDate: minDate,
+                    maximumDate: maxDate,
+                    dateOrder: DatePickerDateOrder.mdy,
+                    backgroundColor: CupertinoColors.white,
+                    onDateTimeChanged: (DateTime newDate) {
+                      tempDate = newDate;
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -500,6 +576,7 @@ class EventDateRangeField extends StatelessWidget {
       onToDateSelected(selectedDate);
     }
   }
+
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'Select date';
@@ -657,25 +734,191 @@ class EventTimeRangeField extends StatelessWidget {
     required this.onToTimeSelected,
   });
 
+
   Future<void> _selectTime(
       BuildContext context, {
         required bool isFromTime,
       }) async {
-    final selectedTime = await showTimePicker(
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    final TimeOfDay initialTime = isFromTime
+        ? fromTime ?? TimeOfDay.now()
+        : toTime ?? fromTime ?? TimeOfDay.now();
+
+    int selectedHour = initialTime.hourOfPeriod == 0
+        ? 12
+        : initialTime.hourOfPeriod;
+
+    int selectedMinute = initialTime.minute;
+
+    bool isPM = initialTime.period == DayPeriod.pm;
+
+    final TimeOfDay? selectedTime =
+    await showCupertinoModalPopup<TimeOfDay>(
       context: context,
-      initialTime: isFromTime
-          ? fromTime ?? TimeOfDay.now()
-          : toTime ?? fromTime ?? TimeOfDay.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            timePickerTheme: TimePickerThemeData(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.width*0.7,
+          decoration:  BoxDecoration(
+            color: ColorScheme.of(context).surface,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(MediaQuery.of(context).size.width*0.04),
             ),
           ),
-          child: child!,
+          child: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                // Header
+                Padding(
+                  padding:  EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width*0.06,
+                    vertical: MediaQuery.of(context).size.width*0.01,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child:  Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: ColorScheme.of(context).onSurface.withOpacity(0.6),
+                            fontSize: MediaQuery.of(context).size.width*0.05,
+                          ),
+                        ),
+                      ),
+
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          int hour = selectedHour % 12;
+
+                          if (isPM) {
+                            hour += 12;
+                          }
+
+                          Navigator.pop(
+                            context,
+                            TimeOfDay(
+                              hour: hour,
+                              minute: selectedMinute,
+                            ),
+                          );
+                        },
+                        child:  Text(
+                          'Done',
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width*0.05,
+                            fontWeight: FontWeight.w600,
+                            color: CupertinoColors.activeBlue,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Divider(height: 1),
+
+                // Cupertino wheel picker
+                Expanded(
+                  child: Row(
+                    children: [
+                      // Hour
+                      Expanded(
+                        child: CupertinoPicker(
+                          scrollController:
+                          FixedExtentScrollController(
+                            initialItem: selectedHour - 1,
+                          ),
+                          itemExtent: 42,
+                          onSelectedItemChanged: (index) {
+                            selectedHour = index + 1;
+                          },
+                          children: List.generate(
+                            12,
+                                (index) => Center(
+                              child: Text(
+                                '${index + 1}',
+                                style:  TextStyle(
+                                  fontSize:   MediaQuery.of(context).size.width*0.06,
+                                  color: ColorScheme.of(context).onSurface,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Minute
+                      Expanded(
+                        child: CupertinoPicker(
+                          scrollController:
+                          FixedExtentScrollController(
+                            initialItem: selectedMinute,
+                          ),
+                          itemExtent: 42,
+                          onSelectedItemChanged: (index) {
+                            selectedMinute = index;
+                          },
+                          children: List.generate(
+                            60,
+                                (index) => Center(
+                              child: Text(
+                                index.toString().padLeft(2, '0'),
+                                style:  TextStyle(
+                                  fontSize: MediaQuery.of(context).size.width*0.06,
+                                  color: ColorScheme.of(context).onSurface,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // AM / PM
+                      Expanded(
+                        child: CupertinoPicker(
+                          scrollController:
+                          FixedExtentScrollController(
+                            initialItem: isPM ? 1 : 0,
+                          ),
+                          itemExtent: 42,
+                          onSelectedItemChanged: (index) {
+                            isPM = index == 1;
+                          },
+                          children:  [
+                            Center(
+                              child: Text(
+                                'AM',
+                                style: TextStyle(
+                                  fontSize:  MediaQuery.of(context).size.width*0.05,
+                                  color: ColorScheme.of(context).onSurface,
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Text(
+                                'PM',
+                                style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.width*0.05,
+                                  color: ColorScheme.of(context).onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -688,6 +931,7 @@ class EventTimeRangeField extends StatelessWidget {
       onToTimeSelected(selectedTime);
     }
   }
+
 
   Widget _timeField({
     required BuildContext context,
@@ -828,663 +1072,7 @@ class EventTimeRangeField extends StatelessWidget {
     );
   }
 }
-
-// enum EventRangePickerType {
-//   date,
-//   time,
-// }
-//
-// class EventRangePicker extends StatelessWidget {
-//   final EventRangePickerType type;
-//
-//   final String label;
-//   final bool isRequired;
-//
-//   // Date
-//   final DateTime? fromDate;
-//   final DateTime? toDate;
-//
-//   // Time
-//   final TimeOfDay? fromTime;
-//   final TimeOfDay? toTime;
-//
-//   // Callbacks
-//   final ValueChanged<DateTimeRange>? onDateRangeSelected;
-//   final ValueChanged<TimeOfDayRange>? onTimeRangeSelected;
-//
-//   const EventRangePicker({
-//     super.key,
-//     required this.type,
-//     required this.label,
-//     this.isRequired = false,
-//
-//     this.fromDate,
-//     this.toDate,
-//
-//     this.fromTime,
-//     this.toTime,
-//
-//     this.onDateRangeSelected,
-//     this.onTimeRangeSelected,
-//   });
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final h = MediaQuery.of(context).size.height;
-//     final w = MediaQuery.of(context).size.width;
-//
-//     return InputDecorator(
-//       decoration: InputDecoration(
-//         label: RichText(
-//           text: TextSpan(
-//             text: label,
-//             style: TextStyle(
-//               color: Colors.grey.shade600,
-//               fontSize: 12,
-//             ),
-//             children: [
-//               if (isRequired)
-//                 const TextSpan(
-//                   text: '*',
-//                   style: TextStyle(
-//                     color: Colors.red,
-//                   ),
-//                 ),
-//             ],
-//           ),
-//         ),
-//         border: OutlineInputBorder(
-//           borderRadius: BorderRadius.circular(12),
-//         ),
-//         enabledBorder: OutlineInputBorder(
-//           borderRadius: BorderRadius.circular(12),
-//           borderSide: BorderSide(
-//             color: Colors.grey.shade400,
-//           ),
-//         ),
-//         contentPadding: EdgeInsets.symmetric(
-//           horizontal: 20,
-//           vertical: h * 0.026,
-//         ),
-//         suffixIcon: Padding(
-//           padding: EdgeInsets.only(right: w * 0.09),
-//           child: InkWell(
-//             onTap: () {
-//               if (type == EventRangePickerType.date) {
-//                 _selectFromDate(context);
-//               } else {
-//                 _selectFromTime(context);
-//               }
-//             },
-//             child: SizedBox(
-//               width: 15,
-//               height: 15,
-//               child: SvgPicture.asset(
-//                 type == EventRangePickerType.date
-//                     ? PartyPageData.dateIcon
-//                     : PartyPageData.clockIcon,
-//                 color: type == EventRangePickerType.date
-//                     ? Colors.black.withValues(alpha: 0.44)
-//                     : null,
-//                 fit: BoxFit.contain,
-//               ),
-//             ),
-//           ),
-//         ),
-//       ),
-//       child: Row(
-//         children: [
-//           Expanded(
-//             child: InkWell(
-//               onTap: () {
-//                 if (type == EventRangePickerType.date) {
-//                   _selectFromDate(context);
-//                 } else {
-//                   _selectFromTime(context);
-//                 }
-//               },
-//               child: Padding(
-//                 padding: const EdgeInsets.symmetric(vertical: 4),
-//                 child: Text(
-//                   _fromText(),
-//                   style: TextStyle(
-//                     fontSize: (MediaQuery.of(context).size.width * 0.045)
-//                         .clamp(14.0, 18.0),
-//                     fontWeight: FontWeight.w300,
-//                     letterSpacing: 0.5,
-//                     color: _isFromEmpty()
-//                         ? Colors.black.withValues(alpha: 0.5)
-//                         : Colors.black,
-//                   ),
-//                 ),
-//               ),
-//             ),
-//           ),
-//
-//           Padding(
-//             padding: const EdgeInsets.symmetric(horizontal: 10),
-//             child: Text(
-//               "To",
-//               style: TextStyle(
-//                 fontSize: (MediaQuery.of(context).size.width * 0.045)
-//                     .clamp(14.0, 18.0),
-//                 fontWeight: FontWeight.w300,
-//                 letterSpacing: 0.5,
-//                 color: Colors.black,
-//               ),
-//             ),
-//           ),
-//
-//           Expanded(
-//             child: InkWell(
-//               onTap: () {
-//                 if (type == EventRangePickerType.date) {
-//                   _selectToDate(context);
-//                 } else {
-//                   _selectToTime(context);
-//                 }
-//               },
-//               child: Padding(
-//                 padding: const EdgeInsets.symmetric(vertical: 4),
-//                 child: Text(
-//                   _toText(),
-//                   style: TextStyle(
-//                     fontSize: (MediaQuery.of(context).size.width * 0.045)
-//                         .clamp(14.0, 18.0),
-//                     fontWeight: FontWeight.w300,
-//                     letterSpacing: 0.5,
-//                     color: _isToEmpty()
-//                         ? Colors.black.withValues(alpha: 0.5)
-//                         : Colors.black,
-//                   ),
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   // ============================================================
-//   // DISPLAY TEXT
-//   // ============================================================
-//
-//   String _fromText() {
-//     if (type == EventRangePickerType.date) {
-//       if (fromDate == null) {
-//         return "DD MM YYYY";
-//       }
-//
-//       return _formatDate(fromDate!);
-//     }
-//
-//     if (fromTime == null) {
-//       return "HH MM";
-//     }
-//
-//     return _formatTime(fromTime!);
-//   }
-//
-//   String _toText() {
-//     if (type == EventRangePickerType.date) {
-//       if (toDate == null) {
-//         return "DD MM YYYY";
-//       }
-//
-//       return _formatDate(toDate!);
-//     }
-//
-//     if (toTime == null) {
-//       return "HH MM";
-//     }
-//
-//     return _formatTime(toTime!);
-//   }
-//
-//   bool _isFromEmpty() {
-//     return type == EventRangePickerType.date
-//         ? fromDate == null
-//         : fromTime == null;
-//   }
-//
-//   bool _isToEmpty() {
-//     return type == EventRangePickerType.date
-//         ? toDate == null
-//         : toTime == null;
-//   }
-//
-//   // ============================================================
-//   // DATE RANGE - INDEPENDENT PICKERS
-//   // ============================================================
-//
-//   Future<void> _selectFromDate(BuildContext context) async {
-//     final now = DateTime.now();
-//     final DateTime initial = fromDate ?? now;
-//
-//     final DateTime? selectedFromDate = await _showCupertinoDatePicker(
-//       context: context,
-//       initialDate: initial,
-//       minimumDate: DateTime(
-//         now.year,
-//         now.month,
-//         now.day,
-//       ),
-//       title: "Select From Date",
-//     );
-//
-//     if (selectedFromDate == null) {
-//       return;
-//     }
-//
-//     final DateTime newToDate =
-//         (toDate != null && !toDate!.isBefore(selectedFromDate))
-//             ? toDate!
-//             : selectedFromDate;
-//
-//     onDateRangeSelected?.call(
-//       DateTimeRange(
-//         start: selectedFromDate,
-//         end: newToDate,
-//       ),
-//     );
-//   }
-//
-//   Future<void> _selectToDate(BuildContext context) async {
-//     final now = DateTime.now();
-//     final DateTime minDate = fromDate ?? DateTime(now.year, now.month, now.day);
-//     DateTime initial = toDate ?? fromDate ?? now;
-//     if (initial.isBefore(minDate)) {
-//       initial = minDate;
-//     }
-//
-//     final DateTime? selectedToDate = await _showCupertinoDatePicker(
-//       context: context,
-//       initialDate: initial,
-//       minimumDate: minDate,
-//       title: "Select To Date",
-//     );
-//
-//     if (selectedToDate == null) {
-//       return;
-//     }
-//
-//     final DateTime newFromDate = fromDate ?? selectedToDate;
-//
-//     onDateRangeSelected?.call(
-//       DateTimeRange(
-//         start: newFromDate,
-//         end: selectedToDate,
-//       ),
-//     );
-//   }
-//
-//   // ============================================================
-//   // REUSABLE DATE PICKER
-//   // ============================================================
-//
-//   Future<DateTime?> _showCupertinoDatePicker({
-//     required BuildContext context,
-//     required DateTime initialDate,
-//     required DateTime minimumDate,
-//     required String title,
-//   }) async {
-//     final w = MediaQuery.of(context).size.width;
-//     final h = MediaQuery.of(context).size.height;
-//
-//     DateTime tempDate = initialDate;
-//
-//     return showCupertinoModalPopup<DateTime>(
-//       context: context,
-//       builder: (modalContext) {
-//         return StatefulBuilder(
-//           builder: (_, setModalState) {
-//             return Container(
-//               height: h * 0.35,
-//               decoration: const BoxDecoration(
-//                 color: Colors.white,
-//                 borderRadius: BorderRadius.vertical(
-//                   top: Radius.circular(20),
-//                 ),
-//               ),
-//               child: Column(
-//                 children: [
-//                   // ------------------------------------------------
-//                   // TOP BAR
-//                   // ------------------------------------------------
-//
-//                   Padding(
-//                     padding: EdgeInsets.symmetric(
-//                       horizontal: w * 0.04,
-//                       vertical: h * 0.015,
-//                     ),
-//                     child: Row(
-//                       mainAxisAlignment:
-//                       MainAxisAlignment.spaceBetween,
-//                       children: [
-//                         CupertinoButton(
-//                           padding: EdgeInsets.zero,
-//                           onPressed: () {
-//                             Navigator.pop(modalContext);
-//                           },
-//                           child: const Text(
-//                             "Cancel",
-//                             style: TextStyle(
-//                               color: Color(0xFFFF2164),
-//                             ),
-//                           ),
-//                         ),
-//
-//                         Text(
-//                           title,
-//                           style: const TextStyle(
-//                             fontWeight: FontWeight.w600,
-//                             fontSize: 16,
-//                           ),
-//                         ),
-//
-//                         CupertinoButton(
-//                           padding: EdgeInsets.zero,
-//                           onPressed: () {
-//                             Navigator.pop(
-//                               modalContext,
-//                               tempDate,
-//                             );
-//                           },
-//                           child: const Text(
-//                             "Done",
-//                             style: TextStyle(
-//                               color: Color(0xFFFF2164),
-//                               fontWeight: FontWeight.w600,
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//
-//                   // ------------------------------------------------
-//                   // DATE PICKER
-//                   // ------------------------------------------------
-//
-//                   Expanded(
-//                     child: CupertinoDatePicker(
-//                       mode: CupertinoDatePickerMode.date,
-//                       initialDateTime: initialDate,
-//                       minimumDate: minimumDate,
-//                       maximumDate: DateTime(2100),
-//                       onDateTimeChanged: (value) {
-//                         setModalState(() {
-//                           tempDate = value;
-//                         });
-//                       },
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             );
-//           },
-//         );
-//       },
-//     );
-//   }
-//
-//   // ============================================================
-//   // TIME RANGE - INDEPENDENT PICKERS
-//   // ============================================================
-//
-//   Future<void> _selectFromTime(BuildContext context) async {
-//     final TimeOfDay initialFrom = fromTime ?? TimeOfDay.now();
-//
-//     final TimeOfDay? selectedFromTime = await _showCupertinoTimePicker(
-//       context: context,
-//       initialTime: initialFrom,
-//       title: "Select From Time",
-//     );
-//
-//     if (selectedFromTime == null) {
-//       return;
-//     }
-//
-//     TimeOfDay newToTime;
-//     if (toTime != null) {
-//       final bool isSameDay = fromDate == null ||
-//           toDate == null ||
-//           (fromDate!.year == toDate!.year &&
-//               fromDate!.month == toDate!.month &&
-//               fromDate!.day == toDate!.day);
-//
-//       if (isSameDay) {
-//         final fromMinutes =
-//             selectedFromTime.hour * 60 + selectedFromTime.minute;
-//         final toMinutes = toTime!.hour * 60 + toTime!.minute;
-//         if (toMinutes < fromMinutes) {
-//           newToTime = _addOneHour(selectedFromTime);
-//         } else {
-//           newToTime = toTime!;
-//         }
-//       } else {
-//         newToTime = toTime!;
-//       }
-//     } else {
-//       newToTime = _addOneHour(selectedFromTime);
-//     }
-//
-//     onTimeRangeSelected?.call(
-//       TimeOfDayRange(
-//         start: selectedFromTime,
-//         end: newToTime,
-//       ),
-//     );
-//   }
-//
-//   Future<void> _selectToTime(BuildContext context) async {
-//     final TimeOfDay initialTo =
-//         toTime ?? (fromTime != null ? _addOneHour(fromTime!) : TimeOfDay.now());
-//
-//     final TimeOfDay? selectedToTime = await _showCupertinoTimePicker(
-//       context: context,
-//       initialTime: initialTo,
-//       title: "Select To Time",
-//     );
-//
-//     if (selectedToTime == null) {
-//       return;
-//     }
-//
-//     final TimeOfDay effectiveFrom = fromTime ?? selectedToTime;
-//
-//     final bool isSameDay = fromDate == null ||
-//         toDate == null ||
-//         (fromDate!.year == toDate!.year &&
-//             fromDate!.month == toDate!.month &&
-//             fromDate!.day == toDate!.day);
-//
-//     if (isSameDay && fromTime != null) {
-//       final fromMinutes = effectiveFrom.hour * 60 + effectiveFrom.minute;
-//       final toMinutes = selectedToTime.hour * 60 + selectedToTime.minute;
-//
-//       if (toMinutes < fromMinutes) {
-//         if (context.mounted) {
-//           ScaffoldMessenger.of(context).showSnackBar(
-//             const SnackBar(
-//               content: Text(
-//                 "To time cannot be earlier than From time",
-//               ),
-//             ),
-//           );
-//         }
-//         return;
-//       }
-//     }
-//
-//     onTimeRangeSelected?.call(
-//       TimeOfDayRange(
-//         start: effectiveFrom,
-//         end: selectedToTime,
-//       ),
-//     );
-//   }
-//
-//   // ============================================================
-//   // REUSABLE TIME PICKER
-//   // ============================================================
-//
-//   Future<TimeOfDay?> _showCupertinoTimePicker({
-//     required BuildContext context,
-//     required TimeOfDay initialTime,
-//     required String title,
-//   }) async {
-//     final w = MediaQuery.of(context).size.width;
-//     final h = MediaQuery.of(context).size.height;
-//
-//     DateTime tempDateTime = DateTime(
-//       DateTime.now().year,
-//       DateTime.now().month,
-//       DateTime.now().day,
-//       initialTime.hour,
-//       initialTime.minute,
-//     );
-//
-//     return showCupertinoModalPopup<TimeOfDay>(
-//       context: context,
-//       builder: (modalContext) {
-//         return StatefulBuilder(
-//           builder: (_, setModalState) {
-//             return Container(
-//               height: h * 0.35,
-//               decoration: const BoxDecoration(
-//                 color: Colors.white,
-//                 borderRadius: BorderRadius.vertical(
-//                   top: Radius.circular(20),
-//                 ),
-//               ),
-//               child: Column(
-//                 children: [
-//                   // ------------------------------------------------
-//                   // TOP BAR
-//                   // ------------------------------------------------
-//
-//                   Padding(
-//                     padding: EdgeInsets.symmetric(
-//                       horizontal: w * 0.04,
-//                       vertical: h * 0.015,
-//                     ),
-//                     child: Row(
-//                       mainAxisAlignment:
-//                       MainAxisAlignment.spaceBetween,
-//                       children: [
-//                         CupertinoButton(
-//                           padding: EdgeInsets.zero,
-//                           onPressed: () {
-//                             Navigator.pop(modalContext);
-//                           },
-//                           child: const Text(
-//                             "Cancel",
-//                             style: TextStyle(
-//                               color: Color(0xFFFF2164),
-//                             ),
-//                           ),
-//                         ),
-//
-//                         Text(
-//                           title,
-//                           style: const TextStyle(
-//                             fontWeight: FontWeight.w600,
-//                             fontSize: 16,
-//                           ),
-//                         ),
-//
-//                         CupertinoButton(
-//                           padding: EdgeInsets.zero,
-//                           onPressed: () {
-//                             Navigator.pop(
-//                               modalContext,
-//                               TimeOfDay(
-//                                 hour: tempDateTime.hour,
-//                                 minute: tempDateTime.minute,
-//                               ),
-//                             );
-//                           },
-//                           child: const Text(
-//                             "Done",
-//                             style: TextStyle(
-//                               color: Color(0xFFFF2164),
-//                               fontWeight: FontWeight.w600,
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//
-//                   // ------------------------------------------------
-//                   // TIME PICKER
-//                   // ------------------------------------------------
-//
-//                   Expanded(
-//                     child: CupertinoDatePicker(
-//                       mode: CupertinoDatePickerMode.time,
-//                       initialDateTime: tempDateTime,
-//                       use24hFormat: false,
-//                       onDateTimeChanged: (value) {
-//                         setModalState(() {
-//                           tempDateTime = value;
-//                         });
-//                       },
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             );
-//           },
-//         );
-//       },
-//     );
-//   }
-//
-//   // ============================================================
-//   // HELPERS
-//   // ============================================================
-//
-//   TimeOfDay _addOneHour(TimeOfDay time) {
-//     final minutes =
-//         time.hour * 60 + time.minute + 60;
-//
-//     return TimeOfDay(
-//       hour: (minutes ~/ 60) % 24,
-//       minute: minutes % 60,
-//     );
-//   }
-//
-//   String _formatDate(DateTime date) {
-//     return "${date.day.toString().padLeft(2, '0')} "
-//         "${date.month.toString().padLeft(2, '0')} "
-//         "${date.year}";
-//   }
-//
-//   String _formatTime(TimeOfDay time) {
-//     final hour =
-//     time.hourOfPeriod == 0
-//         ? 12
-//         : time.hourOfPeriod;
-//
-//     final minute =
-//     time.minute.toString().padLeft(2, '0');
-//
-//     final period =
-//     time.period == DayPeriod.am
-//         ? "AM"
-//         : "PM";
-//
-//     return "$hour:$minute $period";
-//   }
-// }
-
-// ============================================================
-// TIME RANGE MODEL
-// ============================================================
-
+///-------------------------------------------------------
 class TimeOfDayRange {
   final TimeOfDay start;
   final TimeOfDay end;

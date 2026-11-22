@@ -201,63 +201,81 @@ class _TaggingPeopleReusableState extends State<TaggingPeopleReusable> {
                         ),
                       ),
                     ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final person = state.searchResults[index];
+                    SliverToBoxAdapter(
+                      child: BlocBuilder<TaggingPeopleBloc, TaggingPeopleState>(
+                        buildWhen: (previous, current) =>
+                        previous.searchResults != current.searchResults ||
+                            previous.selectedPeople != current.selectedPeople,
+                        builder: (context, state) {
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: EdgeInsets.zero,
+                            itemCount: state.searchResults.length,
+                            itemBuilder: (context, index) {
+                              final person = state.searchResults[index];
 
-                        final isSelected = state.selectedPeople.any(
-                          (selected) =>
-                              selected.politicianId == person.politicianId,
-                        );
+                              final isSelected = state.selectedPeople.any(
+                                    (selected) =>
+                                selected.politicianId == person.politicianId,
+                              );
 
-                        return Padding(
-                          padding:  EdgeInsets.only(left:w*0.025, right: w*0.025,top: w*0.01),
-                          child: ListTile(
-                            tileColor: ColorScheme.of(context).surface,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(w*0.04),
-                            ),
-                            leading: SizedBox(
-                              width: w * 0.12,
-                              height: w * 0.12,
-                              child: ClipOval(
-                                child: person.imagePath != null &&
-                                    person.imagePath!.isNotEmpty
-                                    ? buildImageWidget(
-                                  person.imagePath!,
-                                  fit: BoxFit.cover,
-                                  width: w * 0.12,
-                                  height: w * 0.12,
-                                )
-                                    : Container(
-                                  color: Colors.grey.shade200,
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Colors.grey,
-                                  ),
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  left: w * 0.025,
+                                  right: w * 0.025,
+                                  top: w * 0.01,
                                 ),
-                              ),
-                            ),
-                            title: Text(person.fullName,style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3
-                            ),),
-                            subtitle: Text( person.region?.isNotEmpty == true
-                                ? person.region!
-                                : "-",style: TextStyle(fontWeight: FontWeight.w300,letterSpacing: 0.3,color: ColorScheme.of(context).onSurface.withOpacity(0.6)),),
-                            trailing: SvgPicture.asset(
-                              isSelected
-                                  ? PartyPageData.tickButtonColored
-                                  :  PartyPageData.tickButtonUncolored,
-                            ),
-                            onTap: () {
-                              context.read<TaggingPeopleBloc>().add(
-                                TogglePersonSelectionEvent(person),
+                                child: ListTile(
+                                  tileColor: ColorScheme.of(context).surface,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(w * 0.04),
+                                  ),
+                                  leading: SizedBox(
+                                    width: w * 0.12,
+                                    height: w * 0.12,
+                                    child: ClipOval(
+                                      child: person.imagePath != null &&
+                                          person.imagePath!.isNotEmpty
+                                          ? buildImageWidget(
+                                        person.imagePath!,
+                                        fit: BoxFit.cover,
+                                        width: w * 0.12,
+                                        height: w * 0.12,
+                                      )
+                                          : Container(
+                                        color: Colors.grey.shade200,
+                                        child: const Icon(Icons.person),
+                                      ),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    person.fullName,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    person.region?.isNotEmpty == true
+                                        ? person.region!
+                                        : "-",
+                                  ),
+                                  trailing: SvgPicture.asset(
+                                    isSelected
+                                        ? PartyPageData.tickButtonColored
+                                        : PartyPageData.tickButtonUncolored,
+                                  ),
+                                  onTap: () {
+                                    context.read<TaggingPeopleBloc>().add(
+                                      TogglePersonSelectionEvent(person),
+                                    );
+                                  },
+                                ),
                               );
                             },
-                          ),
-                        );
-                      }, childCount: state.searchResults.length),
+                          );
+                        },
+                      ),
                     ),
                     // No search results
                     if (!state.isSearching &&
