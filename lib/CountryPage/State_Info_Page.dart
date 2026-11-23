@@ -22,10 +22,8 @@ class StateInfoPage extends StatelessWidget {
     final double screenHeight = MediaQuery.of(context).size.height;
     final double headerGap = screenWidth * (10.0 / 375.0);
 
-    final String stateName = state.name.isNotEmpty ? state.name : 'Karnataka';
-    final String descriptionText = state.info?.trim().isNotEmpty == true
-        ? state.info!.trim()
-        : '$stateName is a state in southern India, known for its rich cultural heritage and strong economic growth. Its capital, Bengaluru, is a major IT hub often called the "Silicon Valley of India".';
+    final String stateName = state.name.isNotEmpty ? state.name : '';
+    final String descriptionText = state.info?.trim() ?? '';
 
     // 1. CM Leaders
     final List<NationalLeader> cmLeaders = state.leaders
@@ -34,90 +32,42 @@ class StateInfoPage extends StatelessWidget {
             (l.title + " " + l.badge).toUpperCase().contains('CHIEF'))
         .toList();
 
-    if (cmLeaders.isEmpty) {
-      final String cmName = state.chiefMinister?.trim().isNotEmpty == true
-          ? state.chiefMinister!.trim()
-          : 'Shri Siddaramaiah';
+    if (cmLeaders.isEmpty && state.chiefMinister?.trim().isNotEmpty == true) {
       cmLeaders.add(
         NationalLeader(
           title: 'CURRENT CM',
-          name: cmName,
-          tenure: '2023 - Present',
+          name: state.chiefMinister!.trim(),
+          tenure: state.lastElection != null && state.lastElection!.trim().isNotEmpty
+              ? '${state.lastElection!.trim()} - Present'
+              : 'Present',
           badge: 'Current CM',
-          imageUrl:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
-          partyLogo:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Indian_National_Congress_hand_logo.svg/800px-Indian_National_Congress_hand_logo.svg.png',
+          imageUrl: '',
+          partyLogo: null,
         ),
       );
     }
 
-    // 2. Deputy CM Leaders
+    // 2. Deputy CM Leaders (only from API data, no hardcoded fallback)
     final List<NationalLeader> deputyCmLeaders = state.leaders
         .where((l) => (l.title + " " + l.badge).toUpperCase().contains('DEPTY') ||
             (l.title + " " + l.badge).toUpperCase().contains('DEPUTY'))
         .toList();
 
-    if (deputyCmLeaders.isEmpty) {
-      deputyCmLeaders.add(
-        const NationalLeader(
-          title: 'DEPTY CHIEF MINISTER',
-          name: 'Shri D. K. Shivakumar',
-          tenure: '2023 - Present',
-          badge: 'Current Depty CM',
-          imageUrl:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Amit_Shah_in_2023.jpg/800px-Amit_Shah_in_2023.jpg',
-          partyLogo:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Indian_National_Congress_hand_logo.svg/800px-Indian_National_Congress_hand_logo.svg.png',
-        ),
-      );
-    }
-
-    // 3. Current Ministers (Leaders with the exact same box size as CM & Deputy CM)
+    // 3. Current Ministers (only from API data, no hardcoded fallback)
     final String? defaultPartyLogo = cmLeaders.isNotEmpty
         ? cmLeaders.first.partyLogo
         : (deputyCmLeaders.isNotEmpty ? deputyCmLeaders.first.partyLogo : null);
 
-    final List<NationalLeader> currentMinistersList = state.otherCabinets.isNotEmpty
-        ? state.otherCabinets
-            .map((m) => NationalLeader(
-                  title: 'CURRENT MINISTERS',
-                  name: '${m.firstName} ${m.lastName}'.trim(),
-                  tenure: '2023 - Present',
-                  badge: 'Current Minister',
-                  imageUrl: m.imageUrl,
-                  partyLogo: defaultPartyLogo,
-                ))
-            .toList()
-        : [
-            NationalLeader(
+    final List<NationalLeader> currentMinistersList = state.otherCabinets
+        .map((m) => NationalLeader(
               title: 'CURRENT MINISTERS',
-              name: 'Shri H. D. Revanna',
-              tenure: '2023 - Present',
+              name: '${m.firstName} ${m.lastName}'.trim(),
+              tenure: 'Present',
               badge: 'Current Minister',
-              imageUrl:
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
+              imageUrl: m.imageUrl,
               partyLogo: defaultPartyLogo,
-            ),
-            NationalLeader(
-              title: 'CURRENT MINISTERS',
-              name: 'Shri Amit Shah',
-              tenure: '2023 - Present',
-              badge: 'Current Minister',
-              imageUrl:
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Amit_Shah_in_2023.jpg/800px-Amit_Shah_in_2023.jpg',
-              partyLogo: defaultPartyLogo,
-            ),
-            NationalLeader(
-              title: 'CURRENT MINISTERS',
-              name: 'Shri Kunal Tilak',
-              tenure: '2023 - Present',
-              badge: 'Current Minister',
-              imageUrl:
-                  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
-              partyLogo: defaultPartyLogo,
-            ),
-          ];
+            ))
+        .toList();
 
     // ValueNotifier replaces setState for READ MORE / READ LESS toggle
     final expandedNotifier = ValueNotifier<bool>(false);
@@ -188,78 +138,72 @@ class StateInfoPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildStateDetailRow(
-                  context,
-                  icon: Icon(
-                    Icons.translate_rounded,
-                    color: const Color(0xFF888888),
-                    size: screenWidth * (22.0 / 375.0),
+                if (state.spokenLanguage?.trim().isNotEmpty == true)
+                  _buildStateDetailRow(
+                    context,
+                    icon: Icon(
+                      Icons.translate_rounded,
+                      color: const Color(0xFF888888),
+                      size: screenWidth * (22.0 / 375.0),
+                    ),
+                    label: 'SPOKEN LANGUAGE',
+                    value: state.spokenLanguage!.trim(),
                   ),
-                  label: 'SPOKEN LANGUAGE',
-                  value: state.spokenLanguage?.trim().isNotEmpty == true
-                      ? state.spokenLanguage!.trim()
-                      : 'Kannada (ಕನ್ನಡ)',
-                ),
-                _buildStateDetailRow(
-                  context,
-                  icon: Icon(
-                    Icons.person_outline_rounded,
-                    color: const Color(0xFF888888),
-                    size: screenWidth * (24.0 / 375.0),
+                if (state.governor?.trim().isNotEmpty == true)
+                  _buildStateDetailRow(
+                    context,
+                    icon: Icon(
+                      Icons.person_outline_rounded,
+                      color: const Color(0xFF888888),
+                      size: screenWidth * (24.0 / 375.0),
+                    ),
+                    label: 'GOVERNOR',
+                    value: state.governor!.trim(),
                   ),
-                  label: 'GOVERNOR',
-                  value: state.governor?.trim().isNotEmpty == true
-                      ? state.governor!.trim()
-                      : 'Thawar Chand Gehlot',
-                ),
-                _buildStateDetailRow(
-                  context,
-                  icon: Icon(
-                    Icons.outlined_flag_rounded,
-                    color: const Color(0xFF888888),
-                    size: screenWidth * (24.0 / 375.0),
+                if (state.rulingParty?.trim().isNotEmpty == true)
+                  _buildStateDetailRow(
+                    context,
+                    icon: Icon(
+                      Icons.outlined_flag_rounded,
+                      color: const Color(0xFF888888),
+                      size: screenWidth * (24.0 / 375.0),
+                    ),
+                    label: 'CURRENT GOVERNMENT',
+                    value: state.rulingParty!.trim(),
                   ),
-                  label: 'CURRENT GOVERNMENT',
-                  value: state.rulingParty?.trim().isNotEmpty == true
-                      ? state.rulingParty!.trim()
-                      : 'INC',
-                ),
-                _buildStateDetailRow(
-                  context,
-                  icon: Icon(
-                    Icons.account_balance_outlined,
-                    color: const Color(0xFF888888),
-                    size: screenWidth * (22.0 / 375.0),
+                if (state.electoralFootprint?.trim().isNotEmpty == true)
+                  _buildStateDetailRow(
+                    context,
+                    icon: Icon(
+                      Icons.account_balance_outlined,
+                      color: const Color(0xFF888888),
+                      size: screenWidth * (22.0 / 375.0),
+                    ),
+                    label: 'ELECTORAL FOOTPRINT',
+                    value: state.electoralFootprint!.trim(),
                   ),
-                  label: 'ELECTORAL FOOTPRINT',
-                  value: state.electoralFootprint?.trim().isNotEmpty == true
-                      ? state.electoralFootprint!.trim()
-                      : '175 Assembly   25 Loksabha',
-                ),
-                _buildStateDetailRow(
-                  context,
-                  icon: Icon(
-                    Icons.calendar_today_outlined,
-                    color: const Color(0xFF888888),
-                    size: screenWidth * (20.0 / 375.0),
+                if (state.lastElection?.trim().isNotEmpty == true)
+                  _buildStateDetailRow(
+                    context,
+                    icon: Icon(
+                      Icons.calendar_today_outlined,
+                      color: const Color(0xFF888888),
+                      size: screenWidth * (20.0 / 375.0),
+                    ),
+                    label: 'LAST ELECTION',
+                    value: state.lastElection!.trim(),
                   ),
-                  label: 'LAST ELECTION',
-                  value: state.lastElection?.trim().isNotEmpty == true
-                      ? state.lastElection!.trim()
-                      : '10 May 2023',
-                ),
-                _buildStateDetailRow(
-                  context,
-                  icon: Icon(
-                    Icons.calendar_month_outlined,
-                    color: const Color(0xFF888888),
-                    size: screenWidth * (20.0 / 375.0),
+                if (state.nextElection?.trim().isNotEmpty == true)
+                  _buildStateDetailRow(
+                    context,
+                    icon: Icon(
+                      Icons.calendar_month_outlined,
+                      color: const Color(0xFF888888),
+                      size: screenWidth * (20.0 / 375.0),
+                    ),
+                    label: 'NEXT ELECTION',
+                    value: state.nextElection!.trim(),
                   ),
-                  label: 'NEXT ELECTION',
-                  value: state.nextElection?.trim().isNotEmpty == true
-                      ? state.nextElection!.trim()
-                      : '2028',
-                ),
               ],
             ),
           ),

@@ -556,33 +556,27 @@ class _StateDetailsSectionState extends State<StateDetailsSection> {
 
     final String stateName = widget.state.name.trim().isNotEmpty
         ? widget.state.name.trim()
-        : 'Karnataka';
+        : '';
 
-    final String nativeName = widget.state.nativeName?.trim().isNotEmpty == true
-        ? widget.state.nativeName!.trim()
-        : (stateName.toLowerCase().contains('karnataka') ? 'ಕರ್ನಾಟಕ' : '');
+    final String nativeName = widget.state.nativeName?.trim() ?? '';
 
     final String titleDisplay = nativeName.isNotEmpty
         ? "$stateName - $nativeName"
         : stateName;
 
-    final String capitalCity = widget.state.capital?.trim().isNotEmpty == true
-        ? widget.state.capital!.trim()
-        : 'Bengaluru';
+    final String capitalCity = widget.state.capital?.trim() ?? '';
 
     final String districtsValue = widget.state.districtsCount?.trim().isNotEmpty == true
         ? widget.state.districtsCount!.trim()
-        : '31';
+        : '-';
 
     final String stateCodeValue = widget.state.code?.trim().isNotEmpty == true
-        ? (widget.state.code!.length <= 2 && int.tryParse(widget.state.code!) != null
-            ? widget.state.code!
-            : '29')
-        : '29';
+        ? widget.state.code!.trim()
+        : '-';
 
     final String registrationValue = widget.state.code?.trim().isNotEmpty == true
-        ? widget.state.code!.toUpperCase()
-        : 'KA';
+        ? widget.state.code!.trim().toUpperCase()
+        : '-';
 
     return Container(
       padding: EdgeInsets.only(
@@ -634,16 +628,18 @@ class _StateDetailsSectionState extends State<StateDetailsSection> {
               ),
             ],
           ),
-          SizedBox(height: h * 0.005),
-          Text(
-            "Capital City - $capitalCity",
-            style: TextStyle(
-              fontSize: (w * (14.0 / 375.0)).clamp(13.0, 15.0),
-              fontWeight: FontWeight.w400,
-              color: const Color(0xFF666666),
-              letterSpacing: 0.2,
+          if (capitalCity.isNotEmpty) ...[
+            SizedBox(height: h * 0.005),
+            Text(
+              "Capital City - $capitalCity",
+              style: TextStyle(
+                fontSize: (w * (14.0 / 375.0)).clamp(13.0, 15.0),
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFF666666),
+                letterSpacing: 0.2,
+              ),
             ),
-          ),
+          ],
           SizedBox(height: h * 0.018),
 
           // 3 Stats: DISTRICTS | STATE CODE | REGISTRATION

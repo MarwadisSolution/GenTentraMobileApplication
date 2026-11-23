@@ -7,6 +7,7 @@ import '../Favourite/favourite_api.dart';
 import '../Reusable Functions/reusable_functions.dart';
 import 'Country_model.dart';
 import 'Country_page_data.dart';
+import 'State_list_screen.dart';
 import 'State_screen.dart';
 import 'reusable_functions.dart';
 
@@ -452,13 +453,12 @@ class _CountryProfileViewState extends State<_CountryProfileView>
                   );
                 },
                 onTap: () {
-
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const StateProfileScreen(
-                        stateId: 10,
-                        stateName: 'Karnataka',
+                      builder: (_) => StateSelectionScreen(
+                        countryId: country.id > 0 ? country.id : 13,
+                        countryName: country.name.isNotEmpty ? country.name : 'INDIA',
                       ),
                     ),
                   );

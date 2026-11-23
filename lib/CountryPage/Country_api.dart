@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../Login Page/Refresh Token/refresh_token.dart';
 import '../Reusable Functions/reusable_functions.dart';
 import 'Country_model.dart';
+import 'State_item_model.dart';
 import 'State_model.dart';
 
 class CountryProfileRepository {
@@ -360,125 +361,133 @@ class CountryProfileRepository {
     return [defaultKarnatakaState];
   }
 
+  /// [FETCH COUNTRY STATES LIST]
+  /// `GET /api/v1/civic/countries/{countryId}/states`
+  /// Fetches state list with `name` and `electoralFootprint` directly from API.
+  Future<List<StateItemModel>> fetchCountryStatesList({int countryId = 13}) async {
+    try {
+      final response = await _dio.get(
+        '$api/api/v1/civic/countries/$countryId/states',
+        options: Options(validateStatus: (status) => status != null && status < 500),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = response.data;
+        final dynamic rawData = responseData is Map<String, dynamic>
+            ? (responseData['data'] ?? responseData)
+            : responseData;
+
+        List items = [];
+        if (rawData is List) {
+          items = rawData;
+        } else if (rawData is Map) {
+          items = (rawData['items'] ?? rawData['content'] ?? rawData['states'] ?? []) as List;
+        }
+
+        return items
+            .whereType<Map>()
+            .map((e) => StateItemModel.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching country $countryId states: $e');
+    }
+
+    return [];
+  }
+
   /// [FETCH STATE PROFILE]
-  /// Matches requested state ID directly from `GET /api/v1/civic/states`.
+  /// Directly calls `GET /api/v1/civic/states/{id}` for the user-selected state
+  /// and enriches it with state leaders, symbols, and places.
   Future<StateModel> fetchStateProfile(int stateId) async {
     try {
-      final allStates = await fetchStatesList();
-      if (allStates.isNotEmpty) {
-        final matched = allStates.firstWhere(
-          (s) => s.id == stateId,
-          orElse: () => allStates.first,
+      final response = await _dio.get(
+        '$api/api/v1/civic/states/$stateId',
+        options: Options(validateStatus: (status) => status != null && status < 500),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = response.data;
+        final dynamic rawData = responseData is Map<String, dynamic>
+            ? (responseData['data'] ?? responseData)
+            : responseData;
+
+        if (rawData is Map) {
+          return await _parseAndEnrichState(rawData);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error directly fetching state $stateId: $e');
+    }
+
+    // Secondary fallback: get basic name and electoralFootprint from state list
+    try {
+      final allStates = await fetchCountryStatesList();
+      final matched = allStates.firstWhere(
+        (s) => s.id == stateId,
+        orElse: () => StateItemModel(id: stateId, name: '', electoralFootprint: ''),
+      );
+      if (matched.name.isNotEmpty) {
+        return StateModel(
+          id: matched.id,
+          name: matched.name,
+          electoralFootprint: matched.electoralFootprint,
         );
-        return matched;
       }
     } catch (e) {
       debugPrint('Error finding state $stateId in list: $e');
     }
 
-    return defaultKarnatakaState;
+    return StateModel(id: stateId, name: '');
   }
 
-  /// Default Karnataka state fallback guaranteeing zero 404 screen states.
-  static final StateModel defaultKarnatakaState = StateModel(
-    id: 10,
-    countryId: 13,
-    code: "KR",
-    name: "Karnataka",
-    nativeName: "ಕರ್ನಾಟಕ",
-    capital: "Bengaluru",
-    population: "61,095,297",
-    chiefMinister: "Shri Siddaramaiah",
-    governor: "Thawar Chand Gehlot",
-    info: "Karnataka is a state in southern India, known for its rich cultural heritage and strong economic growth. Its capital, Bengaluru, is a major IT hub often called the 'Silicon Valley of India.'",
-    cultureAndTradition: "Karnataka has a rich heritage of literature, music, dance and architecture originating from the Hoysala, Vijayanagara and Chalukya empires.",
-    economy: "Major IT and industrial powerhouse contributing significantly to India's GDP, with Bengaluru leading in technology, aerospace, and biotechnology.",
-    symbolInfo: "Rich biodiversity and progressive technology sector driving state progress.",
-    districtsCount: "31",
-    spokenLanguage: "Kannada (ಕನ್ನಡ)",
-    rulingParty: "INC",
-    electoralFootprint: "175 Assembly   25 Loksabha",
-    lastElection: "10 May 2023",
-    nextElection: "2028",
-    bannerImages: const [
-      "https://gentantrabackend-production.up.railway.app/api/v1/public/media/0b8c4436-9087-485a-adbf-5d08a5ed106a",
-      "https://gentantrabackend-production.up.railway.app/api/v1/public/media/752a753c-98ce-4184-9fdc-bd0d50d16637",
-    ],
-    leaders: const [
-      NationalLeader(
-        title: 'CURRENT CM',
-        name: 'Shri Siddaramaiah',
-        tenure: '2023 - Present',
-        badge: 'Current CM',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
-        partyLogo:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Indian_National_Congress_hand_logo.svg/800px-Indian_National_Congress_hand_logo.svg.png',
-      ),
-      NationalLeader(
-        title: 'DEPTY CHIEF MINISTER',
-        name: 'Shri D. K. Shivakumar',
-        tenure: '2023 - Present',
-        badge: 'Current Depty CM',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Amit_Shah_in_2023.jpg/800px-Amit_Shah_in_2023.jpg',
-        partyLogo:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Indian_National_Congress_hand_logo.svg/800px-Indian_National_Congress_hand_logo.svg.png',
-      ),
-    ],
-  );
-
   /// Parses state response data and enriches with supplementary state symbols, places, leaders.
-  // Future<StateModel> _parseAndEnrichState(dynamic responseData) async {
-  //   final dynamic rawData = responseData is Map<String, dynamic>
-  //       ? (responseData['data'] ?? responseData)
-  //       : responseData;
-  //
-  //   if (rawData is! Map) {
-  //     throw Exception('Invalid state profile response format');
-  //   }
-  //
-  //   final stateMap = Map<String, dynamic>.from(rawData);
-  //   StateModel state = StateModel.fromJson(stateMap);
-  //
-  //   // Fetch state symbols separately if empty
-  //   if (state.symbols.isEmpty) {
-  //     try {
-  //       final fetchedSymbols = await fetchStateSymbols(state.id);
-  //       if (fetchedSymbols.isNotEmpty) {
-  //         state = state.copyWith(symbols: fetchedSymbols);
-  //       }
-  //     } catch (_) {}
-  //   }
-  //
-  //   // Fetch state leaders separately if empty
-  //   if (state.leaders.isEmpty) {
-  //     try {
-  //       final fetchedLeaders = await fetchStateLeaders(state.id);
-  //       if (fetchedLeaders.isNotEmpty) {
-  //         state = state.copyWith(leaders: fetchedLeaders);
-  //       }
-  //     } catch (_) {}
-  //   }
-  //
-  //   // Fetch state places separately if empty
-  //   if (state.placesToVisit == null || state.placesToVisit!.places.isEmpty) {
-  //     try {
-  //       final fetchedPlaces = await fetchStatePlaces(state.id);
-  //       if (fetchedPlaces.isNotEmpty) {
-  //         state = state.copyWith(
-  //           placesToVisit: PlacesToVisit(
-  //             description: state.placesToVisit?.description,
-  //             showDetails: state.placesToVisit?.showDetails ?? true,
-  //             places: fetchedPlaces,
-  //           ),
-  //         );
-  //       }
-  //     } catch (_) {}
-  //   }
-  //
-  //   return state;
-  // }
+  Future<StateModel> _parseAndEnrichState(dynamic rawData) async {
+    if (rawData is! Map) {
+      throw Exception('Invalid state profile response format');
+    }
+
+    final stateMap = Map<String, dynamic>.from(rawData);
+    StateModel state = StateModel.fromJson(stateMap);
+
+    // Fetch state symbols separately if empty
+    if (state.symbols.isEmpty) {
+      try {
+        final fetchedSymbols = await fetchStateSymbols(state.id);
+        if (fetchedSymbols.isNotEmpty) {
+          state = state.copyWith(symbols: fetchedSymbols);
+        }
+      } catch (_) {}
+    }
+
+    // Fetch state leaders separately if empty
+    if (state.leaders.isEmpty) {
+      try {
+        final fetchedLeaders = await fetchStateLeaders(state.id);
+        if (fetchedLeaders.isNotEmpty) {
+          state = state.copyWith(leaders: fetchedLeaders);
+        }
+      } catch (_) {}
+    }
+
+    // Fetch state places separately if empty
+    if (state.placesToVisit == null || state.placesToVisit!.places.isEmpty) {
+      try {
+        final fetchedPlaces = await fetchStatePlaces(state.id);
+        if (fetchedPlaces.isNotEmpty) {
+          state = state.copyWith(
+            placesToVisit: PlacesToVisit(
+              description: state.placesToVisit?.description,
+              showDetails: state.placesToVisit?.showDetails ?? true,
+              places: fetchedPlaces,
+            ),
+          );
+        }
+      } catch (_) {}
+    }
+
+    return state;
+  }
 
   /// [STATE SYMBOLS] `GET /api/v1/civic/symbols?ownerType=STATE&ownerId={id}`
   Future<List<SymbolView>> fetchStateSymbols(int stateId) async {
