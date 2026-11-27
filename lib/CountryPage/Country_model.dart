@@ -25,7 +25,20 @@ bool _parseBool(dynamic value, {bool defaultValue = false}) {
   return defaultValue;
 }
 
+String _portraitPath(Map<dynamic, dynamic> data) {
+  for (final key in const [
+    'holderImageUrl', 'avatarUrl', 'coverImage', 'photoUrl', 'imageUrl', 'imagePath', 'mediaUrl',
+    'photo', 'image', 'picture', 'profileUrl', 'avatar', 'url', 'path',
+  ]) {
+    final value = data[key];
+    final path = value is String ? value.trim() : value is Map ? _portraitPath(value) : '';
+    if (path.isNotEmpty) return path;
+  }
+  return '';
+}
+
 class NationalLeader {
+  final int? postId;
   final String title;
   final String name;
   final String tenure;
@@ -34,6 +47,7 @@ class NationalLeader {
   final String? partyLogo;
 
   const NationalLeader({
+    this.postId,
     required this.title,
     required this.name,
     required this.tenure,
@@ -42,27 +56,27 @@ class NationalLeader {
     this.partyLogo,
   });
 
+  static List<NationalLeader> fromGovPostGroups(dynamic groups) {
+    if (groups is! List) return [];
+    return [
+      for (final group in groups.whereType<Map>())
+        if (group['posts'] is List)
+          for (final post in (group['posts'] as List).whereType<Map>())
+            NationalLeader.fromJson({
+              ...Map<String, dynamic>.from(post),
+              'title': post['title'] ?? group['title'],
+            }),
+    ];
+  }
+
   factory NationalLeader.fromJson(Map<String, dynamic> json) {
-    String parseImg(dynamic raw) {
-      if (raw == null) return '';
-      if (raw is String) return raw.trim();
-      if (raw is Map) {
-        return (raw['url'] ?? raw['imageUrl'] ?? raw['photoUrl'] ?? raw['path'])?.toString().trim() ?? '';
-      }
-      return raw.toString().trim();
-    }
-
-    final rawImage = json['imageUrl'] ??
-        json['photoUrl'] ??
-        json['imagePath'] ??
-        json['mediaUrl'] ??
-        json['photo'] ??
-        json['image'] ??
-        json['picture'] ??
-        json['profileUrl'] ??
-        json['avatar'];
-
-    final String name = (json['name'] ??
+    final holder = json['holder'];
+    final avatar = holder is Map ? holder['avatarUrl'] : null;
+    final from = json['validFrom'] ?? json['from'];
+    final to = json['validTo'] ?? json['to'];
+    final String name = (json['holderName'] ??
+        (holder is Map ? holder['displayName'] : null) ??
+        json['name'] ??
         json['leaderName'] ??
         json['personName'] ??
         json['fullName'] ??
@@ -74,6 +88,7 @@ class NationalLeader {
         .trim();
 
     final String title = (json['title'] ??
+        json['govpost'] ??
         json['designation'] ??
         json['role'] ??
         json['position'] ??
@@ -91,11 +106,16 @@ class NationalLeader {
         .trim();
 
     return NationalLeader(
+      postId: int.tryParse('${json['id']}'),
       title: title,
       name: name,
-      tenure: (json['tenure'] ?? json['term'] ?? json['period'] ?? json['duration'] ?? '').toString().trim(),
+      tenure: (json['tenure'] ?? json['term'] ?? json['period'] ?? json['duration'] ?? [from, to ?? (json['current'] == true ? 'Present' : null)].whereType<String>().join(' - ')).toString().trim(),
       badge: badge,
-      imageUrl: parseImg(rawImage),
+      imageUrl: _portraitPath({
+        ...json,
+        'holderImageUrl': json['holderImageUrl'],
+        'avatarUrl': avatar ?? json['avatarUrl'],
+      }),
       partyLogo: (json['partyLogo'] ?? json['partyImage'] ?? json['partySymbol'])?.toString().trim(),
     );
   }
@@ -129,25 +149,6 @@ class CabinetMinister {
       return Colors.transparent;
     }
 
-    String parseImg(dynamic raw) {
-      if (raw == null) return '';
-      if (raw is String) return raw.trim();
-      if (raw is Map) {
-        return (raw['url'] ?? raw['imageUrl'] ?? raw['photoUrl'] ?? raw['path'])?.toString().trim() ?? '';
-      }
-      return raw.toString().trim();
-    }
-
-    final rawImage = json['imageUrl'] ??
-        json['photoUrl'] ??
-        json['imagePath'] ??
-        json['mediaUrl'] ??
-        json['photo'] ??
-        json['image'] ??
-        json['picture'] ??
-        json['profileUrl'] ??
-        json['avatar'];
-
     String first = (json['firstName'] ?? json['name'] ?? json['ministerName'] ?? '').toString().trim();
     String last = (json['lastName'] ?? json['surname'] ?? '').toString().trim();
     if (last.isEmpty && first.contains(' ')) {
@@ -159,7 +160,7 @@ class CabinetMinister {
     return CabinetMinister(
       firstName: first,
       lastName: last,
-      imageUrl: parseImg(rawImage),
+      imageUrl: _portraitPath(json),
       backgroundColor: parseColor(json['backgroundColor']),
     );
   }
@@ -446,9 +447,9 @@ class CountryModel {
     final parsedHomeMinister = parseLeader(json['homeMinister']);
 
     // Parse leaders if present in json
-    List<NationalLeader> leadersList = [];
+    final leadersList = NationalLeader.fromGovPostGroups(json['govPosts']);
     final rawLeaders = json['leaders'] ?? json['nationalLeaders'];
-    if (rawLeaders != null && rawLeaders is List) {
+    if (leadersList.isEmpty && rawLeaders is List) {
       for (final l in rawLeaders) {
         if (l is Map) {
           leadersList.add(NationalLeader.fromJson(Map<String, dynamic>.from(l)));

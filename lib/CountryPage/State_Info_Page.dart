@@ -1,3 +1,4 @@
+import 'civic_portrait.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -28,8 +29,8 @@ class StateInfoPage extends StatelessWidget {
     // 1. CM Leaders
     final List<NationalLeader> cmLeaders = state.leaders
         .where((l) =>
-            (l.title + " " + l.badge).toUpperCase().contains('CM') ||
-            (l.title + " " + l.badge).toUpperCase().contains('CHIEF'))
+            ("${l.title} ${l.badge}").toUpperCase().contains('CM') ||
+            RegExp(r'ch(?:ie|ei)f', caseSensitive: false).hasMatch(l.title))
         .toList();
 
     if (cmLeaders.isEmpty && state.chiefMinister?.trim().isNotEmpty == true) {
@@ -49,10 +50,14 @@ class StateInfoPage extends StatelessWidget {
 
     // 2. Deputy CM Leaders (only from API data, no hardcoded fallback)
     final List<NationalLeader> deputyCmLeaders = state.leaders
-        .where((l) => (l.title + " " + l.badge).toUpperCase().contains('DEPTY') ||
-            (l.title + " " + l.badge).toUpperCase().contains('DEPUTY'))
+        .where((l) => ("${l.title} ${l.badge}").toUpperCase().contains('DEPTY') ||
+            ("${l.title} ${l.badge}").toUpperCase().contains('DEPUTY'))
         .toList();
 
+    cmLeaders.removeWhere(deputyCmLeaders.contains);
+    final otherPosts = state.leaders.where(
+      (leader) => !cmLeaders.contains(leader) && !deputyCmLeaders.contains(leader),
+    );
     // 3. Current Ministers (only from API data, no hardcoded fallback)
     final String? defaultPartyLogo = cmLeaders.isNotEmpty
         ? cmLeaders.first.partyLogo
@@ -68,6 +73,8 @@ class StateInfoPage extends StatelessWidget {
               partyLogo: defaultPartyLogo,
             ))
         .toList();
+
+    currentMinistersList.addAll(otherPosts);
 
     // ValueNotifier replaces setState for READ MORE / READ LESS toggle
     final expandedNotifier = ValueNotifier<bool>(false);
@@ -345,7 +352,7 @@ class StateInfoPage extends StatelessWidget {
                   color: const Color(0xFF1E1E1E),
                 ),
               ),
-              if (trailingHeaderWidget != null) trailingHeaderWidget,
+              ?trailingHeaderWidget,
             ],
           ),
         ),
@@ -368,27 +375,14 @@ class StateInfoPage extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(cardRadius),
-                          child: CachedNetworkImage(
-                            imageUrl: leader.imageUrl,
-                            width: cardWidth,
-                            height: cardImageHeight,
-                            fit: BoxFit.cover,
-                            alignment: Alignment.topCenter,
-                            placeholder: (_, __) => Container(
-                              color: const Color(0xFFEBEBEB),
-                              child: const Center(
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            ),
-                            errorWidget: (_, __, ___) => Container(
-                              color: const Color(0xFFDDDDDD),
-                              child: Icon(
-                                Icons.person,
-                                size: cardWidth * 0.4,
-                                color: const Color(0xFF888888),
-                              ),
-                            ),
-                          ),
+                          child: leader.imageUrl.isEmpty
+                              ? SizedBox(width: cardWidth, height: cardImageHeight)
+                              : CivicPortrait(
+                                  leader.imageUrl,
+                                  width: cardWidth,
+                                  height: cardImageHeight,
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                         if (leader.badge.isNotEmpty)
                           Positioned(
@@ -426,10 +420,10 @@ class StateInfoPage extends StatelessWidget {
                               width: partyLogoSize,
                               height: partyLogoSize,
                               fit: BoxFit.cover,
-                              placeholder: (_, __) => Container(
+                              placeholder: (_, _) => Container(
                                 color: const Color(0xFFE0E0E0),
                               ),
-                              errorWidget: (_, __, ___) => Icon(
+                              errorWidget: (_, _, _) => Icon(
                                 Icons.flag,
                                 size: partyLogoSize * 0.6,
                                 color: const Color(0xFFFE3A31),

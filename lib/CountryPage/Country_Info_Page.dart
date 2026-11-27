@@ -1,3 +1,4 @@
+import 'civic_portrait.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../Reusable Functions/reusable_functions.dart';
@@ -28,215 +29,34 @@ class CountryInfoPage extends StatelessWidget {
             ? 'officially the Republic of India, is a country in South Asia. It is the seventh-largest country by area; the most populous country since 2023; and, since its independence in 1947, the world\'s most populous democracy.'
             : '');
 
-    // Setup leadership lists with robust backend lookup & rich fallbacks
-    final List<NationalLeader> presidents = country.leaders
-        .where((l) => (l.title + " " + l.badge).toUpperCase().contains('PRESIDENT'))
-        .toList();
-    if (presidents.isEmpty) {
-      final String presName = country.president?.trim().isNotEmpty == true
-          ? country.president!.trim()
-          : (isIndia ? 'Droupadi Murmu' : 'President');
-      presidents.addAll([
-        NationalLeader(
-          title: isIndia ? 'PRESIDENTS OF INDIA' : 'PRESIDENT',
-          name: presName,
-          tenure: '2022 - Present',
-          badge: 'Current President',
-          imageUrl:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Droupadi_Murmu_official_portrait_%28cropped%29.jpg/800px-Droupadi_Murmu_official_portrait_%28cropped%29.jpg',
-        ),
-        if (isIndia) ...const [
-          NationalLeader(
-            title: 'PRESIDENTS OF INDIA',
-            name: 'Ram Nath Kovind',
-            tenure: '2017 - 2022',
-            badge: 'Former President',
-            imageUrl:
-                'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Ram_Nath_Kovind_official_portrait.jpg/800px-Ram_Nath_Kovind_official_portrait.jpg',
-          ),
-          NationalLeader(
-            title: 'PRESIDENTS OF INDIA',
-            name: 'Pranab Mukherjee',
-            tenure: '2012 - 2017',
-            badge: 'Former President',
-            imageUrl:
-                'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Pranab_Mukherjee_in_2012.jpg/800px-Pranab_Mukherjee_in_2012.jpg',
-          ),
-        ],
-      ]);
+    final offices = <String, List<NationalLeader>>{};
+    final cabinets = [...country.otherCabinets];
+    for (final leader in country.leaders) {
+      final role = leader.title.toLowerCase();
+      if (role.contains('cabinet') || role.contains('cabinate')) {
+        cabinets.add(CabinetMinister.fromJson({
+          'name': leader.name,
+          'imageUrl': leader.imageUrl,
+        }));
+        continue;
+      }
+      offices.putIfAbsent(leader.title, () => []).add(leader);
+    }
+    // Profiles can also supply only the current holder's name.
+    for (final entry in {
+      'President': country.president,
+      'Prime Minister': country.primeMinister,
+      'Defence Minister': country.defenceMinister,
+      'Home Minister': country.homeMinister,
+    }.entries) {
+      final name = entry.value?.trim();
+      if (name == null || name.isEmpty) continue;
+      if (country.leaders.any((leader) => leader.name.toLowerCase() == name.toLowerCase())) continue;
+      offices.putIfAbsent(entry.key, () => []).add(
+        NationalLeader(title: entry.key, name: name, tenure: '', badge: '', imageUrl: ''),
+      );
     }
 
-    final List<NationalLeader> primeMinisters = country.leaders
-        .where((l) =>
-            (l.title + " " + l.badge).toUpperCase().contains('PRIME') ||
-            (l.title + " " + l.badge).toUpperCase().contains('PM'))
-        .toList();
-    if (primeMinisters.isEmpty) {
-      final String pmName = country.primeMinister?.trim().isNotEmpty == true
-          ? country.primeMinister!.trim()
-          : (isIndia ? 'Shri Narendra Modi' : 'Prime Minister');
-      primeMinisters.addAll([
-        NationalLeader(
-          title: 'PRIME MINISTER',
-          name: pmName,
-          tenure: '2014 - Present',
-          badge: 'Current PM',
-          imageUrl:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
-          partyLogo:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bharatiya_Janata_Party_logo.svg/800px-Bharatiya_Janata_Party_logo.svg.png',
-        ),
-        if (isIndia) ...const [
-          NationalLeader(
-            title: 'PRIME MINISTER',
-            name: 'Dr. Manmohan Singh',
-            tenure: '2004 - 2014',
-            badge: 'Former PM',
-            imageUrl:
-                'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Manmohan_Singh_%28cropped%29.jpg/800px-Manmohan_Singh_%28cropped%29.jpg',
-            partyLogo:
-                'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Indian_National_Congress_hand_logo.svg/800px-Indian_National_Congress_hand_logo.svg.png',
-          ),
-        ],
-      ]);
-    }
-
-    final List<NationalLeader> defenceMinisters = country.leaders
-        .where((l) => (l.title + " " + l.badge).toUpperCase().contains('DEFEN'))
-        .toList();
-    if (defenceMinisters.isEmpty) {
-      final String defName = country.defenceMinister?.trim().isNotEmpty == true
-          ? country.defenceMinister!.trim()
-          : (isIndia ? 'Shri Rajnath Singh' : 'Defence Minister');
-      defenceMinisters.addAll([
-        NationalLeader(
-          title: 'DEFENCE MINISTER',
-          name: defName,
-          tenure: '2019 - Present',
-          badge: 'Current DM',
-          imageUrl:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Rajnath_Singh_in_2023.jpg/800px-Rajnath_Singh_in_2023.jpg',
-          partyLogo:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bharatiya_Janata_Party_logo.svg/800px-Bharatiya_Janata_Party_logo.svg.png',
-        ),
-        if (isIndia) ...const [
-          NationalLeader(
-            title: 'DEFENCE MINISTER',
-            name: 'Shri A. K. Antony',
-            tenure: '2006 - 2014',
-            badge: 'Former DM',
-            imageUrl:
-                'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
-            partyLogo:
-                'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Indian_National_Congress_hand_logo.svg/800px-Indian_National_Congress_hand_logo.svg.png',
-          ),
-        ],
-      ]);
-    }
-
-    final List<NationalLeader> homeMinisters = country.leaders
-        .where((l) => (l.title + " " + l.badge).toUpperCase().contains('HOME'))
-        .toList();
-    if (homeMinisters.isEmpty) {
-      final String hmName = country.homeMinister?.trim().isNotEmpty == true
-          ? country.homeMinister!.trim()
-          : (isIndia ? 'Shri Amit Shah' : 'Home Minister');
-      homeMinisters.addAll([
-        NationalLeader(
-          title: 'HOME MINISTER',
-          name: hmName,
-          tenure: '2019 - Present',
-          badge: 'Current HM',
-          imageUrl:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Amit_Shah_in_2023.jpg/800px-Amit_Shah_in_2023.jpg',
-          partyLogo:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bharatiya_Janata_Party_logo.svg/800px-Bharatiya_Janata_Party_logo.svg.png',
-        ),
-        if (isIndia) ...const [
-          NationalLeader(
-            title: 'HOME MINISTER',
-            name: 'Shri Rajnath Singh',
-            tenure: '2014 - 2019',
-            badge: 'Former HM',
-            imageUrl:
-                'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Rajnath_Singh_in_2023.jpg/800px-Rajnath_Singh_in_2023.jpg',
-            partyLogo:
-                'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bharatiya_Janata_Party_logo.svg/800px-Bharatiya_Janata_Party_logo.svg.png',
-          ),
-        ],
-      ]);
-    }
-
-    final List<CabinetMinister> cabinets = country.otherCabinets.isNotEmpty
-        ? country.otherCabinets
-        : const [
-            // Row 1
-            CabinetMinister(
-              firstName: 'H. D.',
-              lastName: 'Revana',
-              imageUrl:
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
-              backgroundColor: Color(0xFFFF5252),
-            ),
-            CabinetMinister(
-              firstName: 'Amit',
-              lastName: 'Shah',
-              imageUrl:
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Amit_Shah_in_2023.jpg/800px-Amit_Shah_in_2023.jpg',
-              backgroundColor: Color(0xFFFFB74D),
-            ),
-            CabinetMinister(
-              firstName: 'Kunal',
-              lastName: 'Tilak',
-              imageUrl:
-                  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
-              backgroundColor: Color(0xFFCFD8DC),
-            ),
-            // Row 2
-            CabinetMinister(
-              firstName: 'Nitin',
-              lastName: 'Gadkari',
-              imageUrl:
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
-              backgroundColor: Color(0xFFFF5252),
-            ),
-            CabinetMinister(
-              firstName: 'Nirmala',
-              lastName: 'Sitharaman',
-              imageUrl:
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Amit_Shah_in_2023.jpg/800px-Amit_Shah_in_2023.jpg',
-              backgroundColor: Color(0xFFFFB74D),
-            ),
-            CabinetMinister(
-              firstName: 'S.',
-              lastName: 'Jaishankar',
-              imageUrl:
-                  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
-              backgroundColor: Color(0xFFCFD8DC),
-            ),
-            // Row 3
-            CabinetMinister(
-              firstName: 'Piyush',
-              lastName: 'Goyal',
-              imageUrl:
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
-              backgroundColor: Color(0xFFFF5252),
-            ),
-            CabinetMinister(
-              firstName: 'Dharmendra',
-              lastName: 'Pradhan',
-              imageUrl:
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Amit_Shah_in_2023.jpg/800px-Amit_Shah_in_2023.jpg',
-              backgroundColor: Color(0xFFFFB74D),
-            ),
-            CabinetMinister(
-              firstName: 'Ashwini',
-              lastName: 'Vaishnaw',
-              imageUrl:
-                  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
-              backgroundColor: Color(0xFFCFD8DC),
-            ),
-          ];
 
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
@@ -386,50 +206,32 @@ class CountryInfoPage extends StatelessWidget {
               ],
             ),
           ),
-          if (presidents.isNotEmpty) ...[
+          for (final office in offices.entries) ...[
             buildSectionDivider(context),
             _buildLeaderHorizontalSection(
               context,
-              title: isIndia ? 'PRESIDENTS OF INDIA' : 'PRESIDENT',
-              leaders: presidents,
-              showPartyLogo: false,
+              title: office.key.toUpperCase(),
+              leaders: office.value,
+              showPartyLogo: office.value.any((leader) => leader.partyLogo?.isNotEmpty == true),
             ),
           ],
 
-          if (primeMinisters.isNotEmpty) ...[
+          if (!offices.keys.any((title) => title.toLowerCase().contains('home'))) ...[
             buildSectionDivider(context),
-            _buildLeaderHorizontalSection(
-              context,
-              title: 'PRIME MINISTER',
-              leaders: primeMinisters,
-              showPartyLogo: true,
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('HOME MINISTER', style: TextStyle(fontWeight: FontWeight.w800)),
+                  SizedBox(height: 8),
+                  Text('No Home Minister record available.'),
+                ],
+              ),
             ),
           ],
-
-          if (defenceMinisters.isNotEmpty) ...[
-            buildSectionDivider(context),
-            _buildLeaderHorizontalSection(
-              context,
-              title: 'DEFENCE MINISTER',
-              leaders: defenceMinisters,
-              showPartyLogo: true,
-            ),
-          ],
-
-          if (homeMinisters.isNotEmpty) ...[
-            buildSectionDivider(context),
-            _buildLeaderHorizontalSection(
-              context,
-              title: 'HOME MINISTER',
-              leaders: homeMinisters,
-              showPartyLogo: true,
-            ),
-          ],
-
-          if (cabinets.isNotEmpty) ...[
-            buildSectionDivider(context),
-            _buildOtherCabinetsSection(context, cabinets),
-          ],
+          buildSectionDivider(context),
+          _buildOtherCabinetsSection(context, cabinets),
         ],
       ),
     );
@@ -483,7 +285,7 @@ class CountryInfoPage extends StatelessWidget {
               ],
             ),
           ),
-          if (trailing != null) trailing,
+          ?trailing,
         ],
       ),
     );
@@ -555,24 +357,11 @@ class CountryInfoPage extends StatelessWidget {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(cardRadius),
                             child: leader.imageUrl.isNotEmpty
-                                ? buildImageWidget(
+                                ? CivicPortrait(
                                     leader.imageUrl,
                                     fit: BoxFit.cover,
                                   )
-                                : Container(
-                                    color: const Color(0xFFF5F5F5),
-                                    child: Center(
-                                      child: SvgPicture.asset(
-                                        "Assets/PartyPage/personIcon.svg",
-                                        width: cardWidth * 0.25,
-                                        height: cardWidth * 0.25,
-                                        colorFilter: const ColorFilter.mode(
-                                          Color(0xFFBDBDBD),
-                                          BlendMode.srcIn,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                : const SizedBox.shrink(),
                           ),
                           if (leader.badge.isNotEmpty)
                             Positioned(
@@ -676,7 +465,7 @@ class CountryInfoPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'OTHER CABINATE',
+                'OTHER CABINET MINISTERS',
                 style: TextStyle(
                   fontSize: (screenWidth * (16.0 / 375.0)).clamp(15.0, 18.0),
                   fontWeight: FontWeight.w800,
@@ -696,7 +485,10 @@ class CountryInfoPage extends StatelessWidget {
             ],
           ),
           SizedBox(height: screenHeight * 0.003),
-          GridView.builder(
+          if (cabinets.isEmpty)
+            const Text('No cabinet members available.')
+          else
+            GridView.builder(
             padding: EdgeInsets.zero,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -723,24 +515,11 @@ class CountryInfoPage extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(ministerRadius),
                         child: minister.imageUrl.isNotEmpty
-                            ? buildImageWidget(
+                            ? CivicPortrait(
                                 minister.imageUrl,
                                 fit: BoxFit.cover,
                               )
-                            : Container(
-                                color: const Color(0xFFF5F5F5),
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    "Assets/PartyPage/personIcon.svg",
-                                    width: screenWidth * 0.1,
-                                    height: screenWidth * 0.1,
-                                    colorFilter: const ColorFilter.mode(
-                                      Color(0xFFBDBDBD),
-                                      BlendMode.srcIn,
-                                    ),
-                                  ),
-                                ),
-                              ),
+                            : const SizedBox.shrink(),
                       ),
                     ),
                   ),

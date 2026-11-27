@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'Country_model.dart';
 
 int? _parseInt(dynamic value) {
@@ -98,9 +97,9 @@ class StateModel {
     }
 
     // Parse leaders
-    List<NationalLeader> leadersList = [];
+    final leadersList = NationalLeader.fromGovPostGroups(json['govPosts']);
     final rawLeaders = json['leaders'] ?? json['stateLeaders'] ?? json['nationalLeaders'];
-    if (rawLeaders != null && rawLeaders is List) {
+    if (leadersList.isEmpty && rawLeaders is List) {
       for (final l in rawLeaders) {
         if (l is Map) {
           leadersList.add(NationalLeader.fromJson(Map<String, dynamic>.from(l)));

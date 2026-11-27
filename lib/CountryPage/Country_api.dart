@@ -1,3 +1,4 @@
+import '../Drawer Tabs/Party/PoliticianProfile/politician_profile_api.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -109,26 +110,6 @@ class CountryProfileRepository {
         downloadable: true,
       ),
     ],
-    leaders: const [
-      NationalLeader(
-        title: 'PRESIDENTS OF INDIA',
-        name: 'Droupadi Murmu',
-        tenure: '2022 - Present',
-        badge: 'Current President',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Droupadi_Murmu_official_portrait_%28cropped%29.jpg/800px-Droupadi_Murmu_official_portrait_%28cropped%29.jpg',
-      ),
-      NationalLeader(
-        title: 'PRIME MINISTER',
-        name: 'Shri Narendra Modi',
-        tenure: '2014 - Present',
-        badge: 'Current PM',
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Prime_Minister_Narendra_Modi_in_February_2023.jpg/800px-Prime_Minister_Narendra_Modi_in_February_2023.jpg',
-        partyLogo:
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bharatiya_Janata_Party_logo.svg/800px-Bharatiya_Janata_Party_logo.svg.png',
-      ),
-    ],
   );
 
   /// Parses response data and enriches with symbols + places via supplementary calls.
@@ -155,14 +136,14 @@ class CountryProfileRepository {
       } catch (_) {}
     }
 
-    // Fetch leaders separately if not embedded in the country response
-    if (country.leaders.isEmpty) {
-      try {
-        final fetchedLeaders = await fetchCountryLeaders(country.id);
-        if (fetchedLeaders.isNotEmpty) {
-          country = country.copyWith(leaders: fetchedLeaders);
-        }
-      } catch (_) {}
+    if (countryMap['govPosts'] is! List || (countryMap['govPosts'] as List).isEmpty) {
+    try {
+      final posts = await _fetchGovPosts(countryId: country.id);
+      country = country.copyWith(leaders: _mergePosts(country.leaders, posts));
+    } on DioException catch (error) {
+      debugPrint('Could not load country government posts: ${error.type}');
+    }
+
     }
 
     // Fetch places separately if not embedded in placesToVisit
@@ -256,36 +237,66 @@ class CountryProfileRepository {
         .toList();
   }
 
-  /// [LEADERS] GET /api/v1/civic/leaders?ownerType=COUNTRY&ownerId={id}
-  /// Fetches national leaders (president, prime minister, etc.) for the country.
-  Future<List<NationalLeader>> fetchCountryLeaders(int countryId) async {
-    try {
-      final response = await _dio.get(
-        '$api/api/v1/civic/leaders',
-        queryParameters: {
-          'ownerType': 'COUNTRY',
-          'ownerId': countryId,
-        },
-      );
-
-      return _parseLeadersResponse(response.data);
-    } catch (_) {}
-
-    return [];
+  List<NationalLeader> _mergePosts(List<NationalLeader> embedded, List<NationalLeader> fetched) {
+    final merged = [...embedded];
+    for (final post in fetched) {
+      final index = merged.indexWhere((existing) =>
+          existing.postId != null && post.postId != null
+              ? existing.postId == post.postId
+              : existing.title == post.title && existing.name == post.name && existing.tenure == post.tenure);
+      if (index < 0) {
+        merged.add(post);
+      } else if (merged[index].imageUrl.isEmpty && post.imageUrl.isNotEmpty) {
+        final original = merged[index];
+        merged[index] = NationalLeader(
+          postId: post.postId, title: original.title, name: original.name,
+          tenure: original.tenure, badge: original.badge, partyLogo: original.partyLogo,
+          imageUrl: post.imageUrl,
+        );
+      }
+    }
+    return merged;
   }
 
-  List<NationalLeader> _parseLeadersResponse(dynamic responseData) {
-    if (responseData == null) return [];
-    final dynamic rawData = responseData is Map<String, dynamic>
-        ? (responseData['data'] ?? responseData)
-        : responseData;
-    List items = [];
-    if (rawData is List) {
-      items = rawData;
-    } else if (rawData is Map) {
-      items = (rawData['items'] ?? rawData['content'] ?? rawData['leaders'] ?? rawData['nationalLeaders'] ?? rawData['data'] ?? []) as List;
+  Future<List<NationalLeader>> _fetchGovPosts({int? countryId, int? stateId}) async {
+    final leaders = <NationalLeader>[];
+    for (var page = 0; ; page++) {
+      final response = await _dio.get('$api/api/v1/civic/gov-posts', queryParameters: {
+        if (countryId != null) 'countryId': countryId,
+        if (stateId != null) 'stateId': stateId,
+        'page': page,
+      });
+      final data = response.data['data'];
+      final items = data is List ? data : data is Map ? data['items'] : null;
+      if (items is! List) return leaders;
+      for (final item in items.whereType<Map>()) {
+        var post = Map<String, dynamic>.from(item);
+        // Search returns career rows. The post detail contains the holder portrait.
+        if (NationalLeader.fromJson(post).imageUrl.isEmpty && post['id'] != null) {
+          try {
+            final detail = await _dio.get('$api/api/v1/civic/gov-posts/${post['id']}');
+            final fields = detail.data['data'];
+            if (fields is Map) post.addAll(Map<String, dynamic>.from(fields));
+          } on DioException {
+            // Keep the career row when its detail request fails.
+          }
+        }
+        final jurisdiction = post['jurisdiction']?.toString().toUpperCase();
+        if (jurisdiction != null && stateId == null && jurisdiction != 'NATIONAL') continue;
+        if (stateId != null && post['stateId'] != null && post['stateId'] != stateId) continue;
+        final holderId = int.tryParse('${post['holderPoliticianId']}');
+        if (holderId != null && NationalLeader.fromJson(post).imageUrl.isEmpty) {
+          try {
+            final profile = await PoliticianProfileRepository(dio: _dio).fetchPoliticianProfile(holderId);
+            post['holderImageUrl'] = profile.photoUrl;
+          } on Exception {
+            // The office and holder still belong in Info when a profile is unavailable.
+          }
+        }
+        leaders.add(NationalLeader.fromJson(post));
+      }
+      if (items.isEmpty || data is! Map || data['hasNext'] != true) return leaders;
     }
-    return items.whereType<Map>().map((e) => NationalLeader.fromJson(Map<String, dynamic>.from(e))).toList();
   }
 
     /// [PLACES] `GET /api/v1/civic/places?category=COUNTRY&ownerId={id}`
@@ -347,18 +358,15 @@ class CountryProfileRepository {
           items = (rawData['items'] ?? rawData['content'] ?? rawData['states'] ?? []) as List;
         }
 
-        final list = items
+        return items
             .whereType<Map>()
             .map((e) => StateModel.fromJson(Map<String, dynamic>.from(e)))
             .toList();
-        if (list.isNotEmpty) {
-          return list;
-        }
       }
     } catch (e) {
       debugPrint('Error fetching states list: $e');
     }
-    return [defaultKarnatakaState];
+    return [];
   }
 
   /// [FETCH COUNTRY STATES LIST]
@@ -460,14 +468,11 @@ class CountryProfileRepository {
       } catch (_) {}
     }
 
-    // Fetch state leaders separately if empty
-    if (state.leaders.isEmpty) {
-      try {
-        final fetchedLeaders = await fetchStateLeaders(state.id);
-        if (fetchedLeaders.isNotEmpty) {
-          state = state.copyWith(leaders: fetchedLeaders);
-        }
-      } catch (_) {}
+    try {
+      final posts = await _fetchGovPosts(stateId: state.id);
+      state = state.copyWith(leaders: _mergePosts(state.leaders, posts));
+    } on DioException catch (error) {
+      debugPrint('Could not load state government posts: ${error.type}');
     }
 
     // Fetch state places separately if empty
@@ -500,21 +505,6 @@ class CountryProfileRepository {
         },
       );
       return _parseSymbolsResponse(response.data);
-    } catch (_) {}
-    return [];
-  }
-
-  /// [STATE LEADERS] `GET /api/v1/civic/leaders?ownerType=STATE&ownerId={id}`
-  Future<List<NationalLeader>> fetchStateLeaders(int stateId) async {
-    try {
-      final response = await _dio.get(
-        '$api/api/v1/civic/leaders',
-        queryParameters: {
-          'ownerType': 'STATE',
-          'ownerId': stateId,
-        },
-      );
-      return _parseLeadersResponse(response.data);
     } catch (_) {}
     return [];
   }
