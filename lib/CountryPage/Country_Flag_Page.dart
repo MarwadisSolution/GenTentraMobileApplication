@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Reusable Functions/reusable_functions.dart';
 import 'Country_model.dart';
-import 'reusable_functions.dart';
 
 /// [FLAG & EMBLEM TAB PAGE] Displays the National Flag and National Emblem,
 /// along with their descriptions and download options.

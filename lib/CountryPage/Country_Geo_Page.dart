@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'Country_model.dart';
 import 'Country_page_data.dart';
-import 'india_map_widget.dart';
 
 /// [GEOGRAPHIC TAB PAGE] Responsive Geographic & Administrative Profile Section.
 /// Includes interactive Vector India Map, administrative stats, and geographic overview.

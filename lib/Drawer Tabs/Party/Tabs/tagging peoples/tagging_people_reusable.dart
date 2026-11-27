@@ -244,7 +244,7 @@ class _TaggingPeopleReusableState extends State<TaggingPeopleReusable> {
                             ),),
                             subtitle: Text( person.region?.isNotEmpty == true
                                 ? person.region!
-                                : "-",style: TextStyle(fontWeight: FontWeight.w300,letterSpacing: 0.3,color: ColorScheme.of(context).onSurface.withOpacity(0.6)),),
+                                : "-",style: TextStyle(fontWeight: FontWeight.w300,letterSpacing: 0.3,color: ColorScheme.of(context).onSurface.withValues(alpha: 0.6)),),
                             trailing: SvgPicture.asset(
                               isSelected
                                   ? PartyPageData.tickButtonColored

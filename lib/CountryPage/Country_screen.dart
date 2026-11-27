@@ -5,11 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../Favourite/favourite_api.dart';
 import '../Reusable Functions/reusable_functions.dart';
-import 'Country_model.dart';
 import 'Country_page_data.dart';
-import 'State_list_screen.dart';
-import 'State_screen.dart';
-import 'reusable_functions.dart';
 
 class CountryProfileScreen extends StatelessWidget {
   final int countryId;

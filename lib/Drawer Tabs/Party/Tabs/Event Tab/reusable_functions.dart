@@ -528,7 +528,7 @@ final h=MediaQuery.of(context).size.height;
           ),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surfaceContainerHighest
-                .withOpacity(0.45),
+                .withValues(alpha: 0.45),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color:  ColorScheme.of(context).onSurface.withValues(alpha: 0.3)
@@ -713,7 +713,7 @@ class EventTimeRangeField extends StatelessWidget {
             color: Theme.of(context)
                 .colorScheme
                 .surfaceContainerHighest
-                .withOpacity(0.45),
+                .withValues(alpha: 0.45),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: ColorScheme.of(context).onSurface.withValues(alpha: 0.3)

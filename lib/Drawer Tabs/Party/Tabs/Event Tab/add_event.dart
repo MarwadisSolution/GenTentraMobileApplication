@@ -18,7 +18,6 @@ import '../Feed Tab/reusable_functions.dart';
 import 'event_modal.dart';
 import 'event_tagged_people_helper.dart';
 import 'full_event_desc.dart';
-import 'package:intl/intl.dart';
 class AddEvent extends StatefulWidget {
   final int partyId;
   final EventModel? eventToEdit;

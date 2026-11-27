@@ -586,7 +586,7 @@ class _AddingFeedState extends State<AddingFeed> {
                                         decoration: InputDecoration(
                                           hintText: "What's your view?",
                                           hintStyle: TextStyle(
-                                              color: ColorScheme.of(context).onSurface.withOpacity(0.7),
+                                              color: ColorScheme.of(context).onSurface.withValues(alpha: 0.7),
                                               fontSize: w*0.05
                                           ),
                                           border: InputBorder.none,

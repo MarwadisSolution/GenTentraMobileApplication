@@ -16,7 +16,6 @@ import 'apis.dart';
 import 'event._tag_peoples.dart';
 import 'event_location_map.dart';
 import 'event_modal.dart' show EventModel, MediaModel, Tagged;
-import '../Feed Tab/feed_model.dart' show Tagged;
 import 'event_tab_bloc.dart';
 import 'event_tab_event.dart';
 class FullEventDesc extends StatefulWidget {

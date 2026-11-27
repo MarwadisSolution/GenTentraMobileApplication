@@ -9,22 +9,14 @@ import 'package:gen_tentra_mobile_application/Reusable%20Functions/reusable_func
 import '../../Favourite/favourite_api.dart';
 import 'Tabs/Development/development_apis.dart';
 import 'Tabs/Event Tab/event_modal.dart';
-import 'Tabs/tagged_people_helper.dart';
 import 'Tabs/tagging peoples/tagging_people_model.dart';
 import 'Tabs/tagging peoples/tagging_people_reusable.dart';
 import 'following_party_caching.dart';
-///-----------Tagging Politicins--------------
 
-import 'package:flutter/material.dart';
-
-import 'package:gen_tentra_mobile_application/Drawer Tabs/Party/Tabs/tagging peoples/tagging_people_model.dart';
-import 'package:gen_tentra_mobile_application/Drawer Tabs/Party/Tabs/tagging peoples/tagging_people_reusable.dart';
 
 // Import the file containing Tagged.
-import 'package:gen_tentra_mobile_application/Drawer Tabs/Party/Tabs/development/development_model.dart';
 
 // Import DevelopmentApis.
-import 'package:gen_tentra_mobile_application/Drawer Tabs/Party/Tabs/development/development_apis.dart' hide DevelopmentApis;
 
 typedef TaggingPeoplePickerBuilder = Widget Function(
     BuildContext context,

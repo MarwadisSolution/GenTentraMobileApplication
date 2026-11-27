@@ -550,7 +550,7 @@ void _cancelViewTimer(int postId){
                             ),
                           )
                         ),
-                        if(developments.media!=null && developments.media!.isNotEmpty)...[
+                        if(developments.media.isNotEmpty)...[
                           SizedBox(height: h * 0.012),
                           FeedMediaWidget<DevelopmentMedia>(
                             media: developments.media ?? [],

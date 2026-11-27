@@ -1,7 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Event%20Tab/event_modal.dart';
 import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/tagging%20peoples/tagging_people_model.dart';
-import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/party_page_modal.dart';
 
 class TaggingPeopleState extends Equatable{
   final String searchQuery;

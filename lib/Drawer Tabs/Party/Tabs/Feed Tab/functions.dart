@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../Event Tab/event_modal.dart';
-import 'feed_model.dart';
 
 String getTimeAgo(DateTime? timestamp) {
   if (timestamp == null) return "";

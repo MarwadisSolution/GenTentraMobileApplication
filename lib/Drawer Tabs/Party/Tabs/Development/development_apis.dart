@@ -7,7 +7,6 @@ import 'package:gen_tentra_mobile_application/Drawer%20Tabs/Party/Tabs/Developme
 
 import '../../../../Login Page/Refresh Token/refresh_token.dart';
 import '../../../../Reusable Functions/reusable_functions.dart';
-import '../../party_page_modal.dart';
 import '../tagging peoples/tagging_people_model.dart';
 
 class DevelopmentApis {
